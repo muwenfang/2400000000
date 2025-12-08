@@ -108,4 +108,13 @@ public class GameManager : MonoBehaviour
 
     }
 
+    bool isWin()
+    {
+        if(currentPoints >= targetPoints && currentRound == 75)
+        {
+            return true;
+        }
+        return false;
+    }
+
 }
