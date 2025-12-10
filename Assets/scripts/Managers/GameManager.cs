@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     // 游戏状态
-    public enum GameState { PlayerTurn, Calculation, Shop, GameOver }
+    public enum GameState { PlayerTurn, Calculation, Shop, GameOver, GameLose }
     public GameState currentState;
 
     // 玩家数据
@@ -19,7 +19,7 @@ public class GameManager : MonoBehaviour
     public BigInteger currentPoints = 0; // 使用BigInteger处理大数
     public BigInteger targetPoints = 2400000000;
     public int currentRound = 1;
-    public int roundsPerStage = 5;
+    public int roundsPerStage;
     public BigInteger stageRequirement; // 每阶段要求点数
 
     // 卡牌管理器引用
@@ -27,6 +27,18 @@ public class GameManager : MonoBehaviour
     public BlessingManager blessingManager;
     public ShopManager shopManager;
 
+
+    //阶段点数数据
+    public List<BigInteger> stagePointRequirements = new List<BigInteger>()
+    {
+       24, 240,2400,24000,2400000,24000000,240000000,2400000000
+    };
+
+    //阶段回合数
+    public List<int> stageRounds = new List<int>()
+    {
+        3,8,15,24,35,46,56,66,75
+    };
 
     void Awake()
     {
@@ -76,15 +88,17 @@ public class GameManager : MonoBehaviour
     {
         currentRound++;
 
-        // 检查是否到达收费回合
-        if (currentRound % roundsPerStage == 0)
+        foreach (int stageRound in stageRounds)
         {
-            CheckStageRequirement();
+            if (currentRound == stageRound)
+            {
+                CheckStageRequirement();
+                return;
+            }
         }
-        else
-        {
-            StartPlayerTurn();
-        }
+
+        StartPlayerTurn();
+        
     }
 
     void CheckStageRequirement()
@@ -94,6 +108,10 @@ public class GameManager : MonoBehaviour
             // 游戏失败
             GameOver(false);
         }
+        if (currentRound == 75 && currentPoints >= targetPoints)
+        {   // 达到最终目标，游戏胜利
+            GameOver(true);
+        }
         else
         {
             StartPlayerTurn();
@@ -102,19 +120,19 @@ public class GameManager : MonoBehaviour
 
     void GameOver(bool isWin)
     {
-        currentState = GameState.GameOver;
-        // 显示游戏结束界面
-        //[to do]
-
-    }
-
-    bool isWin()
-    {
-        if(currentPoints >= targetPoints && currentRound == 75)
+        if (isWin)
         {
-            return true;
+            currentState = GameState.GameOver;
+            // 显示游戏结束界面
+            //[to do]
         }
-        return false;
+        else { 
+            currentState = GameState.GameLose;
+        }
+
+
     }
+
+ 
 
 }

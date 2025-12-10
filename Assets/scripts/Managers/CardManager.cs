@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 卡牌事件
@@ -8,8 +9,9 @@ using UnityEngine;
 public class CardManager : MonoBehaviour
 {
     [Header("卡牌库")]
-    public List<NumberCardData> numberCardDeck = new List<NumberCardData>();
-    public List<FormulaCardData> formulaCardDeck = new List<FormulaCardData>();
+    public List<NumberCardData> numberCardDeck = new List<NumberCardData>();//数字卡牌库
+    public List<FormulaCardData> formulaCardDeck = new List<FormulaCardData>();//填空卡牌库
+    public Transform handCardParent;///建立手牌的父对象,作为后续给卡牌排版的容器
 
     [Header("当前手牌")]
     public List<NumberCardData> currentNumberCards = new List<NumberCardData>();
