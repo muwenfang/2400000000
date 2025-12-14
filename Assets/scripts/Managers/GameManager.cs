@@ -63,13 +63,16 @@ public class GameManager : MonoBehaviour
         cardManager.DrawCardsForTurn();
     }
 
-    public void CalculatePoints()
+    public void CalculatePoints(PlayerController formula, List<NumberCardData> numberCards)
     {
-        // 计算当前回合的点数
+        currentState = GameState.Calculation;
+        // 计算填空卡结果
+        BigInteger result = formula.CalculateResult(numberCards);
+        // 计算祝福加成与倍率
         //[to do]
 
 
-        BigInteger result;
+
         // 添加到总点数
         AddPoints(result);
 
@@ -81,7 +84,7 @@ public class GameManager : MonoBehaviour
     {
         currentPoints += points;
         // 更新UI显示
-        //[to do]
+        UIManager.Instance.UpdatePointsDisplay(currentPoints);
     }
 
     public void EndTurn()
@@ -132,7 +135,5 @@ public class GameManager : MonoBehaviour
 
 
     }
-
- 
 
 }

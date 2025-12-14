@@ -6,6 +6,7 @@ using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
+    public static UIManager Instance;
     [Header("UI组件")]
     public Text pointsText;//显示当前点数
     public Text roundText;//显示当前回合
@@ -14,6 +15,11 @@ public class UIManager : MonoBehaviour
 
     public GameObject numberCardPrefab;
     public GameObject formulaCardPrefab;
+
+    void Awake()
+    {
+        Instance = this;
+    }
 
     public void UpdatePointsDisplay(BigInteger points)
     {
