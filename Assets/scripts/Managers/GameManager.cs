@@ -131,6 +131,8 @@ public class GameManager : MonoBehaviour
         }
         else { 
             currentState = GameState.GameLose;
+            // 显示游戏失败界面
+            //[to do]
         }
 
 

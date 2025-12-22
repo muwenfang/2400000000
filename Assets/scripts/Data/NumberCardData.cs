@@ -56,5 +56,27 @@ public class NumberCardData
         }
     }
 
+    //投骰子
+    private int RollDice()
+    {  
+        //根据骰子类型返回随机数值
+        //【to do】
+        switch (diceType)
+        {
+            case DiceType.D4:
+                return Random.Range(1, 5);
+            case DiceType.D6:
+                return Random.Range(1, 7);
+            case DiceType.D8:
+                return Random.Range(1, 9);
+            case DiceType.D12:
+                return Random.Range(1, 13);
+            case DiceType.D20:
+                return Random.Range(1, 21);
+            default:
+                return 0;
+        }
+        return 0;
+    }
 
 }
