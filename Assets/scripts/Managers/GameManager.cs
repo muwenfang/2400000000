@@ -65,6 +65,9 @@ public class GameManager : MonoBehaviour
 
     public void CalculatePoints(PlayerController formula, List<NumberCardData> numberCards)
     {
+        if (currentState != GameState.PlayerTurn)
+            return;
+
         currentState = GameState.Calculation;
         // 计算填空卡结果
         BigInteger result = formula.CalculateResult(numberCards);
@@ -117,10 +120,17 @@ public class GameManager : MonoBehaviour
         }
         else
         {
-            StartPlayerTurn();
+            currentState = GameState.Shop;
+            shopManager.OpenShop();
         }
     }
+    public void OnShopConfirm()
+    {   //确认离开商店，开始下一回合
+        if (currentState != GameState.Shop)
+            return;
 
+        StartPlayerTurn();
+    }
     void GameOver(bool isWin)
     {
         if (isWin)

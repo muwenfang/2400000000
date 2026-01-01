@@ -13,4 +13,11 @@ public class ShopManager : MonoBehaviour
     public BlessingData blessingData;
     public FormulaCardData formulaCardData;
     public NumberCardData numberCardData;
+
+    public void OpenShop()
+    {
+        Shop.SetActive(true);
+        // 加载商店商品
+        // [to do]
+    }
 }

@@ -1,82 +1,102 @@
-﻿using System.Collections;
+﻿using JetBrains.Annotations;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
+using static NumberCardFactory;
 
 /// <summary>
 /// 数字卡数据
 /// </summary>
-public class NumberCardData
+
+[System.Serializable]
+public class NumberComponent
 {
-    public enum CardType { Fixed, Dice, Incremental }
-    public CardType cardType;
+    public bool isDice = false;
+    public bool isIncremental = false;
+    public int value;//数值
+    public int price;//价格
+    public int diceSides;
+}
 
-    [Header("固定数字")]
-    public int fixedValue;
+[CreateAssetMenu(fileName = "MyNumberCards", menuName = "CardData/NumberCardData", order = 1)]
+public class NumberCardData:ScriptableObject
+{
+    public string cardName;
+    
+    public NumberComponent partA;
+    public NumberComponent partB;
 
-    [Header("骰子类型")]
-    public DiceType diceType; // 1-5级对应不同面数
-    public enum DiceType { D4 = 4, D6 = 6, D8 = 8, D12 = 12, D20 = 20 }
-
-    [Header("递增数字")]
-    public int incrementalValue; // 当前值
-    public int incrementalBase;  // 基础递增值
-
-    public string GetDisplayValue()
-    {//显示卡牌数值
-     //【to do】
-        switch (cardType)
-        { 
-            case CardType.Fixed:
-                return fixedValue.ToString();
-            case CardType.Dice:
-            //显示骰子类型
-            case CardType.Incremental:
-            //显示递增数字卡牌的当前值
-            default: 
-                return "" ;
-        }
-    }
-
-    public BigInteger GetValue()
+    public enum LogicalType
     {
-        //获取卡牌数值
-        //【to do】
-        switch (cardType)
-        {
-            case CardType.Fixed:
-            //返回固定数字值
-            case CardType.Dice:
-            //返回掷骰子结果
-            case CardType.Incremental:
-            //返回递增数字卡牌的当前值
-            default:
-                return 0;
+        Addition,
+        Multiplication,
+        Power
+    }
 
+    public LogicalType logicalType;
+
+}
+public class NumberCardInstance 
+{
+    public NumberCardData cardData; //卡牌数据
+    //当前数值
+    public int currentA;
+    public int currentB;
+
+    public NumberCardInstance(NumberCardData cardData)
+    {
+        this.cardData = cardData;
+        currentA = ResolveInitialValue(cardData.partA);
+        currentB = ResolveInitialValue(cardData.partB);
+
+    }
+
+    private int ResolveInitialValue(NumberComponent component)
+    {
+        if (component.isDice)
+        {
+            return DiceHelper.RollDice(component.diceSides); // 抽中时掷一次
+        }
+        return component.value;
+    }
+    public void OnDrawn()
+    {   // 抽中时调用，处理掷骰和递增
+        RollIfDice(cardData.partA, ref currentA);
+        RollIfDice(cardData.partB, ref currentB);
+    }
+    private void RollIfDice(NumberComponent comp, ref int currentValue)
+    {
+        if (comp.isDice)
+        {   // 掷骰子
+            currentValue = DiceHelper.RollDice(comp.diceSides);
+        }
+        else if (comp.isIncremental)
+        {
+            // 递增
+            currentValue++;
         }
     }
 
-    //投骰子
-    private int RollDice()
-    {  
-        //根据骰子类型返回随机数值
-        //【to do】
-        switch (diceType)
+
+    public int GetOutPutValue()
+    {
+
+        switch (cardData.logicalType)
         {
-            case DiceType.D4:
-                return Random.Range(1, 5);
-            case DiceType.D6:
-                return Random.Range(1, 7);
-            case DiceType.D8:
-                return Random.Range(1, 9);
-            case DiceType.D12:
-                return Random.Range(1, 13);
-            case DiceType.D20:
-                return Random.Range(1, 21);
+            case NumberCardData.LogicalType.Addition:
+                return currentA + currentB;
+
+            case NumberCardData.LogicalType.Multiplication:
+                return currentA * currentB;
+
+            case NumberCardData.LogicalType.Power:
+                return (int)Mathf.Pow(currentA, currentB);
+
             default:
-                return 0;
+                return currentA; // 反正得有个default返回值
         }
-        return 0;
-    }
+
+    }   
 
 }
