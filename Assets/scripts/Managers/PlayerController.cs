@@ -6,7 +6,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// 拖动卡牌，当前回合等玩家相关信息的管理，结算
+/// 拖动卡牌
 /// </summary>
 public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -47,10 +47,5 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
         LayoutRebuilder.ForceRebuildLayoutImmediate(originalParent as RectTransform);
     }
-    public BigInteger CalculateResult(List<NumberCardData> numberCards)
-    {
-        //计算逻辑
-        //【to do】
-        return 0;
-    }
+
 }

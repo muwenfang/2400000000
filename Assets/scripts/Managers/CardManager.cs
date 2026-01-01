@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,14 +21,16 @@ public class CardManager : MonoBehaviour
     public GameObject CardUIPrefab;
     public Transform CardContent;
     public void InitializeStarterDeck()
-    {
+    {   
+        Debug.Log("初始化玩家起始卡组");
         // 初始化玩家的起始卡组
         // [to do]
     }
 
     public void DrawCardsForTurn()
     {
-        DrawNumberCards(currentFormulaCard.RequiredCount);  
+        DrawNumberCards(currentFormulaCard.RequiredCount);
+        DrawFormulaCards();
 
     }
 
@@ -35,14 +38,14 @@ public class CardManager : MonoBehaviour
     {
         // 用临时池，避免一回合内重复抽
         List<NumberCardData> tempDeck = new List<NumberCardData>(numberCardDeck);
-
+        Debug.Log("正在抽取数字卡牌");
         for (int i = 0; i < count; i++)
         {
             if (tempDeck.Count == 0) break;
 
             int randomIndex = Random.Range(0, tempDeck.Count);
             NumberCardData selectedData = tempDeck[randomIndex];
-            tempDeck.RemoveAt(randomIndex);
+            tempDeck.RemoveAt(randomIndex);// 从临时池中移除已抽取的卡牌
 
             // 创建卡牌实例
             NumberCardInstance instance = new NumberCardInstance(selectedData);
@@ -56,14 +59,28 @@ public class CardManager : MonoBehaviour
             //  UI
             CreateCardUI(instance);
         }
+        Debug.Log("数字卡牌抽取完成");
+    }
+    public void DrawFormulaCards()
+    {   
+        Debug.Log("正在抽取填空卡牌");
+        // 抽取填空卡牌
+        //[to do]
+        Debug.Log("填空卡牌抽取完成");
     }
     void CreateCardUI(NumberCardInstance instance)
     {
         // 实例化卡牌 UI 预制件
         //[to do]
     }
-
-
-
-
+    public BigInteger CalculateResult(List<NumberCardData> numberCards)
+    {   
+        Debug.Log("正在计算填空卡牌结果");
+        
+        BigInteger result = 0;
+        //计算逻辑
+        //【to do】
+        Debug.Log($"点数为{result}");
+        return result;
+    }
 }

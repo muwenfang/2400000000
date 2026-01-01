@@ -46,7 +46,6 @@ public class NumberCardInstance
 
     public NumberCardInstance(NumberCardData cardData)
     {
-        this.cardData = cardData;
         currentA = ResolveInitialValue(cardData.partA);
         currentB = ResolveInitialValue(cardData.partB);
 
@@ -56,16 +55,16 @@ public class NumberCardInstance
     {
         if (component.isDice)
         {
-            return DiceHelper.RollDice(component.diceSides); // 抽中时掷一次
+            return DiceHelper.RollDice(component.diceSides); // 掷一次
         }
         return component.value;
     }
     public void OnDrawn()
     {   // 抽中时调用，处理掷骰和递增
-        RollIfDice(cardData.partA, ref currentA);
-        RollIfDice(cardData.partB, ref currentB);
+        SpecialNumberHandler(cardData.partA, ref currentA);
+        SpecialNumberHandler(cardData.partB, ref currentB);
     }
-    private void RollIfDice(NumberComponent comp, ref int currentValue)
+    private void SpecialNumberHandler(NumberComponent comp, ref int currentValue)
     {
         if (comp.isDice)
         {   // 掷骰子
@@ -97,6 +96,11 @@ public class NumberCardInstance
                 return currentA; // 反正得有个default返回值
         }
 
-    }   
+    } 
+    public int GetNumberCardPrice()
+    {   // 计算卡牌价格
+        //[to do]
+        return 0;
+    }
 
 }

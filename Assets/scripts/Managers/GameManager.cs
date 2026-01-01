@@ -58,12 +58,13 @@ public class GameManager : MonoBehaviour
 
     public void StartPlayerTurn()
     {
+        Debug.Log("开始回合");
         currentState = GameState.PlayerTurn;
         // 抽填空计算卡和对应数量的数字卡
         cardManager.DrawCardsForTurn();
     }
 
-    public void CalculatePoints(PlayerController formula, List<NumberCardData> numberCards)
+    public void CalculatePoints(CardManager formula, List<NumberCardData> numberCards)
     {
         if (currentState != GameState.PlayerTurn)
             return;
@@ -79,8 +80,8 @@ public class GameManager : MonoBehaviour
         // 添加到总点数
         AddPoints(result);
 
-        // 结束回合
-        EndTurn();
+        // 商店阶段
+        CheckStageRequirement();
     }
 
     public void AddPoints(BigInteger points)
@@ -129,7 +130,7 @@ public class GameManager : MonoBehaviour
         if (currentState != GameState.Shop)
             return;
 
-        StartPlayerTurn();
+        EndTurn();
     }
     void GameOver(bool isWin)
     {
