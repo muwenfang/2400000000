@@ -31,7 +31,8 @@ public class NumberCardData:ScriptableObject
     {
         Addition,
         Multiplication,
-        Power
+        Power,
+        normal
     }
 
     public LogicalType logicalType;
@@ -41,24 +42,17 @@ public class NumberCardInstance
 {
     public NumberCardData cardData; //卡牌数据
     //当前数值
-    public int currentA;
-    public int currentB;
+    public int currentA = 0;
+    public int currentB = 0;
 
     public NumberCardInstance(NumberCardData cardData)
     {
-        currentA = ResolveInitialValue(cardData.partA);
-        currentB = ResolveInitialValue(cardData.partB);
-
+        this.cardData = cardData;
+        currentA = cardData.partA.value;
+        currentB = cardData.partB.value;
     }
 
-    private int ResolveInitialValue(NumberComponent component)
-    {
-        if (component.isDice)
-        {
-            return DiceHelper.RollDice(component.diceSides); // 掷一次
-        }
-        return component.value;
-    }
+
     public void OnDrawn()
     {   // 抽中时调用，处理掷骰和递增
         SpecialNumberHandler(cardData.partA, ref currentA);
@@ -93,7 +87,7 @@ public class NumberCardInstance
                 return (int)Mathf.Pow(currentA, currentB);
 
             default:
-                return currentA; // 反正得有个default返回值
+                return currentA;
         }
 
     } 

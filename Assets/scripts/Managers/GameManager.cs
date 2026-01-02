@@ -11,7 +11,7 @@ public class GameManager : MonoBehaviour
     public static GameManager Instance;
 
     // 游戏状态
-    public enum GameState { PlayerTurn, Calculation, Shop, GameOver, GameLose }
+    public enum GameState { MainMenu, PlayerTurn, Calculation, Shop, GameOver, GameLose }
     public GameState currentState;
 
     // 玩家数据
@@ -43,13 +43,36 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
-        InitializeGame();
+    }
+    void Start()
+    {
+        EnterMainMenu();
+        Debug.Log("进入游戏"); 
     }
 
-    void InitializeGame()
+    void EnterMainMenu()
+    {   
+        currentState = GameState.MainMenu;
+        // 显示主菜单UI
+        UIManager.Instance.ShowStartMenu();
+    }
+    public void OnStartButtonClicked()
     {
+        if (GameManager.Instance.currentState != GameState.MainMenu)
+            return;
+
+        GameManager.Instance.InitializeGame();
+    }
+
+    public void InitializeGame()
+    {   
+        Debug.Log("初始化游戏");
+        currentPoints = 0;
+        currentRound = 1;
         // 初始化玩家卡组
         cardManager.InitializeStarterDeck();
+        // 隐藏开始界面
+        UIManager.Instance.HideStartMenu();
         // 开始第一回合
         StartPlayerTurn();
     }
@@ -80,7 +103,7 @@ public class GameManager : MonoBehaviour
         // 添加到总点数
         AddPoints(result);
 
-        // 商店阶段
+        // 检查点数
         CheckStageRequirement();
     }
 
@@ -113,11 +136,11 @@ public class GameManager : MonoBehaviour
         if (currentPoints < stageRequirement)
         {
             // 游戏失败
-            GameOver(false);
+            WinGame(false);
         }
         if (currentRound == 75 && currentPoints >= targetPoints)
         {   // 达到最终目标，游戏胜利
-            GameOver(true);
+            WinGame(true);
         }
         else
         {
@@ -132,7 +155,7 @@ public class GameManager : MonoBehaviour
 
         EndTurn();
     }
-    void GameOver(bool isWin)
+    void WinGame(bool isWin)
     {
         if (isWin)
         {

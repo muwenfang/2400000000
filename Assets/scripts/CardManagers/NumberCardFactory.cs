@@ -14,19 +14,23 @@ public class NumberCardFactory
 
         float rand = Random.value;//0~1之间的随机数
 
-        if (rand < 0.33f)//加法卡
+        if (rand < 0.25f)//加法卡
         {
             data.logicalType = NumberCardData.LogicalType.Addition;
 
         }
-        else if (rand < 0.66f)//乘法卡
+        else if (rand < 0.5f)//乘法卡
         {
             data.logicalType = NumberCardData.LogicalType.Multiplication;
 
         }
-        else//指数卡
+        else if(rand < 0.75f)//指数卡
         {
             data.logicalType = NumberCardData.LogicalType.Power;
+        }
+        else//普通卡
+        {
+            data.logicalType = NumberCardData.LogicalType.normal;
         }
         SetupNumberComponent(data.partA);
         SetupNumberComponent(data.partB);
@@ -69,17 +73,15 @@ public class NumberCardFactory
         }
 
         public static int RollDice(int sides)
-        {
-            sides = GetMaxSide();//获取骰子最大面数
+        {      
             return Random.Range(1, sides + 1);
             //掷骰子，返回1到max之间的随机数
             //这个是暂定的，之后会改
         }
 
         //ui
-        public static string GetDiceName(int currentVal)
+        public static string GetDiceName(int sides)
         {
-            int sides = GetMaxSide();
             return "D" + sides.ToString();
 
         }
