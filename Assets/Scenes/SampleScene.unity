@@ -358,6 +358,7 @@ GameObject:
   - component: {fileID: 911707645}
   - component: {fileID: 911707644}
   - component: {fileID: 911707647}
+  - component: {fileID: 911707648}
   m_Layer: 0
   m_Name: EventSystem
   m_TagString: Untagged
@@ -428,12 +429,35 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   startMenuPanel: {fileID: 456186445012800715, guid: c37368393ac86584dad7cd3f69b33d4b, type: 3}
+  gameUIPanel: {fileID: 1156079904266295866, guid: a64aa230892c6e54da98614e5ffaa63c, type: 3}
+  gameOverPanel: {fileID: 0}
+  shopPanel: {fileID: 2494909018690337413, guid: 75ff33b2aad078b45855e08a6135bf70, type: 3}
+  confirmPanel: {fileID: 8736845817994137018, guid: 5860990b595582f4f9f167d8e9973523, type: 3}
   pointsText: {fileID: 0}
   roundText: {fileID: 0}
   handArea: {fileID: 467054121}
   formulaArea: {fileID: 1853040903}
   numberCardPrefab: {fileID: 0}
   formulaCardPrefab: {fileID: 0}
+--- !u!114 &911707648
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 911707643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a71abbb8e4d5584389e8c4820c88cfb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentState: 0
+  currentRound: 1
+  roundsPerStage: 0
+  cardManager: {fileID: 0}
+  blessingManager: {fileID: 0}
+  shopManager: {fileID: 0}
+  stageRounds: 03000000080000000f00000018000000230000002e00000038000000420000004b000000
 --- !u!224 &1853040903 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 8781748606735374387, guid: a64aa230892c6e54da98614e5ffaa63c, type: 3}
@@ -555,6 +579,26 @@ PrefabInstance:
       propertyPath: m_Name
       value: StartMenuPanel
       objectReference: {fileID: 0}
+    - target: {fileID: 1938674989805726725, guid: c37368393ac86584dad7cd3f69b33d4b, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 1938674989805726725, guid: c37368393ac86584dad7cd3f69b33d4b, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: set_name
+      objectReference: {fileID: 0}
+    - target: {fileID: 1938674989805726725, guid: c37368393ac86584dad7cd3f69b33d4b, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
+    - target: {fileID: 1938674989805726725, guid: c37368393ac86584dad7cd3f69b33d4b, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_StringArgument
+      value: ' InitializeGame() '
+      objectReference: {fileID: 0}
+    - target: {fileID: 1938674989805726725, guid: c37368393ac86584dad7cd3f69b33d4b, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
+      objectReference: {fileID: 0}
     - target: {fileID: 2535065216863233688, guid: c37368393ac86584dad7cd3f69b33d4b, type: 3}
       propertyPath: m_SizeDelta.x
       value: 300
@@ -601,7 +645,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 5463607929047713716, guid: c37368393ac86584dad7cd3f69b33d4b, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -88
+      value: -97
       objectReference: {fileID: 0}
     - target: {fileID: 6671871588287834926, guid: c37368393ac86584dad7cd3f69b33d4b, type: 3}
       propertyPath: m_SizeDelta.x
@@ -713,7 +757,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7635703613282103518, guid: c37368393ac86584dad7cd3f69b33d4b, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -215
+      value: -230
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

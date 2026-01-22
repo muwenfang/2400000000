@@ -53,15 +53,80 @@ public class UIManager : MonoBehaviour
         roundText.text = $"回合: {round}";
     }
 
-    public void UpdateFormulaDisplay(FormulaCardData formula) 
+    void CreateCardUI(NumberCardInstance instance)
     {
-        // 更新填空卡显示
-        //[to do]
+        GameObject cardUI = Instantiate(CardUIPrefab, CardContent);
+
+        CardUI ui = cardUI.GetComponent<CardUI>();
+        if (ui != null)
+        {
+            ui.BindNumberCard(instance);
+        }
+    }
+    void CreateFormulaCardUI(FormulaCardData formula)
+    {
+        GameObject cardUI = Instantiate(CardUIPrefab, CardContent);
+
+        CardUI ui = cardUI.GetComponent<CardUI>();
+        if (ui != null)
+        {
+            ui.BindFormulaCard(formula);
+        }
     }
 
-    public void UpdateHandDisplay(NumberCardData numberCards)
+
+}
+
+public class CardUI : MonoBehaviour// 卡牌UI显示脚本
+{
+    public Text titleText;
+    public Text contentText;
+
+    public void BindNumberCard(NumberCardInstance card)
     {
-        // 更新手牌显示
-        //[to do]
+        titleText.text = "数字卡";
+        contentText.text = $"{card.currentA} , {card.currentB}";
+    }
+
+    public void BindFormulaCard(FormulaCardData card)
+    {
+        titleText.text = "公式卡";
+        contentText.text = card.Pattern;
     }
 }
+
+
+public class ShopCardUI : MonoBehaviour
+{
+    NumberCardData numberData;
+    FormulaCardData formulaData;
+    bool isNumber;
+
+    public void BindNumberCard(NumberCardData data)// 绑定数字卡数据
+    {
+        numberData = data;
+        isNumber = true;
+        // 刷UI
+    }
+
+    public void BindFormulaCard(FormulaCardData data)// 绑定填空卡数据
+    {
+        formulaData = data;
+        isNumber = false;
+    }
+
+    public void OnBuyClick()// 购买按钮点击事件
+    {
+        if (isNumber)
+        {
+            PlayerCardInventory.Instance.AddNumberCard(Instantiate(numberData));
+        }
+        else
+        {
+            PlayerCardInventory.Instance.AddFormulaCard(formulaData);
+        }
+
+        Destroy(gameObject); // 从商店移除
+    }
+}
+
