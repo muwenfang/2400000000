@@ -91,10 +91,12 @@ public class NumberCardInstance
         }
 
     } 
-    public int GetNumberCardPrice()
+    public int GetNumberCardPrice(NumberCardData card)
     {   // 计算卡牌价格
         //[to do]
-        return 0;
+        int price = 0;
+
+        return price;
     }
 
 }

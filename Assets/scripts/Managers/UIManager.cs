@@ -21,6 +21,10 @@ public class UIManager : MonoBehaviour
     public Transform handArea;//手牌区域
     public Transform formulaArea;//填空卡区域
 
+    [Header("商店卡牌显示区域")]
+    public Transform shopNumberArea;
+    public Transform shopFormulaArea;
+
     public GameObject numberCardPrefab;
     public GameObject formulaCardPrefab;
 
@@ -52,29 +56,47 @@ public class UIManager : MonoBehaviour
     {
         roundText.text = $"回合: {round}";
     }
-
-    void CreateCardUI(NumberCardInstance instance)
+    // 手牌显示
+    public void ShowHandCards(List<NumberCardInstance> handCards)
     {
-        GameObject cardUI = Instantiate(CardUIPrefab, CardContent);
+        ClearArea(handArea);
 
-        CardUI ui = cardUI.GetComponent<CardUI>();
-        if (ui != null)
+        foreach (var card in handCards)
         {
-            ui.BindNumberCard(instance);
-        }
-    }
-    void CreateFormulaCardUI(FormulaCardData formula)
-    {
-        GameObject cardUI = Instantiate(CardUIPrefab, CardContent);
-
-        CardUI ui = cardUI.GetComponent<CardUI>();
-        if (ui != null)
-        {
-            ui.BindFormulaCard(formula);
+            var go = Instantiate(numberCardPrefab, handArea);
+            go.GetComponent<CardUI>().BindNumberCard(card);
         }
     }
 
 
+    // 商店显示
+    public void ShowShopNumberCards(List<ShopItem<NumberCardData>> items)
+    {
+        ClearArea(shopNumberArea);
+
+        foreach (var item in items)
+        {
+            var go = Instantiate(numberCardPrefab, shopNumberArea);
+            go.GetComponent<ShopCardUI>().BindNumberItem(item);
+        }
+    }
+
+    public void ShowShopFormulaCards(List<ShopItem<FormulaCardData>> items)
+    {
+        ClearArea(shopFormulaArea);
+
+        foreach (var item in items)
+        {
+            var go = Instantiate(formulaCardPrefab, shopFormulaArea);
+            go.GetComponent<ShopCardUI>().BindFormulaItem(item);
+        }
+    }
+
+    void ClearArea(Transform area)
+    {
+        foreach (Transform child in area)
+            Destroy(child.gameObject);
+    }
 }
 
 public class CardUI : MonoBehaviour// 卡牌UI显示脚本
@@ -84,13 +106,13 @@ public class CardUI : MonoBehaviour// 卡牌UI显示脚本
 
     public void BindNumberCard(NumberCardInstance card)
     {
-        titleText.text = "数字卡";
-        contentText.text = $"{card.currentA} , {card.currentB}";
+        titleText.text = card.cardData.cardName;
+        contentText.text = card.GetOutPutValue().ToString();
     }
 
     public void BindFormulaCard(FormulaCardData card)
     {
-        titleText.text = "公式卡";
+        titleText.text = card.Name;
         contentText.text = card.Pattern;
     }
 }
@@ -98,35 +120,49 @@ public class CardUI : MonoBehaviour// 卡牌UI显示脚本
 
 public class ShopCardUI : MonoBehaviour
 {
-    NumberCardData numberData;
-    FormulaCardData formulaData;
-    bool isNumber;
+    ShopItem<NumberCardData> numberItem;
+    ShopItem<FormulaCardData> formulaItem;
 
-    public void BindNumberCard(NumberCardData data)// 绑定数字卡数据
+    public Text titleText;
+    public Text priceText;
+    public Button buyButton;
+
+    public void BindNumberItem(ShopItem<NumberCardData> item)
     {
-        numberData = data;
-        isNumber = true;
-        // 刷UI
+        numberItem = item;
+        formulaItem = null;
+
+        titleText.text = item.cardData.cardName;
+        priceText.text = item.price.ToString();
     }
 
-    public void BindFormulaCard(FormulaCardData data)// 绑定填空卡数据
+    public void BindFormulaItem(ShopItem<FormulaCardData> item)
     {
-        formulaData = data;
-        isNumber = false;
+        formulaItem = item;
+        numberItem = null;
+
+        titleText.text = item.cardData.Name;
+        priceText.text = item.price.ToString();
     }
 
-    public void OnBuyClick()// 购买按钮点击事件
+    public void OnBuyClick()
     {
-        if (isNumber)
-        {
-            PlayerCardInventory.Instance.AddNumberCard(Instantiate(numberData));
-        }
-        else
-        {
-            PlayerCardInventory.Instance.AddFormulaCard(formulaData);
-        }
+        bool success = false;
 
-        Destroy(gameObject); // 从商店移除
+        if (numberItem != null)
+            success = ShopManager.Instance.TryBuyNumberCard(numberItem);
+
+        if (formulaItem != null)
+            success = ShopManager.Instance.TryBuyFormulaCard(formulaItem);
+
+        if (success)
+        {
+            buyButton.interactable = false;
+            priceText.text = "已售出";
+        }
     }
 }
+
+    
+
 

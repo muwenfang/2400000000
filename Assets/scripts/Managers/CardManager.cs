@@ -107,14 +107,28 @@ public class CardManager : MonoBehaviour
 
         Debug.Log("抽到公式卡：" + currentFormulaCard.Name);
 
-        //CreateFormulaCardUI(currentFormulaCard);
-        //[to do]
+        CreateFormulaCardUI(currentFormulaCard);
         Debug.Log("填空卡牌抽取完成");
     }
     void CreateCardUI(NumberCardInstance instance)
     {
-        // 实例化卡牌 UI 预制件
-        //[to do]
+        GameObject cardUI = Instantiate(CardUIPrefab, CardContent);
+
+        CardUI ui = cardUI.GetComponent<CardUI>();
+        if (ui != null)
+        {
+            ui.BindNumberCard(instance);
+        }
+    }
+    void CreateFormulaCardUI(FormulaCardData formula)
+    {
+        GameObject cardUI = Instantiate(CardUIPrefab, CardContent);
+
+        CardUI ui = cardUI.GetComponent<CardUI>();
+        if (ui != null)
+        {
+            ui.BindFormulaCard(formula);
+        }
     }
     public BigInteger CalculateResult(List<NumberCardData> numberCards)
     {   
