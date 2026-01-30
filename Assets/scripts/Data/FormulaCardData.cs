@@ -1,6 +1,8 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using UnityEngine;
 
 /// <summary>
@@ -195,3 +197,102 @@ public class FormulaCardData
         });
     }
 }
+
+//计算
+public static class FormulaCalculator
+{
+    static int index;
+    static string expr;
+
+    public static BigInteger Calculate(
+        FormulaCardData formula,
+        List<NumberCardInstance> numbers)
+    {
+        if (numbers.Count != formula.RequiredCount)
+            throw new Exception("数字数量不匹配公式需求");
+
+        // 1. 取数值
+        var values = numbers.ConvertAll(n => n.GetOutPutValue());
+
+        // 2. 构建表达式
+        expr = BuildExpression(formula.Pattern, values);
+        index = 0;
+
+        // 3. 解析并计算
+        return ParseExpression();
+    }
+
+    // =========================
+    // 构建字符串
+    // =========================
+    static string BuildExpression(string pattern, List<int> values)
+    {
+        int i = 0;
+        var result = "";
+
+        foreach (char c in pattern)
+        {
+            if (c == '#')
+                result += values[i++];
+            else
+                result += c;
+        }
+        return result;
+    }
+
+    // =========================
+    // 解析器
+    // Grammar:
+    // expression = term { + term }
+    // term       = factor { * factor }
+    // factor     = number | (expression)
+    // =========================
+
+    static BigInteger ParseExpression()
+    {
+        BigInteger value = ParseTerm();
+
+        while (index < expr.Length && expr[index] == '+')
+        {
+            index++; // skip '+'
+            value += ParseTerm();
+        }
+
+        return value;
+    }
+
+    static BigInteger ParseTerm()
+    {
+        BigInteger value = ParseFactor();
+
+        while (index < expr.Length && expr[index] == '*')
+        {
+            index++; // skip '*'
+            value *= ParseFactor();
+        }
+
+        return value;
+    }
+
+    static BigInteger ParseFactor()
+    {
+        if (expr[index] == '(')
+        {
+            index++; // skip '('
+            BigInteger value = ParseExpression();
+            index++; // skip ')'
+            return value;
+        }
+
+        // 解析数字
+        BigInteger number = 0;
+        while (index < expr.Length && char.IsDigit(expr[index]))
+        {
+            number = number * 10 + (expr[index] - '0');
+            index++;
+        }
+
+        return number;
+    }
+}
+

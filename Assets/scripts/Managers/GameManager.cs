@@ -56,13 +56,6 @@ public class GameManager : MonoBehaviour
         // 显示主菜单UI
         UIManager.Instance.ShowStartMenu();
     }
-    public void OnStartButtonClicked()
-    {
-        if (GameManager.Instance.currentState != GameState.MainMenu)
-            return;
-
-        GameManager.Instance.InitializeGame();
-    }
 
     public void InitializeGame()
     {   
