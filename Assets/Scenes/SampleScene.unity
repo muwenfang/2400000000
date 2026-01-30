@@ -437,6 +437,8 @@ MonoBehaviour:
   roundText: {fileID: 0}
   handArea: {fileID: 467054121}
   formulaArea: {fileID: 1853040903}
+  shopNumberArea: {fileID: 0}
+  shopFormulaArea: {fileID: 0}
   numberCardPrefab: {fileID: 0}
   formulaCardPrefab: {fileID: 0}
 --- !u!114 &911707648

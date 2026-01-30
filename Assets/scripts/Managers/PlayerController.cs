@@ -47,5 +47,9 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
         LayoutRebuilder.ForceRebuildLayoutImmediate(originalParent as RectTransform);
     }
+    public void ReturnStartMenu()
+    {
+        //加载起始菜单场景
 
+    }
 }

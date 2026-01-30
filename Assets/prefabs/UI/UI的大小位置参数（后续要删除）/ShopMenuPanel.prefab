@@ -2539,6 +2539,7 @@ GameObject:
   - component: {fileID: 485166628807693581}
   - component: {fileID: 5377910754866086960}
   - component: {fileID: 5379644328365047526}
+  - component: {fileID: 757432425879445872}
   m_Layer: 5
   m_Name: "Button-\u4E0B\u4E00\u56DE\u5408"
   m_TagString: Untagged
@@ -2647,7 +2648,38 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 5377910754866086960}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 757432425879445872}
+        m_TargetAssemblyTypeName: GameManager, Assembly-CSharp
+        m_MethodName: OnShopConfirm
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &757432425879445872
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5377851598689555170}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a71abbb8e4d5584389e8c4820c88cfb, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  currentState: 0
+  currentRound: 1
+  roundsPerStage: 0
+  cardManager: {fileID: 0}
+  blessingManager: {fileID: 0}
+  shopManager: {fileID: 0}
+  stageRounds: 03000000080000000f00000018000000230000002e00000038000000420000004b000000
 --- !u!1 &5940003148735033123
 GameObject:
   m_ObjectHideFlags: 0
@@ -3583,6 +3615,7 @@ GameObject:
   - component: {fileID: 1145954141923761117}
   - component: {fileID: 580116343651707168}
   - component: {fileID: 1867548124621595596}
+  - component: {fileID: 8020207386557476752}
   m_Layer: 5
   m_Name: "Button-\u5237\u65B0\u5546\u5E97"
   m_TagString: Untagged
@@ -3691,7 +3724,42 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 580116343651707168}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 8020207386557476752}
+        m_TargetAssemblyTypeName: ShopManager, Assembly-CSharp
+        m_MethodName: RefreshShop
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
+--- !u!114 &8020207386557476752
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7523470251863255842}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 17434ebe70070c943b30fd841f4d043e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  MaxnumberCardCount: 6
+  MaxformulaCardCount: 2
+  numberCardCount: 2
+  formulaCardCount: 1
+  refreshCount: 0
+  shopNumberCards: []
+  shopFormulaCards: []
+  numberArea: {fileID: 0}
+  formulaArea: {fileID: 0}
+  numberCardPrefab: {fileID: 0}
+  formulaCardPrefab: {fileID: 0}
 --- !u!1 &8144875641448343411
 GameObject:
   m_ObjectHideFlags: 0

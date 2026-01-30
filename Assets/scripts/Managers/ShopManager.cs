@@ -80,7 +80,7 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    void CreateShopUI()//
+    void CreateShopUI()
     {
         foreach (var num in shopNumberCards)
         {
@@ -112,11 +112,11 @@ public class ShopManager : MonoBehaviour
         return true;
     }
     //商店刷新
-    public bool RefreshShop()
+    public void RefreshShop()
     {
+        //扣点数
         //[to do]
         OpenShop();
-        return true;
     }
     void ClearShop()
     {
@@ -130,6 +130,11 @@ public class ShopManager : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+    }
+    public void CloseShop() 
+    {
+        //关闭商店UI
+
     }
 
 }

@@ -30,7 +30,7 @@ public class UIManager : MonoBehaviour
 
     void Awake()
     {
-        Instance = this;
+        Instance = this;//单例模式
     }
     public void ShowStartMenu() 
     {
@@ -76,8 +76,8 @@ public class UIManager : MonoBehaviour
 
         foreach (var item in items)
         {
-            var go = Instantiate(numberCardPrefab, shopNumberArea);
-            go.GetComponent<ShopCardUI>().BindNumberItem(item);
+            var go = Instantiate(numberCardPrefab, shopNumberArea);// 实例化prefab，使用 shopNumberArea 作为父对象
+            go.GetComponent<ShopCardUI>().BindNumberItem(item);// 传递 ShopItem<NumberCardData>
         }
     }
 

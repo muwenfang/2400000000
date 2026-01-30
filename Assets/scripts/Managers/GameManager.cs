@@ -103,8 +103,8 @@ public class GameManager : MonoBehaviour
         // 添加到总点数
         AddPoints(result);
 
-        // 检查点数
-        CheckStageRequirement();
+        // 检查点数，开启商店
+        EndTurn();
     }
 
     public void AddPoints(BigInteger points)
@@ -116,8 +116,6 @@ public class GameManager : MonoBehaviour
 
     public void EndTurn()
     {
-        currentRound++;
-
         foreach (int stageRound in stageRounds)
         {
             if (currentRound == stageRound)
@@ -126,9 +124,9 @@ public class GameManager : MonoBehaviour
                 return;
             }
         }
+        currentState = GameState.Shop;
+        shopManager.OpenShop();
 
-        StartPlayerTurn();
-        
     }
 
     void CheckStageRequirement()
@@ -142,18 +140,18 @@ public class GameManager : MonoBehaviour
         {   // 达到最终目标，游戏胜利
             WinGame(true);
         }
-        else
-        {
-            currentState = GameState.Shop;
-            shopManager.OpenShop();
-        }
     }
     public void OnShopConfirm()
     {   //确认离开商店，开始下一回合
         if (currentState != GameState.Shop)
             return;
 
-        EndTurn();
+        // 1. 关闭商店UI
+        shopManager.CloseShop();
+        // 2. 增加回合数
+        currentRound++;
+        // 3. 开始新回合
+        StartPlayerTurn();
     }
     void WinGame(bool isWin)
     {
