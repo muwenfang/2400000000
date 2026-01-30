@@ -9,6 +9,8 @@ using UnityEngine.UI;
 /// </summary>
 public class CardManager : MonoBehaviour
 {
+    public static CardManager Instance { get; private set; }
+
     [Header("卡牌库")]
     public List<NumberCardData> numberCardDeck = new List<NumberCardData>();//数字卡牌库
     public List<FormulaCardData> formulaCardDeck = new List<FormulaCardData>();//填空卡牌库
@@ -21,6 +23,9 @@ public class CardManager : MonoBehaviour
     [Header("当前手牌")]
     public List<NumberCardInstance> currentNumberCards = new();
     public FormulaCardData currentFormulaCard;
+
+    [Header("当前填入公式的数字卡")]
+    public List<NumberCardInstance> selectedNumberCards = new();
 
     public GameObject CardUIPrefab;
     public Transform CardContent;
@@ -130,15 +135,57 @@ public class CardManager : MonoBehaviour
             ui.BindFormulaCard(formula);
         }
     }
-    public BigInteger CalculateResult(List<NumberCardData> numberCards)
-    {   
-        Debug.Log("正在计算填空卡牌结果");
-        
-        BigInteger result = 0;
-        //计算逻辑
-        //【to do】
-        Debug.Log($"点数为{result}");
+    public BigInteger CalculateResult()
+    {
+        if (currentFormulaCard == null)
+        {
+            Debug.LogWarning("没有公式卡");
+            return 0;
+        }
+
+        if (selectedNumberCards.Count != currentFormulaCard.RequiredCount)
+        {
+            Debug.LogWarning("数字卡数量不足");
+            return 0;
+        }
+
+        BigInteger result =
+            FormulaCalculator.Calculate(
+                currentFormulaCard,
+                selectedNumberCards);
+
+        Debug.Log($"公式结果：{result}");
         return result;
+    }
+
+    public void AddNumberCardToFormula(NumberCardInstance card)
+    {
+        if (currentFormulaCard == null)
+        {
+            Debug.LogWarning("还没有公式卡");
+            return;
+        }
+
+        if (selectedNumberCards.Count >= currentFormulaCard.RequiredCount)
+        {
+            Debug.LogWarning("数字卡数量已满");
+            return;
+        }
+
+        selectedNumberCards.Add(card);
+        Debug.Log($"加入数字卡：{card.GetOutPutValue()}");
+    }
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+        }
     }
 }
 

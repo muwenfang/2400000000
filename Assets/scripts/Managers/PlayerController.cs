@@ -45,7 +45,16 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         transform.SetParent(originalParent);
         rectTransform.localPosition = originalLocalPos;
 
-        LayoutRebuilder.ForceRebuildLayoutImmediate(originalParent as RectTransform);
+        // 检测是否拖到公式区域
+        if (eventData.pointerEnter != null &&
+            eventData.pointerEnter.CompareTag("FormulaArea"))
+        {
+            CardUI ui = GetComponent<CardUI>();
+            if (ui != null)
+            {
+                CardManager.Instance.AddNumberCardToFormula(ui.BoundCard);
+            }
+        }
     }
     public void ReturnStartMenu()
     {

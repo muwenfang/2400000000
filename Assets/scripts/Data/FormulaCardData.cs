@@ -205,8 +205,7 @@ public static class FormulaCalculator
     static string expr;
 
     public static BigInteger Calculate(
-        FormulaCardData formula,
-        List<NumberCardInstance> numbers)
+        FormulaCardData formula,List<NumberCardInstance> numbers)
     {
         if (numbers.Count != formula.RequiredCount)
             throw new Exception("数字数量不匹配公式需求");

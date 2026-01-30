@@ -58,8 +58,7 @@ public class NumberCardFactory
         {
             comp.value = Random.Range(1, 10);
         }
-        //价格根据复杂度调整
-        //[to do]
+
     }
 
     public static class DiceHelper

@@ -103,9 +103,11 @@ public class CardUI : MonoBehaviour// 卡牌UI显示脚本
 {
     public Text titleText;
     public Text contentText;
+    public NumberCardInstance BoundCard { get; private set; }
 
     public void BindNumberCard(NumberCardInstance card)
     {
+        BoundCard = card;
         titleText.text = card.cardData.cardName;
         contentText.text = card.GetOutPutValue().ToString();
     }

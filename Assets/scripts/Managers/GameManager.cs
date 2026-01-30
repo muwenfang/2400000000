@@ -80,14 +80,14 @@ public class GameManager : MonoBehaviour
         cardManager.DrawCardsForTurn();
     }
 
-    public void CalculatePoints(CardManager formula, List<NumberCardData> numberCards)
+    public void CalculatePoints(CardManager formula)
     {
         if (currentState != GameState.PlayerTurn)
             return;
 
         currentState = GameState.Calculation;
         // 计算填空卡结果
-        BigInteger result = formula.CalculateResult(numberCards);
+        BigInteger result = formula.CalculateResult();
         // 计算祝福加成与倍率
         //[to do]
 
