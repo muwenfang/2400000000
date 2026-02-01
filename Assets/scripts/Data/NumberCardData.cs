@@ -23,7 +23,8 @@ public class NumberComponent
 public class NumberCardData:ScriptableObject
 {
     public string cardName;
-    
+    public NumberCardLayoutType layoutType;
+
     public NumberComponent partA;//骰子
     public NumberComponent partB;//递增
 

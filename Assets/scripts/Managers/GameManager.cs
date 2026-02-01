@@ -114,7 +114,6 @@ public class GameManager : MonoBehaviour
             if (currentRound == stageRound)
             {
                 CheckStageRequirement();
-                return;
             }
         }
         currentState = GameState.Shop;
@@ -129,7 +128,7 @@ public class GameManager : MonoBehaviour
             // 游戏失败
             WinGame(false);
         }
-        if (currentRound == 75 && currentPoints >= targetPoints)
+        if (currentRound == 75 && currentPoints == targetPoints)
         {   // 达到最终目标，游戏胜利
             WinGame(true);
         }
@@ -161,6 +160,32 @@ public class GameManager : MonoBehaviour
         }
 
 
+    }
+    public void ChangeState(GameState newState)
+    {
+        // 离开当前状态时的清理
+        switch (currentState)
+        {
+            case GameState.PlayerTurn:
+                // 清理手牌等
+                break;
+            case GameState.Shop:
+                shopManager.CloseShop();
+                break;
+        }
+
+        // 进入新状态的初始化
+        switch (newState)
+        {
+            case GameState.PlayerTurn:
+                StartPlayerTurn();
+                break;
+            case GameState.Shop:
+                shopManager.OpenShop();
+                break;
+        }
+
+        currentState = newState;
     }
 
 }

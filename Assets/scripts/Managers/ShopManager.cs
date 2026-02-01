@@ -34,19 +34,16 @@ public class ShopManager : MonoBehaviour
     public List<ShopItem<NumberCardData>> shopNumberCards = new();
     public List<ShopItem<FormulaCardData>> shopFormulaCards = new();
 
-    [Header("UI")]
-    public Transform numberArea;
-    public Transform formulaArea;
-    public GameObject numberCardPrefab;
-    public GameObject formulaCardPrefab;
-
 
     public void OpenShop()
     {
-        ClearShop();
         GenerateNumberCards();
         GenerateFormulaCards();
-        CreateShopUI();
+        // 通知UI管理器更新显示
+        UIManager.Instance.ShowShopNumberCards(shopNumberCards);
+        UIManager.Instance.ShowShopFormulaCards(shopFormulaCards);
+        // 显示商店面板
+        UIManager.Instance.ShowShopPanel(); 
     }
 
     void GenerateNumberCards()//从工厂生成随机数字卡
@@ -80,24 +77,14 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    void CreateShopUI()
-    {
-        foreach (var num in shopNumberCards)
-        {
-            var go = Instantiate(numberCardPrefab, numberArea);
-            go.GetComponent<ShopCardUI>().BindNumberItem(num); // 修正：传递ShopItem<NumberCardData>
-        }
-
-        foreach (var formula in shopFormulaCards)
-        {
-            var go = Instantiate(formulaCardPrefab, formulaArea);
-            go.GetComponent<ShopCardUI>().BindFormulaItem(formula); // 修正：传递ShopItem<FormulaCardData>
-        }
-    }
     
     public bool TryBuyNumberCard(ShopItem<NumberCardData> item)
     {
-        if (item.sold) return false;
+        if (item.sold) 
+        {
+            Debug.Log("商品已售出");
+            return false; 
+        }
         
         //[to do]
 
@@ -106,7 +93,11 @@ public class ShopManager : MonoBehaviour
     }
     public bool TryBuyFormulaCard(ShopItem<FormulaCardData> item)
     {
-        if (item.sold) return false;
+        if (item.sold)
+        {
+            Debug.Log("商品已售出");
+            return false;
+        }
         //[to do]
         item.sold = true;
         return true;
@@ -118,22 +109,14 @@ public class ShopManager : MonoBehaviour
         //[to do]
         OpenShop();
     }
-    void ClearShop()
-    {
-        shopNumberCards.Clear();
-        shopFormulaCards.Clear();
-        foreach (Transform child in numberArea)
-        {
-            Destroy(child.gameObject);
-        }
-        foreach (Transform child in formulaArea)
-        {
-            Destroy(child.gameObject);
-        }
-    }
+
     public void CloseShop() 
     {
-        //关闭商店UI
+        // 隐藏商店面板
+        if (UIManager.Instance.shopPanel != null)
+        {
+            UIManager.Instance.shopPanel.SetActive(false);
+        }
 
     }
 

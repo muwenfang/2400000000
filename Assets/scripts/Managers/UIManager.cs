@@ -4,9 +4,25 @@ using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
 
+public interface NumberCardLayoutView
+{
+    void Bind(NumberCardData data);
+}
+
+public enum NumberCardLayoutType
+{
+    Single,        // a
+    Add_AB,        // a + b
+    Multiply_AB,   // a × b
+    Composite_AB,  // 类似右图那种组合
+}
+
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
+
+    [Header("数字卡 UI 库")]
+    public NumberCardUIFactory numberCardLibrary;
 
     [Header("UI 面板引用")]
     public GameObject startMenuPanel; // 在 Inspector 中拖入主菜单面板
@@ -25,8 +41,8 @@ public class UIManager : MonoBehaviour
     public Transform shopNumberArea;
     public Transform shopFormulaArea;
 
-    public GameObject numberCardPrefab;
     public GameObject formulaCardPrefab;
+    public GameObject shopSlotPrefab; // 拖入那个带价格显示和购买按钮的 Prefab
 
     void Awake()
     {
@@ -63,9 +79,29 @@ public class UIManager : MonoBehaviour
 
         foreach (var card in handCards)
         {
-            var go = Instantiate(numberCardPrefab, handArea);
-            go.GetComponent<CardUI>().BindNumberCard(card);
+            GameObject prefab =
+                numberCardLibrary.GetPrefab(card.cardData.layoutType);
+
+            if (prefab == null)
+                continue;
+
+            GameObject go = Instantiate(prefab, handArea);
+
+            // UI 显示
+            go.GetComponent<NumberCardView>()
+              .Bind(card.cardData);
+
+            // 拖拽 + 数据
+            go.GetComponent<PlayerController>()
+              .Bind(card);
         }
+    }
+    public void ShowFormulaCard(FormulaCardData formula)
+    {
+        ClearArea(formulaArea);
+
+        var go = Instantiate(formulaCardPrefab, formulaArea);
+        go.GetComponent<FormulaCardUI>().Bind(formula);
     }
 
 
@@ -76,8 +112,23 @@ public class UIManager : MonoBehaviour
 
         foreach (var item in items)
         {
-            var go = Instantiate(numberCardPrefab, shopNumberArea);// 实例化prefab，使用 shopNumberArea 作为父对象
-            go.GetComponent<ShopCardUI>().BindNumberItem(item);// 传递 ShopItem<NumberCardData>
+            // 1. 先生成商店的“外壳”（带价格和按钮）
+            GameObject slotGo = Instantiate(shopSlotPrefab, shopNumberArea);
+            ShopCardUI shopUI = slotGo.GetComponent<ShopCardUI>();
+
+            // 2. 从工厂获取卡牌“主体”
+            GameObject cardPrefab = numberCardLibrary.GetPrefab(item.cardData.layoutType);
+            if (cardPrefab != null)
+            {
+                // 3. 将主体生成为外壳的子物体（通常生成在 shopUI 内部指定的 contentRoot 下）
+                GameObject cardBody = Instantiate(cardPrefab, shopUI.numberCardView.contentRoot);
+
+                // 4. 绑定卡牌数据（显示数值）
+                cardBody.GetComponent<NumberCardLayoutView>().Bind(item.cardData);
+            }
+
+            // 5. 绑定商店数据（显示价格、处理点击）
+            shopUI.BindNumberItem(item);
         }
     }
 
@@ -97,25 +148,14 @@ public class UIManager : MonoBehaviour
         foreach (Transform child in area)
             Destroy(child.gameObject);
     }
-}
 
-public class CardUI : MonoBehaviour// 卡牌UI显示脚本
-{
-    public Text titleText;
-    public Text contentText;
-    public NumberCardInstance BoundCard { get; private set; }
-
-    public void BindNumberCard(NumberCardInstance card)
+    // 在 UIManager 类中添加 ShowShopPanel 方法
+    public void ShowShopPanel()
     {
-        BoundCard = card;
-        titleText.text = card.cardData.cardName;
-        contentText.text = card.GetOutPutValue().ToString();
-    }
-
-    public void BindFormulaCard(FormulaCardData card)
-    {
-        titleText.text = card.Name;
-        contentText.text = card.Pattern;
+        if (shopPanel != null)
+        {
+            shopPanel.SetActive(true);
+        }
     }
 }
 
@@ -129,14 +169,21 @@ public class ShopCardUI : MonoBehaviour
     public Text priceText;
     public Button buyButton;
 
+    public NumberCardView numberCardView;
+
+
     public void BindNumberItem(ShopItem<NumberCardData> item)
     {
         numberItem = item;
-        formulaItem = null;
+        priceText.text = $"价格: {item.price}"; //
 
-        titleText.text = item.cardData.cardName;
-        priceText.text = item.price.ToString();
+        // 注意：这里不再需要调用 numberCardView.Bind，
+        // 因为 UIManager 已经手动把卡牌生成在里面并 Bind 好了。
+
+        buyButton.onClick.RemoveAllListeners();
+        buyButton.onClick.AddListener(OnBuyClick);
     }
+
 
     public void BindFormulaItem(ShopItem<FormulaCardData> item)
     {
@@ -149,22 +196,117 @@ public class ShopCardUI : MonoBehaviour
 
     public void OnBuyClick()
     {
-        bool success = false;
-
-        if (numberItem != null)
-            success = ShopManager.Instance.TryBuyNumberCard(numberItem);
-
-        if (formulaItem != null)
-            success = ShopManager.Instance.TryBuyFormulaCard(formulaItem);
-
-        if (success)
+        // 这里调用你的 ShopManager 逻辑
+        if (ShopManager.Instance.TryBuyNumberCard(numberItem))
         {
             buyButton.interactable = false;
             priceText.text = "已售出";
         }
     }
 }
+public class NumberCardView : MonoBehaviour
+{
+    public Transform contentRoot;
 
-    
+    public GameObject singlePrefab;
+    public GameObject addPrefab;
+    public GameObject multiplyPrefab;
+    public GameObject compositePrefab;
+
+    public void Bind(NumberCardData data)
+    {
+        Clear();
+
+        GameObject prefab = GetPrefab(data.layoutType);
+        GameObject ui = Instantiate(prefab, contentRoot);
+
+        ui.GetComponent<NumberCardLayoutView>()
+          .Bind(data);
+    }
+
+    void Clear()
+    {
+        foreach (Transform child in contentRoot)
+            Destroy(child.gameObject);
+    }
+
+    GameObject GetPrefab(NumberCardLayoutType type)
+    {
+        return type switch
+        {
+            NumberCardLayoutType.Single => singlePrefab,
+            NumberCardLayoutType.Add_AB => addPrefab,
+            NumberCardLayoutType.Multiply_AB => multiplyPrefab,
+            NumberCardLayoutType.Composite_AB => compositePrefab,
+            _ => singlePrefab
+        };
+    }
+}
+public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
+{
+    public Text valueText;
+
+    public void Bind(NumberCardData data)
+    {
+        valueText.text = data.partA.value.ToString();
+    }
+}
+public class Add_Multi_Power_NumberView : MonoBehaviour, NumberCardLayoutView
+{
+    public Text aText;
+    public Text bText;
+
+    public void Bind(NumberCardData data)
+    {
+        aText.text = data.partA.value.ToString();
+        bText.text = data.partB.value.ToString();
+    }
+}
+public class FormulaCardUI : MonoBehaviour
+{
+    public Transform formulaArea;          // UI 容器
+    public GameObject textPrefab;           // 显示 + * ( )
+    public GameObject slotPrefab;           // # 槽位
+
+    private readonly List<FormulaSlot> slots = new();
+
+    public void Bind(FormulaCardData formula)
+    {
+        Clear();
+
+        foreach (char c in formula.Pattern)
+        {
+            if (c == '#')
+            {
+                GameObject go = Instantiate(slotPrefab, formulaArea);
+                FormulaSlot slot = go.GetComponent<FormulaSlot>();
+                slot.Init(this);
+                slots.Add(slot);
+            }
+            else
+            {
+                GameObject go = Instantiate(textPrefab, formulaArea);
+                go.GetComponent<Text>().text = c.ToString();
+            }
+        }
+    }
+
+    void Clear()
+    {
+        foreach (Transform child in formulaArea)
+            Destroy(child.gameObject);
+
+        slots.Clear();
+    }
+
+    // 被 Slot 调用
+    public void OnSlotFilled(NumberCardInstance card)
+    {
+        CardManager.Instance.AddNumberCardToFormula(card);
+    }
+}
+
+
+
 
 
