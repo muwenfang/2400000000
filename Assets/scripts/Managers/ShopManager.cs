@@ -85,8 +85,16 @@ public class ShopManager : MonoBehaviour
             Debug.Log("商品已售出");
             return false; 
         }
+        if (GameManager.Instance.currentPoints < item.price)
+        {
+            Debug.Log("点数不足，无法购买");
+            return false;
+        }
         
-        //[to do]
+        GameManager.Instance.AddPoints(-item.price);//扣除点数
+        
+        Debug.Log("购买成功");
+        PlayerCardInventory.Instance.AddNumberCard(item.cardData);//添加数字卡到卡组
 
         item.sold = true;
         return true;
@@ -98,15 +106,34 @@ public class ShopManager : MonoBehaviour
             Debug.Log("商品已售出");
             return false;
         }
-        //[to do]
+        
+        if (GameManager.Instance.currentPoints < item.price)
+        {
+            Debug.Log("点数不足，无法购买");
+            return false;
+        }
+        PlayerCardInventory.Instance.AddFormulaCard(item.cardData);
+        GameManager.Instance.AddPoints(-item.price);
+        Debug.Log("购买成功");
+
         item.sold = true;
         return true;
     }
     //商店刷新
     public void RefreshShop()
     {
-        //扣点数
-        //[to do]
+        int currentRound = GameManager.Instance.currentRound;
+        long roundSquare = (long)Mathf.Pow(currentRound, 2);
+        long powerOfTwo = (long)Mathf.Pow(2, refreshCount);
+        long refreshCost = roundSquare * powerOfTwo;
+        if (GameManager.Instance.currentPoints < refreshCost)
+        {
+            Debug.Log("点数不足，无法刷新");
+            return;
+        }
+        GameManager.Instance.AddPoints(-refreshCost);
+        refreshCount++;//刷新次数应该每回合重置
+        
         OpenShop();
     }
 
@@ -117,7 +144,8 @@ public class ShopManager : MonoBehaviour
         {
             UIManager.Instance.shopPanel.SetActive(false);
         }
-
+        //重置刷新次数
+        refreshCount = 0;
     }
 
 }
