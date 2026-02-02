@@ -9,10 +9,15 @@ using UnityEngine.UI;
 /// </summary>
 public class CardManager : MonoBehaviour
 {
+    public static CardManager Instance { get; private set; }
+
     [Header("卡牌库")]
     public List<NumberCardData> numberCardDeck = new List<NumberCardData>();//数字卡牌库
     public List<FormulaCardData> formulaCardDeck = new List<FormulaCardData>();//填空卡牌库
     public Transform handCardParent;///建立手牌的父对象,作为后续给卡牌排版的容器
+
+    // 添加 CardContent 字段并初始化为 handCardParent
+    private Transform CardContent => handCardParent;
 
     [Header("起始牌组")]
     public List<NumberCardData> starterNumberCards = new();
@@ -22,8 +27,9 @@ public class CardManager : MonoBehaviour
     public List<NumberCardInstance> currentNumberCards = new();
     public FormulaCardData currentFormulaCard;
 
-    public GameObject CardUIPrefab;
-    public Transform CardContent;
+    [Header("当前填入公式的数字卡")]
+    public List<NumberCardInstance> selectedNumberCards = new();
+
     public void InitializeStarterDeck()
     {   
         Debug.Log("初始化玩家起始卡组");
@@ -47,11 +53,22 @@ public class CardManager : MonoBehaviour
     {
         ClearHand();
 
-        numberCardDeck = PlayerCardInventory.Instance.GetAllNumberCards();
+        numberCardDeck = new List<NumberCardData>();
+        foreach (var instance in PlayerCardInventory.Instance.GetAllNumberCards())
+        {
+            if (instance != null && instance.cardData != null)
+            {
+                numberCardDeck.Add(instance.cardData);
+            }
+        }
         formulaCardDeck = PlayerCardInventory.Instance.GetAllFormulaCards();
 
         DrawFormulaCards();
         DrawNumberCards(currentFormulaCard.RequiredCount);
+        // 通知UI管理器更新显示
+        UIManager.Instance.ShowHandCards(currentNumberCards);
+        UIManager.Instance.ShowFormulaCard(currentFormulaCard);
+
     }
     void ClearHand()// 清空当前手牌
     {
@@ -84,11 +101,8 @@ public class CardManager : MonoBehaviour
             // 抽中,掷骰
             instance.OnDrawn();
 
-            // 放入手牌
             currentNumberCards.Add(instance);
 
-            //  UI
-            CreateCardUI(instance);
         }
         Debug.Log("数字卡牌抽取完成");
     }
@@ -107,38 +121,59 @@ public class CardManager : MonoBehaviour
 
         Debug.Log("抽到公式卡：" + currentFormulaCard.Name);
 
-        CreateFormulaCardUI(currentFormulaCard);
-        Debug.Log("填空卡牌抽取完成");
     }
-    void CreateCardUI(NumberCardInstance instance)
+    
+    public BigInteger CalculateResult()
     {
-        GameObject cardUI = Instantiate(CardUIPrefab, CardContent);
-
-        CardUI ui = cardUI.GetComponent<CardUI>();
-        if (ui != null)
+        if (currentFormulaCard == null)
         {
-            ui.BindNumberCard(instance);
+            Debug.LogWarning("没有公式卡");
+            return 0;
         }
-    }
-    void CreateFormulaCardUI(FormulaCardData formula)
-    {
-        GameObject cardUI = Instantiate(CardUIPrefab, CardContent);
 
-        CardUI ui = cardUI.GetComponent<CardUI>();
-        if (ui != null)
+        if (selectedNumberCards.Count != currentFormulaCard.RequiredCount)
         {
-            ui.BindFormulaCard(formula);
+            Debug.LogWarning("数字卡数量不足");
+            return 0;
         }
-    }
-    public BigInteger CalculateResult(List<NumberCardData> numberCards)
-    {   
-        Debug.Log("正在计算填空卡牌结果");
-        
-        BigInteger result = 0;
-        //计算逻辑
-        //【to do】
-        Debug.Log($"点数为{result}");
+
+        BigInteger result =
+            FormulaCalculator.Calculate(
+                currentFormulaCard,
+                selectedNumberCards);
+
+        Debug.Log($"公式结果：{result}");
         return result;
+    }
+
+    public void AddNumberCardToFormula(NumberCardInstance card)
+    {
+        if (currentFormulaCard == null)
+        {
+            Debug.LogWarning("还没有公式卡");
+            return;
+        }
+
+        if (selectedNumberCards.Count >= currentFormulaCard.RequiredCount)
+        {
+            Debug.LogWarning("数字卡数量已满");
+            return;
+        }
+
+        selectedNumberCards.Add(card);
+        Debug.Log($"加入数字卡：{card.GetOutPutValue()}");
+    }
+
+    private void Awake()
+    {
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+        }
     }
 }
 
@@ -147,7 +182,7 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     public static PlayerCardInventory Instance;
 
     [Header("玩家拥有的数字卡")]
-    public List<NumberCardData> numberCards = new();
+    public List<NumberCardInstance> numberCards = new();
 
     [Header("玩家拥有的公式卡")]
     public List<FormulaCardData> formulaCards = new();
@@ -179,7 +214,11 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     {
         ClearAll();
 
-        numberCards.AddRange(starterNumbers);
+        // 将 NumberCardData 转换为 NumberCardInstance 后再添加
+        foreach (var card in starterNumbers)
+        {
+            numberCards.Add(new NumberCardInstance(card));
+        }
         formulaCards.AddRange(starterFormulas);
     }
 
@@ -189,7 +228,8 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
 
     public void AddNumberCard(NumberCardData card)
     {
-        numberCards.Add(card);
+        NumberCardInstance instance = new NumberCardInstance(card);
+        numberCards.Add(instance);
         Debug.Log("获得数字卡：" + card.name);
     }
 
@@ -203,7 +243,7 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     // 给抽卡系统使用
     // =========================
 
-    public List<NumberCardData> GetAllNumberCards()
+    public List<NumberCardInstance> GetAllNumberCards()
     {
         return numberCards;
     }
