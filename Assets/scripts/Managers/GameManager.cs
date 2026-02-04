@@ -51,10 +51,18 @@ public class GameManager : MonoBehaviour
     }
 
     void EnterMainMenu()
-    {   
+    {
         currentState = GameState.MainMenu;
-        // 显示主菜单UI
-        UIManager.Instance.ShowStartMenu();
+
+        // 添加空引用检查，防止 UIManager 还没准备好
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowStartMenu();
+        }
+        else
+        {
+            Debug.LogError("UIManager 实例未找到！请检查场景中是否挂载了 UIManager 脚本。");
+        }
     }
 
     public void InitializeGame()
@@ -76,6 +84,7 @@ public class GameManager : MonoBehaviour
     {
         Debug.Log("开始回合");
         currentState = GameState.PlayerTurn;
+        UIManager.Instance.ShowGameUI();
         // 抽填空计算卡和对应数量的数字卡
         cardManager.DrawCardsForTurn();
     }

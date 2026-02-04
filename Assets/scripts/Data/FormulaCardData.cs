@@ -8,14 +8,16 @@ using UnityEngine;
 /// <summary>
 /// 填空卡数据
 /// </summary>
-public class FormulaCardData
-{   
-    public string Pattern { get; set; } // 公式卡，如 "#*#+#" 或 "#*#*#*#"
-    public string Name { get; set; }// 公式卡名称
-    public int RequiredCount { get; set; } // 公式卡所需填空数量
-    public int CardPrice { get; set; } // 公式卡价格
-    public int FormulaCardId { get; set; } //公式卡编号
-    
+
+[CreateAssetMenu(fileName = "NewFormulaCard", menuName = "Cards/FormulaCard")] // 添加这一行
+public class FormulaCardData : ScriptableObject
+{
+    public string Pattern; // 公式，如 "#*#+#"
+    public string Name;    // 名称
+    public int RequiredCount; // 所需填空数量
+    public int CardPrice;     // 价格
+    public int FormulaCardId; // 编号
+
     private readonly List<FormulaCardData> _formulas = new();
 
 

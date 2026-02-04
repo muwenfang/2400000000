@@ -46,7 +46,14 @@ public class UIManager : MonoBehaviour
 
     void Awake()
     {
-        Instance = this;//单例模式
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else
+        {
+            Destroy(gameObject); // 保证全局只有一个 UIManager
+        }
     }
     public void ShowStartMenu() 
     {
@@ -61,6 +68,13 @@ public class UIManager : MonoBehaviour
         if (startMenuPanel != null)
         {
             startMenuPanel.SetActive(false);
+        }
+    }
+    public void ShowGameUI() 
+    {
+        if (gameUIPanel != null)
+        {
+            gameUIPanel.SetActive(true);
         }
     }
     public void UpdatePointsDisplay(BigInteger points)

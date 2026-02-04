@@ -38,8 +38,9 @@ public class CardManager : MonoBehaviour
 
         foreach (var card in starterNumberCards)
         {
-            var runtimeCard = Instantiate(card);
-            PlayerCardInventory.Instance.AddNumberCard(runtimeCard);
+            // 如果 NumberCardData 是 ScriptableObject，就不需要 Instantiate
+            // 如果它是普通 class，需要 new
+            PlayerCardInventory.Instance.AddNumberCard(card);
             Debug.Log(PlayerCardInventory.Instance.numberCards.Count);
         }
 
@@ -47,11 +48,26 @@ public class CardManager : MonoBehaviour
         {
             PlayerCardInventory.Instance.AddFormulaCard(card);
         }
+        numberCardDeck = new List<NumberCardData>(starterNumberCards);
+        formulaCardDeck = new List<FormulaCardData>(starterFormulaCards);
+
+        Debug.Log($"同步完成，当前牌堆公式卡数量: {formulaCardDeck.Count}");
     }
 
     public void DrawCardsForTurn()// 抽取当前回合手牌
     {
         ClearHand();
+
+        if (numberCardDeck == null || numberCardDeck.Count == 0)
+        {
+            Debug.LogError("数字卡库为空！");
+            return;
+        }
+        if (formulaCardDeck == null || formulaCardDeck.Count == 0)
+        {
+            Debug.LogWarning("公式卡库为空！无法抽卡。");
+            return;
+        }  
 
         numberCardDeck = new List<NumberCardData>();
         foreach (var instance in PlayerCardInventory.Instance.GetAllNumberCards())
@@ -177,79 +193,3 @@ public class CardManager : MonoBehaviour
     }
 }
 
-public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
-{
-    public static PlayerCardInventory Instance;
-
-    [Header("玩家拥有的数字卡")]
-    public List<NumberCardInstance> numberCards = new();
-
-    [Header("玩家拥有的公式卡")]
-    public List<FormulaCardData> formulaCards = new();
-
-    private void Awake()
-    {
-        if (Instance != null)
-        {
-            Destroy(gameObject);
-            return;
-        }
-
-        Instance = this;
-        DontDestroyOnLoad(gameObject);
-    }
-
-    // =========================
-    // 初始化
-    // =========================
-
-    public void ClearAll()
-    {
-        numberCards.Clear();
-        formulaCards.Clear();
-    }
-
-    public void InitStarterDeck(List<NumberCardData> starterNumbers,
-                                List<FormulaCardData> starterFormulas)
-    {
-        ClearAll();
-
-        // 将 NumberCardData 转换为 NumberCardInstance 后再添加
-        foreach (var card in starterNumbers)
-        {
-            numberCards.Add(new NumberCardInstance(card));
-        }
-        formulaCards.AddRange(starterFormulas);
-    }
-
-    // =========================
-    // 添加卡牌
-    // =========================
-
-    public void AddNumberCard(NumberCardData card)
-    {
-        NumberCardInstance instance = new NumberCardInstance(card);
-        numberCards.Add(instance);
-        Debug.Log("获得数字卡：" + card.name);
-    }
-
-    public void AddFormulaCard(FormulaCardData card)
-    {
-        formulaCards.Add(card);
-        Debug.Log("获得公式卡：" + card.Name);
-    }
-
-    // =========================
-    // 给抽卡系统使用
-    // =========================
-
-    public List<NumberCardInstance> GetAllNumberCards()
-    {
-        return numberCards;
-    }
-
-    public List<FormulaCardData> GetAllFormulaCards()
-    {
-        return formulaCards;
-    }
-}
