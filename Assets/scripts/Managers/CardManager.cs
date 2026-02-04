@@ -41,7 +41,6 @@ public class CardManager : MonoBehaviour
             // 如果 NumberCardData 是 ScriptableObject，就不需要 Instantiate
             // 如果它是普通 class，需要 new
             PlayerCardInventory.Instance.AddNumberCard(card);
-            Debug.Log(PlayerCardInventory.Instance.numberCards.Count);
         }
 
         foreach (var card in starterFormulaCards)
@@ -79,8 +78,14 @@ public class CardManager : MonoBehaviour
         }
         formulaCardDeck = PlayerCardInventory.Instance.GetAllFormulaCards();
 
+        if (currentFormulaCard == null)
+        {
+            Debug.LogError("严重错误：本回合未能抽到公式卡！停止发牌。");
+        }
+
         DrawFormulaCards();
         DrawNumberCards(currentFormulaCard.RequiredCount);
+
         // 通知UI管理器更新显示
         UIManager.Instance.ShowHandCards(currentNumberCards);
         UIManager.Instance.ShowFormulaCard(currentFormulaCard);
@@ -124,13 +129,12 @@ public class CardManager : MonoBehaviour
     }
     public void DrawFormulaCards()
     {   
-        Debug.Log("正在抽取填空卡牌");
-        // 抽取填空卡牌
-        if (formulaCardDeck.Count == 0)
+        if (formulaCardDeck == null || formulaCardDeck.Count == 0)
         {
-            Debug.LogWarning("公式卡库为空！");
+            Debug.LogError("公式卡库为空，无法抽取公式卡！");
             return;
         }
+        Debug.Log("正在抽取填空卡牌");
 
         int index = Random.Range(0, formulaCardDeck.Count);
         currentFormulaCard = formulaCardDeck[index];

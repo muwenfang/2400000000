@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: 5
   m_EditorClassIdentifier: 
   cardName: 5
+  layoutType: 0
   partA:
     isDice: 0
     isIncremental: 0
@@ -25,4 +26,4 @@ MonoBehaviour:
     value: 0
     price: 0
     diceSides: 0
-  logicalType: 0
+  logicalType: 3

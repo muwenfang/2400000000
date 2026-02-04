@@ -23,6 +23,8 @@ public class UIManager : MonoBehaviour
 
     [Header("数字卡 UI 库")]
     public NumberCardUIFactory numberCardLibrary;
+    [Header("填空卡预制体")]
+    public GameObject formulaCardPrefab;
 
     [Header("UI 面板引用")]
     public GameObject startMenuPanel; // 在 Inspector 中拖入主菜单面板
@@ -41,8 +43,8 @@ public class UIManager : MonoBehaviour
     public Transform shopNumberArea;
     public Transform shopFormulaArea;
 
-    public GameObject formulaCardPrefab;
     public GameObject shopSlotPrefab; // 拖入那个带价格显示和购买按钮的 Prefab
+    public GameObject formulaCardUIPrefab; // 用于显示商店中的公式卡
 
     void Awake()
     {
@@ -89,6 +91,18 @@ public class UIManager : MonoBehaviour
     // 手牌显示
     public void ShowHandCards(List<NumberCardInstance> handCards)
     {
+        if (handArea == null)
+        {
+            Debug.LogError("UIManager: HandArea 槽位未赋值！");
+            return;
+        }
+        if (numberCardLibrary == null)
+        {
+            Debug.LogError("UIManager: numberCardLibrary 槽位未赋值！");
+            return;
+        }
+
+
         ClearArea(handArea);
 
         foreach (var card in handCards)
@@ -96,18 +110,33 @@ public class UIManager : MonoBehaviour
             GameObject prefab =
                 numberCardLibrary.GetPrefab(card.cardData.layoutType);
 
+            // 检查 Prefab 是否获取成功
             if (prefab == null)
+            {
+                Debug.LogError($"【UIManager报错】工厂里没配置 {card.cardData.layoutType} 类型的预制体！");
                 continue;
+            }
 
             GameObject go = Instantiate(prefab, handArea);
 
-            // UI 显示
-            go.GetComponent<NumberCardView>()
-              .Bind(card.cardData);
+            // 使用 TryGetComponent 更安全，如果没挂脚本就不会崩溃
+            if (go.TryGetComponent<NumberCardLayoutView>(out var view))
+            {
+                view.Bind(card.cardData);
+            }
+            else
+            {
+                Debug.LogError($"Prefab {go.name} 缺少 NumberCardLayoutView 脚本！");
+            }
 
-            // 拖拽 + 数据
-            go.GetComponent<PlayerController>()
-              .Bind(card);
+            if (go.TryGetComponent<PlayerController>(out var pc))
+            {
+                pc.Bind(card);
+            }
+            else
+            {
+                Debug.LogError($"Prefab {go.name} 缺少 PlayerController 脚本！请在编辑器里挂载。");
+            }
         }
     }
     public void ShowFormulaCard(FormulaCardData formula)
@@ -256,26 +285,7 @@ public class NumberCardView : MonoBehaviour
         };
     }
 }
-public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
-{
-    public Text valueText;
 
-    public void Bind(NumberCardData data)
-    {
-        valueText.text = data.partA.value.ToString();
-    }
-}
-public class Add_Multi_Power_NumberView : MonoBehaviour, NumberCardLayoutView
-{
-    public Text aText;
-    public Text bText;
-
-    public void Bind(NumberCardData data)
-    {
-        aText.text = data.partA.value.ToString();
-        bText.text = data.partB.value.ToString();
-    }
-}
 public class FormulaCardUI : MonoBehaviour
 {
     public Transform formulaArea;          // UI 容器
