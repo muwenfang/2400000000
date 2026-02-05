@@ -94,135 +94,281 @@ public class NumberCardInstance
 
     } 
 
-    /// 计算卡牌价格
+    /// <summary>
+    /// 按文档规则计算卡牌价格：期望计算 → 倍率修正 → 舍入
+    /// </summary>
     public int GetNumberCardPrice(NumberCardData card)
     {
-        // 简化组件命名，方便后续判断
+        if (card == null)
+        {
+            Debug.LogError("卡牌数据为空，无法计算价格！");
+            return 0;
+        }
+
         NumberComponent a = card.partA;
         NumberComponent b = card.partB;
         NumberCardData.LogicalType logic = card.logicalType;
 
-        // 防御性检查：核心组件A不能为空
-        if (a == null) return 0;
+        if (a == null)
+        {
+            Debug.LogError("卡牌PartA不能为空！");
+            return 0;
+        }
 
-        // 1. 普通单数字卡（normal类型：无运算，仅PartA）
+        // 第一步：计算数学期望
+        float expectation = CalculateExpectation(a, b, logic);
+
+        // 第二步：倍率修正（文档中所有倍率均为1.0，保留扩展接口）
+        float rate = 1.0f;
+        // 含绿色数字（递增）倍率
+        if (a.isIncremental || (b != null && b.isIncremental))
+            rate *= 1.0f;
+        // 含骰子倍率
+        if (a.isDice || (b != null && b.isDice))
+            rate *= 1.0f;
+        // 指数型卡牌倍率
+        if (logic == NumberCardData.LogicalType.Power)
+            rate *= 1.0f;
+        float priceAfterRate = expectation * rate;
+
+        // 第三步：舍入（最近5的倍数 + 最多3个有效数字）
+        int finalPrice = RoundPrice(priceAfterRate);
+
+        Debug.Log($"价格计算过程：期望={expectation:F2} → 倍率修正后={priceAfterRate:F2} → 最终价格={finalPrice}");
+        return finalPrice;
+    }
+
+    /// <summary>
+    /// 第一步：根据卡牌类型计算数学期望
+    /// </summary>
+    private float CalculateExpectation(NumberComponent a, NumberComponent b, NumberCardData.LogicalType logic)
+    {
+        // 非指数型卡牌（加法/乘法/单数字）
+        if (logic != NumberCardData.LogicalType.Power)
+        {
+            return CalculateNonPowerExpectation(a, b, logic);
+        }
+        // 指数型卡牌（幂运算）
+        else
+        {
+            if (b == null)
+            {
+                Debug.LogWarning("指数型卡牌PartB不能为空！");
+                return 0;
+            }
+            return CalculatePowerExpectation(a, b);
+        }
+    }
+
+    /// <summary>
+    /// 计算非指数型卡牌期望（加法/乘法/单数字）
+    /// </summary>
+    private float CalculateNonPowerExpectation(NumberComponent a, NumberComponent b, NumberCardData.LogicalType logic)
+    {
+        // 单数字卡牌（仅PartA）
         if (logic == NumberCardData.LogicalType.normal)
         {
-            // 递增单数字 {0} → 5
-            if (a.isIncremental && !a.isDice)
-                return 5;
-            // 骰子单数字 ~20~ → 10
-            else if (a.isDice && !a.isIncremental && a.diceSides == 20)
-                return 10;
-            // 普通固定数字（10、15、20等）
-            else if (!a.isDice && !a.isIncremental)
+            return GetComponentExpectation(a);
+        }
+        // 加法/乘法卡牌（PartA + PartB / PartA * PartB）
+        else
+        {
+            if (b == null)
             {
-                switch (a.value)
+                Debug.LogWarning("二元运算卡牌PartB不能为空！");
+                return 0;
+            }
+
+            float expA = GetComponentExpectation(a);
+            float expB = GetComponentExpectation(b);
+
+            // 特殊处理：{x}*{y}型（按文档公式计算前9次均值）
+            if (logic == NumberCardData.LogicalType.Multiplication && a.isIncremental && b.isIncremental)
+            {
+                float sum = 0;
+                for (int i = 1; i <= 9; i++)
                 {
-                    case 10: return 10;
-                    case 15: return 15;
-                    case 20: return 20;
-                    case 25: return 25;
-                    case 30: return 30;
-                    case 50: return 50;
-                    case 100: return 100;
-                    default: return 0;
+                    float valA = a.value + i;
+                    float valB = b.value + i;
+                    sum += valA * valB;
                 }
+                return sum / 9f;
             }
-        }
 
-        // 2. 加法运算卡（Addition类型：PartA + PartB）
-        if (logic == NumberCardData.LogicalType.Addition && b != null)
+            // 普通加法/乘法
+            return logic == NumberCardData.LogicalType.Addition ? expA + expB : expA * expB;
+        }
+    }
+
+    /// <summary>
+    /// 获取单个组件（PartA/PartB）的非指数型期望
+    /// </summary>
+    private float GetComponentExpectation(NumberComponent comp)
+    {
+        if (comp.isDice)
         {
-            // ~4~+~4~ → 5
-            if (a.isDice && a.diceSides == 4 && b.isDice && b.diceSides == 4)
-                return 5;
-            // ~6~+~12~ → 10
-            else if (a.isDice && a.diceSides == 6 && b.isDice && b.diceSides == 12)
-                return 10;
-            // ~8~+~20~ → 15
-            else if (a.isDice && a.diceSides == 8 && b.isDice && b.diceSides == 20)
-                return 15;
-            // {0}+{0} → 10
-            else if (a.isIncremental && b.isIncremental)
-                return 10;
-            // {0}+~20~ → 15
-            else if (a.isIncremental && b.isDice && b.diceSides == 20)
-                return 15;
+            // 骰子：(x+1)/2.0（x为骰子面数）
+            return (comp.diceSides + 1) / 2.0f;
         }
-
-        // 3. 乘法运算卡（Multiplication类型：PartA * PartB）
-        if (logic == NumberCardData.LogicalType.Multiplication && b != null)
+        else if (comp.isIncremental)
         {
-            // {0}*{0} → 30
-            if (a.isIncremental && b.isIncremental)
-                return 30;
-            // ~20~*~20~ → 110
-            else if (a.isDice && a.diceSides == 20 && b.isDice && b.diceSides == 20)
-                return 110;
+            // 递增：y+5（y为初始值）
+            return comp.value + 5f;
         }
-
-        // 4. 幂运算卡（Power类型：PartA ^ PartB）- 覆盖所有价格表组合
-        if (logic == NumberCardData.LogicalType.Power && b != null)
+        else
         {
-            // 4.1 普通数字^骰子：2^~4~/2^~6~/2^~8~/2^~12~/2^~20~/3^~4~/3^~6~/3^~8~/3^~12~/~4~^~4~
-            if (!a.isDice && !a.isIncremental && b.isDice)
-            {
-                if (a.value == 2 && b.diceSides == 4) return 10;    // 2^~4~ →10
-                else if (a.value == 2 && b.diceSides == 6) return 20; // 2^~6~ →20
-                else if (a.value == 2 && b.diceSides == 8) return 65; // 2^~8~ →65
-                else if (a.value == 2 && b.diceSides == 12) return 700; // 2^~12~ →700
-                else if (a.value == 2 && b.diceSides == 20) return 50000; // 2^~20~ →50000
-                else if (a.value == 3 && b.diceSides == 4) return 30; // 3^~4~ →30
-                else if (a.value == 3 && b.diceSides == 6) return 1100; // 3^~6~ →1100
-                else if (a.value == 3 && b.diceSides == 8) return 10000; // 3^~8~ →10000
-                else if (a.value == 3 && b.diceSides == 12) return 800000; // 3^~12~ →800000
-            }
-            // 4.2 骰子^递增：~4~^{0}/~6~^{0}/~8~^{0}
-            else if (a.isDice && b.isIncremental)
-            {
-                if (a.diceSides == 4) return 10000;    // ~4~^{0} →10000
-                else if (a.diceSides == 6) return 280000; // ~6~^{0} →280000
-                else if (a.diceSides == 8) return 3000000; // ~8~^{0} →3000000
-            }
-            // 4.3 递增^普通数字：{0}^2/{0}^3/{0}^4/{0}^5/{0}^6/{0}^7/{0}^8
-            else if (a.isIncremental && !b.isDice && !b.isIncremental)
-            {
-                if (b.value == 2) return 30;     // {0}^2 →30
-                else if (b.value == 3) return 225; // {0}^3 →225
-                else if (b.value == 4) return 1700; // {0}^4 →1700
-                else if (b.value == 5) return 13500; // {0}^5 →13500
-                else if (b.value == 6) return 110000; // {0}^6 →110000
-                else if (b.value == 7) return 900000; // {0}^7 →900000
-                else if (b.value == 8) return 7500000; // {0}^8 →7500000
-            }
-            // 4.4 普通数字^递增：2^{0}/3^{0}/4^{0}/5^{0}/6^{0}/7^{0}/8^{0}
-            else if (!a.isDice && !a.isIncremental && b.isIncremental)
-            {
-                if (a.value == 2) return 110;     // 2^{0} →110
-                else if (a.value == 3) return 3250; // 3^{0} →3250
-                else if (a.value == 4) return 39000; // 4^{0} →39000
-                else if (a.value == 5) return 270000; // 5^{0} →270000
-                else if (a.value == 6) return 1350000; // 6^{0} →1350000
-                else if (a.value == 7) return 5250000; // 7^{0} →5250000
-                else if (a.value == 8) return 17000000; // 8^{0} →17000000
-            }
-            // 4.5 递增^骰子：{0}^~4~/~6~/{0}^~8~
-            else if (a.isIncremental && b.isDice)
-            {
-                if (b.diceSides == 4) return 500;    // {0}^~4~ →500
-                else if (b.diceSides == 6) return 21000; // {0}^~6~ →21000
-                else if (b.diceSides == 8) return 1100000; // {0}^~8~ →1100000
-            }
-            // 4.6 递增^递增：{0}^{0} →45000000
-            else if (a.isIncremental && b.isIncremental)
-                return 45000000;
-            // 4.7 骰子^骰子：~4~^~4~ →35
-            else if (a.isDice && b.isDice && a.diceSides == 4 && b.diceSides == 4)
-                return 35;
+            // 普通数字：直接取数值
+            return comp.value;
         }
+    }
 
-        // 未匹配任何价格表组合时返回0
-        return 0;
+    /// <summary>
+    /// 计算指数型卡牌期望（幂运算），对应文档8种指数组合
+    /// </summary>
+    private float CalculatePowerExpectation(NumberComponent a, NumberComponent b)
+    {
+        bool aIsDice = a.isDice;
+        bool aIsInc = a.isIncremental;
+        bool bIsDice = b.isDice;
+        bool bIsInc = b.isIncremental;
+
+        int x = a.isDice ? a.diceSides : a.value; // 骰子取面数，其他取数值
+        int y = b.isDice ? b.diceSides : b.value;
+
+        // 1. x^~y~ （底数普通/递增，指数骰子）
+        if (!aIsDice && bIsDice && !bIsInc)
+        {
+            float sum = 0;
+            for (int j = 1; j <= y; j++)
+            {
+                sum += Mathf.Pow(x, j);
+            }
+            return sum / y;
+        }
+        // 2. ~x~^y （底数骰子，指数普通/递增）
+        else if (aIsDice && !bIsDice && !bIsInc)
+        {
+            float sum = 0;
+            for (int i = 1; i <= x; i++)
+            {
+                sum += Mathf.Pow(i, y);
+            }
+            return sum / x;
+        }
+        // 3. x^{y} （底数普通，指数递增）
+        else if (!aIsDice && !aIsInc && bIsInc && !bIsDice)
+        {
+            float sum = 0;
+            for (int j = y + 1; j <= y + 9; j++)
+            {
+                sum += Mathf.Pow(x, j);
+            }
+            return sum / 9f;
+        }
+        // 4. {x}^y （底数递增，指数普通）
+        else if (aIsInc && !aIsDice && !bIsDice && !bIsInc)
+        {
+            float sum = 0;
+            for (int i = x + 1; i <= x + 9; i++)
+            {
+                sum += Mathf.Pow(i, y);
+            }
+            return sum / 9f;
+        }
+        // 5. {x}^~y~ （底数递增，指数骰子）
+        else if (aIsInc && !aIsDice && bIsDice && !bIsInc)
+        {
+            float sum = 0;
+            for (int i = x + 1; i <= x + 9; i++)
+            {
+                float innerSum = 0;
+                for (int j = 1; j <= y; j++)
+                {
+                    innerSum += Mathf.Pow(i, j);
+                }
+                sum += innerSum;
+            }
+            return sum / (9f * y);
+        }
+        // 6. ~x~^{y} （底数骰子，指数递增）
+        else if (aIsDice && !aIsInc && bIsInc && !bIsDice)
+        {
+            float sum = 0;
+            for (int i = 1; i <= x; i++)
+            {
+                float innerSum = 0;
+                for (int j = y + 1; j <= y + 9; j++)
+                {
+                    innerSum += Mathf.Pow(i, j);
+                }
+                sum += innerSum;
+            }
+            return sum / (9f * x);
+        }
+        // 7. ~x~^~y~ （底数骰子，指数骰子）
+        else if (aIsDice && !aIsInc && bIsDice && !bIsInc)
+        {
+            float sum = 0;
+            for (int i = 1; i <= x; i++)
+            {
+                float innerSum = 0;
+                for (int j = 1; j <= y; j++)
+                {
+                    innerSum += Mathf.Pow(i, j);
+                }
+                sum += innerSum;
+            }
+            return sum / (x * y);
+        }
+        // 8. {x}^{y} （底数递增，指数递增）
+        else if (aIsInc && !aIsDice && bIsInc && !bIsDice)
+        {
+            float sum = 0;
+            for (int i = 1; i <= 9; i++)
+            {
+                int baseVal = x + i;
+                int expVal = y + i;
+                sum += Mathf.Pow(baseVal, expVal);
+            }
+            return sum / 9f;
+        }
+        // 未匹配的指数组合
+        else
+        {
+            Debug.LogWarning($"未匹配的指数型组合：A(骰子={aIsDice},递增={aIsInc})，B(骰子={bIsDice},递增={bIsInc})");
+            return 0;
+        }
+    }
+
+    /// <summary>
+    /// 第三步：舍入处理（最近5的倍数 + 最多3个有效数字）
+    /// </summary>
+    private int RoundPrice(float price)
+    {
+        if (price <= 0)
+            return 0;
+
+        // 第一步：四舍五入到最近的5的倍数
+        int roundedTo5 = Mathf.RoundToInt(price / 5) * 5;
+
+        // 第二步：最多保留3个有效数字
+        if (roundedTo5 == 0)
+            return 0;
+
+        // 计算有效数字位数
+        int digitCount = (int)Mathf.Log10(Mathf.Abs(roundedTo5)) + 1;
+        if (digitCount <= 3)
+        {
+            // 不足3位有效数字，直接返回5的倍数结果
+            return roundedTo5;
+        }
+        else
+        {
+            // 超过3位有效数字，保留3位并修正为5的倍数
+            float scale = Mathf.Pow(10, digitCount - 3);
+            int roundedTo3Sig = Mathf.RoundToInt(roundedTo5 / scale) * (int)scale;
+            // 确保最终结果仍是5的倍数
+            return Mathf.RoundToInt(roundedTo3Sig / 5) * 5;
+        }
     }
 }
