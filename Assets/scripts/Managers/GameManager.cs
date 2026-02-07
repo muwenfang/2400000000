@@ -43,6 +43,15 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
+        // 如果你在 Inspector 里没拖，代码尝试在场景里自动找
+        if (cardManager == null) cardManager = FindObjectOfType<CardManager>();
+        if (shopManager == null) shopManager = FindObjectOfType<ShopManager>();
+
+        // 再次检查是否真的找到了
+        if (cardManager == null || shopManager == null)
+        {
+            Debug.LogError("场景中缺少 CardManager 或 ShopManager 物体！请检查层级面板。");
+        }
     }
     void Start()
     {
@@ -70,15 +79,19 @@ public class GameManager : MonoBehaviour
         Debug.Log("初始化游戏");
         currentPoints = 0;
         currentRound = 1;
-        // 初始化玩家卡组
+        // 确保调用了 ChangeState，这样上面的 UI 逻辑才会跑起来
+        ChangeState(GameState.PlayerTurn);
+
+        // 执行抽卡逻辑
         cardManager.InitializeStarterDeck();
-        // 隐藏开始界面
-        UIManager.Instance.HideStartMenu();
+
+        // 3. 关键：通知 UI 刷新视觉显示
+        UIManager.Instance.RefreshGameUI();
+
+        Debug.Log("UI 刷新请求已发送");
         // 开始第一回合
         StartPlayerTurn();
     }
-
-
 
     public void StartPlayerTurn()
     {
@@ -172,29 +185,38 @@ public class GameManager : MonoBehaviour
     }
     public void ChangeState(GameState newState)
     {
-        // 离开当前状态时的清理
+        // 1. 离开当前状态时的清理 (你已有的代码)
         switch (currentState)
         {
             case GameState.PlayerTurn:
-                // 清理手牌等
                 break;
             case GameState.Shop:
                 shopManager.CloseShop();
                 break;
         }
 
-        // 进入新状态的初始化
-        switch (newState)
+        // 更新当前状态
+        currentState = newState;
+
+        // 2. 进入新状态的 UI 切换逻辑（需要添加的部分）
+        switch (currentState)
         {
             case GameState.PlayerTurn:
-                StartPlayerTurn();
+                // 调用 UIManager 显示游戏内面板，隐藏主菜单
+                UIManager.Instance.ShowPanel(UIManager.Instance.gameUIPanel);
+                Debug.Log("进入玩家回合界面");
                 break;
+
+            case GameState.MainMenu:
+                UIManager.Instance.ShowPanel(UIManager.Instance.startMenuPanel);
+                Debug.Log("进入主菜单界面");
+                break;
+
             case GameState.Shop:
-                shopManager.OpenShop();
+                UIManager.Instance.ShowPanel(UIManager.Instance.shopPanel);
+                Debug.Log("进入商店界面");
                 break;
         }
-
-        currentState = newState;
     }
 
 }

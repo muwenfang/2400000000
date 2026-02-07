@@ -76,34 +76,4 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
     }
 }
-public class FormulaSlot : MonoBehaviour, IDropHandler
-{
-    public Image background;
-    public Text valueText;
 
-    private FormulaCardUI owner;
-    private NumberCardInstance boundCard;
-
-    public void Init(FormulaCardUI ownerUI)
-    {
-        owner = ownerUI;
-        valueText.text = "?";
-    }
-
-    public void OnDrop(PointerEventData eventData)
-    {
-        PlayerController drag = eventData.pointerDrag?
-            .GetComponent<PlayerController>();
-
-        if (drag == null || drag.BoundCard == null)
-            return;
-
-        if (boundCard != null)
-            return; // 已填
-
-        boundCard = drag.BoundCard;
-        valueText.text = boundCard.GetOutPutValue().ToString();
-
-        owner.OnSlotFilled(boundCard);
-    }
-}

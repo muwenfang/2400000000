@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 /// <summary>
 /// 商店系统。读取database中的商品信息，读取玩家信息，处理购买逻辑
@@ -39,11 +40,11 @@ public class ShopManager : MonoBehaviour
     {
         GenerateNumberCards();
         GenerateFormulaCards();
-        // 通知UI管理器更新显示
-        UIManager.Instance.ShowShopNumberCards(shopNumberCards);
-        UIManager.Instance.ShowShopFormulaCards(shopFormulaCards);
-        // 显示商店面板
-        UIManager.Instance.ShowShopPanel(); 
+        // 打开面板
+        UIManager.Instance.shopPanel.SetActive(true);
+
+        // --- 新增：通知 UI 刷新 ---
+        UIManager.Instance.RefreshShopUI();
     }
 
     void GenerateNumberCards()//从工厂生成随机数字卡

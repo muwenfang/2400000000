@@ -78,12 +78,14 @@ public class CardManager : MonoBehaviour
         }
         formulaCardDeck = PlayerCardInventory.Instance.GetAllFormulaCards();
 
+        // 【修改点】：先执行抽卡！
+        DrawFormulaCards();
+
         if (currentFormulaCard == null)
         {
             Debug.LogError("严重错误：本回合未能抽到公式卡！停止发牌。");
         }
 
-        DrawFormulaCards();
         DrawNumberCards(currentFormulaCard.RequiredCount);
 
         // 通知UI管理器更新显示

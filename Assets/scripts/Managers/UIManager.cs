@@ -31,7 +31,7 @@ public class UIManager : MonoBehaviour
     public GameObject gameUIPanel; // 游戏内UI面板
     public GameObject gameOverPanel; // 游戏结束面板
     public GameObject shopPanel; // 商店面板
-    public GameObject confirmPanel;// 确认面板
+    //public GameObject confirmPanel;// 确认面板
 
     [Header("UI组件")]
     public Text pointsText;//显示当前点数
@@ -57,6 +57,25 @@ public class UIManager : MonoBehaviour
             Destroy(gameObject); // 保证全局只有一个 UIManager
         }
     }
+    public void ShowPanel(GameObject panelToShow)
+    {
+        // 打印当前所有面板的状态，看看引用到底对不对
+        Debug.Log($"[UI检查] 准备显示: {panelToShow.name}");
+        Debug.Log($"[UI检查] 当前主菜单引用状态: {(startMenuPanel != null ? startMenuPanel.activeSelf.ToString() : "空")}");
+
+        // 隐藏所有面板
+        if (startMenuPanel != null) startMenuPanel.SetActive(false);
+        if (gameUIPanel != null) gameUIPanel.SetActive(false);
+
+        // 激活目标
+        if (panelToShow != null)
+        {
+            panelToShow.SetActive(true);
+            // 强制把这个面板排到最前面（防止被其他没关掉的UI遮挡）
+            panelToShow.transform.SetAsLastSibling();
+            Debug.Log($"已激活并置顶面板: {panelToShow.name}");
+        }
+    }
     public void ShowStartMenu() 
     {
         if (startMenuPanel != null)
@@ -70,13 +89,44 @@ public class UIManager : MonoBehaviour
         if (startMenuPanel != null)
         {
             startMenuPanel.SetActive(false);
+            Debug.Log("隐藏主菜单");
         }
     }
+    
     public void ShowGameUI() 
     {
         if (gameUIPanel != null)
         {
             gameUIPanel.SetActive(true);
+            Debug.Log("显示游戏内UI");
+        }
+    }
+    public void RefreshGameUI()
+    {
+        Debug.Log("开始刷新游戏界面卡牌...");
+        // 1. 显示公式卡
+        if (CardManager.Instance.currentFormulaCard != null)
+        {
+            // 确保你的 formulaArea 挂载了 FormulaCardUI 脚本
+            var formulaUI = formulaArea.GetComponent<FormulaCardUI>();
+            if (formulaUI != null)
+            {
+                formulaUI.Bind(CardManager.Instance.currentFormulaCard);
+            }
+        }
+
+        // 2. 显示数字手牌
+        // 先清理旧手牌
+        foreach (Transform child in handArea) { Destroy(child.gameObject); }
+
+        // 生成新手牌
+        foreach (var cardData in CardManager.Instance.currentNumberCards)
+        {
+            GameObject prefab = numberCardLibrary.GetPrefab(cardData.cardData.layoutType);
+            GameObject cardGo = Instantiate(prefab, handArea);
+
+            var view = cardGo.GetComponent<NumberCardView>();
+            if (view != null) view.Bind(cardData.cardData);
         }
     }
     public void UpdatePointsDisplay(BigInteger points)
@@ -200,6 +250,28 @@ public class UIManager : MonoBehaviour
             shopPanel.SetActive(true);
         }
     }
+    public void RefreshShopUI()
+    {
+        // 1. 清理旧的商品格子
+        foreach (Transform child in shopNumberArea) Destroy(child.gameObject);
+        foreach (Transform child in shopFormulaArea) Destroy(child.gameObject);
+
+        // 2. 生成数字卡商品
+        foreach (var item in ShopManager.Instance.shopNumberCards)
+        {
+            if (item.sold) continue; // 如果卖掉了就不显示
+            GameObject slotGo = Instantiate(shopSlotPrefab, shopNumberArea);
+            slotGo.GetComponent<ShopSlotUI>().SetItem(item);
+        }
+
+        // 3. 生成公式卡商品
+        foreach (var item in ShopManager.Instance.shopFormulaCards)
+        {
+            if (item.sold) continue;
+            GameObject slotGo = Instantiate(shopSlotPrefab, shopFormulaArea);
+            slotGo.GetComponent<ShopSlotUI>().SetItem(item);
+        }
+    }
 }
 
 
@@ -247,88 +319,8 @@ public class ShopCardUI : MonoBehaviour
         }
     }
 }
-public class NumberCardView : MonoBehaviour
-{
-    public Transform contentRoot;
 
-    public GameObject singlePrefab;
-    public GameObject addPrefab;
-    public GameObject multiplyPrefab;
-    public GameObject compositePrefab;
 
-    public void Bind(NumberCardData data)
-    {
-        Clear();
-
-        GameObject prefab = GetPrefab(data.layoutType);
-        GameObject ui = Instantiate(prefab, contentRoot);
-
-        ui.GetComponent<NumberCardLayoutView>()
-          .Bind(data);
-    }
-
-    void Clear()
-    {
-        foreach (Transform child in contentRoot)
-            Destroy(child.gameObject);
-    }
-
-    GameObject GetPrefab(NumberCardLayoutType type)
-    {
-        return type switch
-        {
-            NumberCardLayoutType.Single => singlePrefab,
-            NumberCardLayoutType.Add_AB => addPrefab,
-            NumberCardLayoutType.Multiply_AB => multiplyPrefab,
-            NumberCardLayoutType.Composite_AB => compositePrefab,
-            _ => singlePrefab
-        };
-    }
-}
-
-public class FormulaCardUI : MonoBehaviour
-{
-    public Transform formulaArea;          // UI 容器
-    public GameObject textPrefab;           // 显示 + * ( )
-    public GameObject slotPrefab;           // # 槽位
-
-    private readonly List<FormulaSlot> slots = new();
-
-    public void Bind(FormulaCardData formula)
-    {
-        Clear();
-
-        foreach (char c in formula.Pattern)
-        {
-            if (c == '#')
-            {
-                GameObject go = Instantiate(slotPrefab, formulaArea);
-                FormulaSlot slot = go.GetComponent<FormulaSlot>();
-                slot.Init(this);
-                slots.Add(slot);
-            }
-            else
-            {
-                GameObject go = Instantiate(textPrefab, formulaArea);
-                go.GetComponent<Text>().text = c.ToString();
-            }
-        }
-    }
-
-    void Clear()
-    {
-        foreach (Transform child in formulaArea)
-            Destroy(child.gameObject);
-
-        slots.Clear();
-    }
-
-    // 被 Slot 调用
-    public void OnSlotFilled(NumberCardInstance card)
-    {
-        CardManager.Instance.AddNumberCardToFormula(card);
-    }
-}
 
 
 

@@ -14,23 +14,25 @@ public class NumberCardFactory
 
         float rand = Random.value;//0~1之间的随机数
 
-        if (rand < 0.25f)//加法卡
+        if (rand < 0.25f)
         {
             data.logicalType = NumberCardData.LogicalType.Addition;
-
+            data.layoutType = NumberCardLayoutType.Add_AB; // 对应 a + b
         }
-        else if (rand < 0.5f)//乘法卡
+        else if (rand < 0.5f)
         {
             data.logicalType = NumberCardData.LogicalType.Multiplication;
-
+            data.layoutType = NumberCardLayoutType.Multiply_AB; // 对应 a × b
         }
-        else if(rand < 0.75f)//指数卡
+        else if (rand < 0.75f)
         {
             data.logicalType = NumberCardData.LogicalType.Power;
+            data.layoutType = NumberCardLayoutType.Composite_AB; // 对应 a ^ b (新增枚举)
         }
-        else//普通卡
+        else
         {
             data.logicalType = NumberCardData.LogicalType.normal;
+            data.layoutType = NumberCardLayoutType.Single; // 对应 a
         }
         SetupNumberComponent(data.partA);
         SetupNumberComponent(data.partB);
