@@ -43,36 +43,28 @@ public class GameManager : MonoBehaviour
     void Awake()
     {
         Instance = this;
-        // 如果你在 Inspector 里没拖，代码尝试在场景里自动找
-        if (cardManager == null) cardManager = FindObjectOfType<CardManager>();
-        if (shopManager == null) shopManager = FindObjectOfType<ShopManager>();
-
-        // 再次检查是否真的找到了
-        if (cardManager == null || shopManager == null)
-        {
-            Debug.LogError("场景中缺少 CardManager 或 ShopManager 物体！请检查层级面板。");
-        }
     }
     void Start()
     {
-        EnterMainMenu();
-        Debug.Log("进入游戏"); 
+        //EnterMainMenu();
+        //Debug.Log("进入游戏"); 
+        ChangeState(GameState.MainMenu);
     }
 
-    void EnterMainMenu()
-    {
-        currentState = GameState.MainMenu;
+    //void EnterMainMenu()
+    //{
+    //    currentState = GameState.MainMenu;
 
-        // 添加空引用检查，防止 UIManager 还没准备好
-        if (UIManager.Instance != null)
-        {
-            UIManager.Instance.ShowStartMenu();
-        }
-        else
-        {
-            Debug.LogError("UIManager 实例未找到！请检查场景中是否挂载了 UIManager 脚本。");
-        }
-    }
+    //    // 添加空引用检查，防止 UIManager 还没准备好
+    //    if (UIManager.Instance != null)
+    //    {
+    //        UIManager.Instance.ShowStartMenu();
+    //    }
+    //    else
+    //    {
+    //        Debug.LogError("UIManager 实例未找到！请检查场景中是否挂载了 UIManager 脚本。");
+    //    }
+    //}
 
     public void InitializeGame()
     {   
@@ -85,19 +77,23 @@ public class GameManager : MonoBehaviour
         // 执行抽卡逻辑
         cardManager.InitializeStarterDeck();
 
-        // 3. 关键：通知 UI 刷新视觉显示
-        UIManager.Instance.RefreshGameUI();
+        //// 3. 关键：通知 UI 刷新视觉显示
+        //UIManager.Instance.RefreshGameUI();
 
         Debug.Log("UI 刷新请求已发送");
         // 开始第一回合
         StartPlayerTurn();
+
+        //  关键：通知 UI 刷新视觉显示
+        UIManager.Instance.RefreshGameUI();
     }
 
     public void StartPlayerTurn()
     {
         Debug.Log("开始回合");
-        currentState = GameState.PlayerTurn;
-        UIManager.Instance.ShowGameUI();
+        ChangeState(GameState.PlayerTurn);
+        Debug.Assert(currentState == GameState.PlayerTurn);
+        //UIManager.Instance.ShowGameUI();
         // 抽填空计算卡和对应数量的数字卡
         cardManager.DrawCardsForTurn();
     }

@@ -66,54 +66,64 @@ public class UIManager : MonoBehaviour
         // 隐藏所有面板
         if (startMenuPanel != null) startMenuPanel.SetActive(false);
         if (gameUIPanel != null) gameUIPanel.SetActive(false);
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
+        if (shopPanel != null) shopPanel.SetActive(false);
 
         // 激活目标
-        if (panelToShow != null)
-        {
-            panelToShow.SetActive(true);
-            // 强制把这个面板排到最前面（防止被其他没关掉的UI遮挡）
-            panelToShow.transform.SetAsLastSibling();
-            Debug.Log($"已激活并置顶面板: {panelToShow.name}");
-        }
+        panelToShow.SetActive(true);
+        // 强制把这个面板排到最前面（防止被其他没关掉的UI遮挡）
+        panelToShow.transform.SetAsLastSibling();
+        Debug.Log($"已激活并置顶面板: {panelToShow.name}");
+        
     }
-    public void ShowStartMenu() 
-    {
-        if (startMenuPanel != null)
-        {
-            startMenuPanel.SetActive(true);
-            Debug.Log("显示主菜单");
-        }
-    }
-    public void HideStartMenu() 
-    {
-        if (startMenuPanel != null)
-        {
-            startMenuPanel.SetActive(false);
-            Debug.Log("隐藏主菜单");
-        }
-    }
+    //public void ShowStartMenu() 
+    //{
+    //    if (startMenuPanel != null)
+    //    {
+    //        startMenuPanel.SetActive(true);
+    //        Debug.Log("显示主菜单");
+    //    }
+    //}
+    //public void HideStartMenu() 
+    //{
+    //    if (startMenuPanel != null)
+    //    {
+    //        startMenuPanel.SetActive(false);
+    //        Debug.Log("隐藏主菜单");
+    //    }
+    //}
     
-    public void ShowGameUI() 
-    {
-        if (gameUIPanel != null)
-        {
-            gameUIPanel.SetActive(true);
-            Debug.Log("显示游戏内UI");
-        }
-    }
+    //public void ShowGameUI() 
+    //{
+    //    if (gameUIPanel != null)
+    //    {
+    //        gameUIPanel.SetActive(true);
+    //        Debug.Log("显示游戏内UI");
+    //    }
+    //}
     public void RefreshGameUI()
     {
         Debug.Log("开始刷新游戏界面卡牌...");
+        //// 1. 显示公式卡
+        //if (CardManager.Instance.currentFormulaCard != null)
+        //{
+        //    // 确保你的 formulaArea 挂载了 FormulaCardUI 脚本
+        //    var formulaUI = formulaArea.GetComponent<FormulaCardUI>();
+        //    if (formulaUI != null)
+        //    {
+        //        formulaUI.Bind(CardManager.Instance.currentFormulaCard);
+        //    }
+        //}
         // 1. 显示公式卡
+        ClearArea(formulaArea);
+
         if (CardManager.Instance.currentFormulaCard != null)
         {
-            // 确保你的 formulaArea 挂载了 FormulaCardUI 脚本
-            var formulaUI = formulaArea.GetComponent<FormulaCardUI>();
-            if (formulaUI != null)
-            {
-                formulaUI.Bind(CardManager.Instance.currentFormulaCard);
-            }
+            var go = Instantiate(formulaCardPrefab, formulaArea);
+            var formulaUI = go.GetComponent<FormulaCardUI>();
+            formulaUI.Bind(CardManager.Instance.currentFormulaCard);
         }
+
 
         // 2. 显示数字手牌
         // 先清理旧手牌
