@@ -5,6 +5,10 @@ using UnityEngine.UI;
 /// <summary>
 /// 拖动卡牌
 /// </summary>
+public interface NumberCardLayoutView
+{
+    void Bind(NumberCardData data);
+}
 public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
     private UnityEngine.Vector2 originalLocalPos;
@@ -26,6 +30,8 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     public void Bind(NumberCardInstance card)
     {
         BoundCard = card;
+        // 检查是否每张卡牌都被绑定
+        Debug.Log($"绑定卡牌：{card.cardData.layoutType}");
     }
 
     public void OnBeginDrag(PointerEventData eventData)

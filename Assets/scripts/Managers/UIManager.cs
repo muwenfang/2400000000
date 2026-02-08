@@ -4,11 +4,6 @@ using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
 
-public interface NumberCardLayoutView
-{
-    void Bind(NumberCardData data);
-}
-
 public enum NumberCardLayoutType
 {
     Single,        // a
@@ -59,10 +54,6 @@ public class UIManager : MonoBehaviour
     }
     public void ShowPanel(GameObject panelToShow)
     {
-        // 打印当前所有面板的状态，看看引用到底对不对
-        Debug.Log($"[UI检查] 准备显示: {panelToShow.name}");
-        Debug.Log($"[UI检查] 当前主菜单引用状态: {(startMenuPanel != null ? startMenuPanel.activeSelf.ToString() : "空")}");
-
         // 隐藏所有面板
         if (startMenuPanel != null) startMenuPanel.SetActive(false);
         if (gameUIPanel != null) gameUIPanel.SetActive(false);
@@ -104,22 +95,13 @@ public class UIManager : MonoBehaviour
     public void RefreshGameUI()
     {
         Debug.Log("开始刷新游戏界面卡牌...");
-        //// 1. 显示公式卡
-        //if (CardManager.Instance.currentFormulaCard != null)
-        //{
-        //    // 确保你的 formulaArea 挂载了 FormulaCardUI 脚本
-        //    var formulaUI = formulaArea.GetComponent<FormulaCardUI>();
-        //    if (formulaUI != null)
-        //    {
-        //        formulaUI.Bind(CardManager.Instance.currentFormulaCard);
-        //    }
-        //}
         // 1. 显示公式卡
         ClearArea(formulaArea);
 
         if (CardManager.Instance.currentFormulaCard != null)
         {
             var go = Instantiate(formulaCardPrefab, formulaArea);
+            go.transform.localScale = UnityEngine.Vector3.one; // 确保缩放正确
             var formulaUI = go.GetComponent<FormulaCardUI>();
             formulaUI.Bind(CardManager.Instance.currentFormulaCard);
         }
@@ -128,16 +110,40 @@ public class UIManager : MonoBehaviour
         // 2. 显示数字手牌
         // 先清理旧手牌
         foreach (Transform child in handArea) { Destroy(child.gameObject); }
+        Debug.Log($"开始刷新游戏界面卡牌... 当前手牌数量: {CardManager.Instance.currentNumberCards.Count}");
 
         // 生成新手牌
         foreach (var cardData in CardManager.Instance.currentNumberCards)
         {
             GameObject prefab = numberCardLibrary.GetPrefab(cardData.cardData.layoutType);
+            if (prefab == null)
+            {
+                Debug.LogError($"找不到布局类型为 {cardData.cardData.layoutType} 的 Prefab！");
+                continue;
+            }
+            
             GameObject cardGo = Instantiate(prefab, handArea);
+            cardGo.transform.localScale =  UnityEngine.Vector3.one; // 强制缩放为 1         
+            cardGo.SetActive(true); // 确保它是激活状态
 
             var view = cardGo.GetComponent<NumberCardView>();
-            if (view != null) view.Bind(cardData.cardData);
+            if (view != null)
+            {
+                Debug.Log($"正在绑定手牌数据：{cardData.cardData.cardName}");
+                view.Bind(cardData.cardData);
+            }
+            else
+            {
+                // 如果还是找不到，我们可以打印出这个物体上到底挂了哪些脚本，帮你排查
+                MonoBehaviour[] components = cardGo.GetComponentsInChildren<MonoBehaviour>();
+                string names = "";
+                foreach (var c in components) names += c.GetType().Name + ", ";
+                Debug.LogWarning($"[警告] {cardGo.name} 及其子物体上找不到接口！现有脚本: {names}");
+            }
         }
+
+        // 强制刷新布局
+        LayoutRebuilder.ForceRebuildLayoutImmediate(handArea.GetComponent<RectTransform>());
     }
     public void UpdatePointsDisplay(BigInteger points)
     {

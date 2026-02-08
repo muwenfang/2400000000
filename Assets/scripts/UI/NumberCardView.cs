@@ -14,12 +14,15 @@ public class NumberCardView : MonoBehaviour
     public void Bind(NumberCardData data)
     {
         Clear();
+        // 检查 currentNumberCards 的数量
+        Debug.Log($"当前数字卡数量: {CardManager.Instance.currentNumberCards.Count}");
 
         GameObject prefab = GetPrefab(data.layoutType);
         GameObject ui = Instantiate(prefab, contentRoot);
 
         ui.GetComponent<NumberCardLayoutView>()
           .Bind(data);
+        Debug.Log($"生成数字卡，类型：{data.layoutType}");
     }
 
     void Clear()
@@ -40,4 +43,5 @@ public class NumberCardView : MonoBehaviour
         };
     }
 }
+
 

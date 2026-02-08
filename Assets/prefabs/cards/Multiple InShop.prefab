@@ -143,8 +143,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   aText: {fileID: 4994468238411792572}
   bText: {fileID: 7549206912423498841}
-  priceText: {fileID: 4746911943867521246}
-  IsInShop: 0
+  operatorText: {fileID: 0}
 --- !u!1 &1260024638328985800
 GameObject:
   m_ObjectHideFlags: 0
