@@ -67,31 +67,6 @@ public class UIManager : MonoBehaviour
         Debug.Log($"已激活并置顶面板: {panelToShow.name}");
         
     }
-    //public void ShowStartMenu() 
-    //{
-    //    if (startMenuPanel != null)
-    //    {
-    //        startMenuPanel.SetActive(true);
-    //        Debug.Log("显示主菜单");
-    //    }
-    //}
-    //public void HideStartMenu() 
-    //{
-    //    if (startMenuPanel != null)
-    //    {
-    //        startMenuPanel.SetActive(false);
-    //        Debug.Log("隐藏主菜单");
-    //    }
-    //}
-    
-    //public void ShowGameUI() 
-    //{
-    //    if (gameUIPanel != null)
-    //    {
-    //        gameUIPanel.SetActive(true);
-    //        Debug.Log("显示游戏内UI");
-    //    }
-    //}
     public void RefreshGameUI()
     {
         Debug.Log("开始刷新游戏界面卡牌...");
@@ -126,7 +101,10 @@ public class UIManager : MonoBehaviour
             cardGo.transform.localScale =  UnityEngine.Vector3.one; // 强制缩放为 1         
             cardGo.SetActive(true); // 确保它是激活状态
 
-            var view = cardGo.GetComponent<NumberCardView>();
+            // ==================== 修复点 1: 视图绑定 ====================
+            // 不要用 GetComponent<NumberCardView>，改用接口 NumberCardLayoutView
+            // 这样无论是 SingleNumberView 还是其他类型的 View 都能被获取到
+            var view = cardGo.GetComponent<NumberCardLayoutView>();
             if (view != null)
             {
                 Debug.Log($"正在绑定手牌数据：{cardData.cardData.cardName}");
@@ -140,6 +118,19 @@ public class UIManager : MonoBehaviour
                 foreach (var c in components) names += c.GetType().Name + ", ";
                 Debug.LogWarning($"[警告] {cardGo.name} 及其子物体上找不到接口！现有脚本: {names}");
             }
+            // ==================== 修复点 2: 逻辑绑定 (解决移动问题) ====================
+            // 必须获取 PlayerController 并将卡牌实例(cardData)传给它
+            var controller = cardGo.GetComponent<PlayerController>();
+            if (controller != null)
+            {
+                controller.Bind(cardData);
+            }
+            else
+            {
+                // 如果你的卡牌不需要移动，可以忽略这个，但通常卡牌游戏都需要
+                Debug.LogWarning($"[警告] {cardGo.name} 缺少 PlayerController 组件，无法进行交互！");
+            }
+
         }
 
         // 强制刷新布局

@@ -323,7 +323,7 @@ GameObject:
   - component: {fileID: 7211736671081865043}
   m_Layer: 5
   m_Name: FormulaUI
-  m_TagString: Untagged
+  m_TagString: FormulaArea
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -436,7 +436,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e72d36ef065e1841806c1e6ec567ee5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  formulaArea: {fileID: 7073824279183569308}
+  formulaArea: {fileID: 4331820847393881532}
   textPrefab: {fileID: 6324806237758161415}
   slotPrefab: {fileID: 1823274826645526574}
 --- !u!114 &7211736671081865043
