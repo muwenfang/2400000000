@@ -30,37 +30,41 @@ public class FormulaCardUI : MonoBehaviour
         foreach (char c in formula.Pattern)
         {
             GameObject go = null;
-            if (c == '#')
+
+            if (c == '#') // 生成槽位
             {
-                // 生成填空槽
                 if (slotPrefab != null)
                 {
                     go = Instantiate(slotPrefab, formulaArea);
+
+                    // [修复 2] 安全获取组件 (防止报错中断)
                     FormulaSlot slot = go.GetComponent<FormulaSlot>();
                     if (slot != null)
                     {
                         slot.Init(this);
                         slots.Add(slot);
                     }
+                    else
+                    {
+                        Debug.LogError("SlotPrefab 缺少 FormulaSlot 脚本！");
+                    }
                 }
             }
-            else
+            else // 生成符号 (+ - * /)
             {
-                // 生成符号文本
                 if (textPrefab != null)
                 {
                     go = Instantiate(textPrefab, formulaArea);
-                    // 【修正点】使用 GetComponentInChildren 以防 Text 在子物体上
+
+                    // [修复 3] 使用 GetComponentInChildren (兼容 Text 在子物体的情况)
                     Text txt = go.GetComponentInChildren<Text>();
                     if (txt != null)
                     {
                         txt.text = c.ToString();
-                        txt.fontSize = 80; // 确保字体足够大可见
-                        txt.color = Color.black; // 确保颜色不是透明或白色
                     }
                     else
                     {
-                        Debug.LogError($"textPrefab {go.name} 上找不到 Text 组件！");
+                        Debug.LogError("TextPrefab 中找不到 Text 组件！");
                     }
                 }
             }
@@ -68,11 +72,18 @@ public class FormulaCardUI : MonoBehaviour
             // 强制布局参数 (防止缩放为0或被挤压)
             if (go != null)
             {
+                go.transform.localPosition = Vector3.zero;
                 go.transform.localScale = Vector3.one;
-                go.SetActive(true);
+                go.transform.localRotation = Quaternion.identity;
+
+                Vector3 pos = go.transform.localPosition;
+                pos.z = 0f;
+                go.transform.localPosition = pos;
+
+                // 确保有布局元素，否则 LayoutGroup 可能无法正确控制大小
+                var le = go.GetComponent<LayoutElement>();
+                if (le == null) le = go.AddComponent<LayoutElement>();
             }
-            // 强制刷新布局，防止 UI 没对齐
-            LayoutRebuilder.ForceRebuildLayoutImmediate(formulaArea.GetComponent<RectTransform>());
         }
     }
 

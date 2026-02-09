@@ -163,6 +163,12 @@ public class GameManager : MonoBehaviour
         // 3. 开始新回合
         StartPlayerTurn();
     }
+    public void ReturnStartMenu()
+    {
+        //加载主菜单界面
+        ChangeState(GameState.MainMenu);
+
+    }
     void WinGame(bool isWin)
     {
         if (isWin)

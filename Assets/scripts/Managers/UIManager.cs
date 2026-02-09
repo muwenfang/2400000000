@@ -98,8 +98,10 @@ public class UIManager : MonoBehaviour
             }
             
             GameObject cardGo = Instantiate(prefab, handArea);
-            cardGo.transform.localScale =  UnityEngine.Vector3.one; // 强制缩放为 1         
-            cardGo.SetActive(true); // 确保它是激活状态
+            cardGo.transform.localPosition = UnityEngine.Vector3.zero;
+            cardGo.transform.localScale = UnityEngine.Vector3.one;
+            cardGo.transform.localRotation = UnityEngine.Quaternion.identity; // 防止旋转偏移
+            cardGo.SetActive(true);
 
             // ==================== 修复点 1: 视图绑定 ====================
             // 不要用 GetComponent<NumberCardView>，改用接口 NumberCardLayoutView

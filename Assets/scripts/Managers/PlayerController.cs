@@ -42,6 +42,7 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
         transform.SetAsLastSibling();
         RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, Input.mousePosition, canvas.worldCamera, out dragOffset);
+        canvasGroup.blocksRaycasts = false;
     }
 
     public void OnDrag(PointerEventData eventData)
@@ -75,11 +76,8 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
             }
 
         }
+        canvasGroup.blocksRaycasts = true;
     }
-    public void ReturnStartMenu()
-    {
-        //加载起始菜单场景
-
-    }
+    
 }
 
