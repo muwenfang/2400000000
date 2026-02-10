@@ -23,15 +23,38 @@ public class FormulaSlot : MonoBehaviour, IDropHandler
         {
             Debug.Log($"接收到卡牌: {draggedCard.BoundCard.GetOutPutValue()}");
 
-            // 1. 通知父级 UI (CardManager) 记录数据
+            // 如果槽位里已经有牌了，这里可以加个逻辑：要么交换，要么不让放
+            if (currentCard != null) return;
+
+            // 相互绑定引用
+            draggedCard.isPlacedInSlot = true;
+            draggedCard.currentSlot = this; // 告诉卡牌它现在在这个槽位里
+
+            // 通知父级 UI (CardManager) 记录数据
             parentUI.OnSlotFilled(draggedCard.BoundCard);
 
-            // 2. 视觉效果：把卡牌吸附到槽位中心，并设为子物体
+            //  视觉效果：把卡牌吸附到槽位中心，并设为子物体
             draggedCard.transform.SetParent(transform);
             draggedCard.transform.localPosition = Vector3.zero;
 
-            // 3. 记录当前卡
+            // 强制重置 RectTransform 属性
+            RectTransform cardRT = draggedCard.GetComponent<RectTransform>();
+            if (cardRT != null)
+            {
+                // 铺满槽位或居中
+                cardRT.anchorMin = new Vector2(0.5f, 0.5f);
+                cardRT.anchorMax = new Vector2(0.5f, 0.5f);
+                cardRT.pivot = new Vector2(0.5f, 0.5f);
+                cardRT.anchoredPosition = Vector2.zero; // 绝对居中
+            }
+            // 记录当前卡
             currentCard = draggedCard.BoundCard;
         }
+    }
+    // 【新增】卡牌被拖走时调用
+    public void ClearSlot()
+    {
+        currentCard = null;
+        Debug.Log("槽位已清空");
     }
 }

@@ -29,18 +29,59 @@ public class FormulaCardUI : MonoBehaviour
 
         foreach (char c in formula.Pattern)
         {
-            GameObject go = null;
+            // 在 Bind 方法的循环内
+            GameObject go = Instantiate(c == '#' ? slotPrefab : textPrefab, formulaArea);
+
+            // --- 强化显示逻辑 ---
+            // 1. 确保它是在 UI 层
+            go.layer = LayerMask.NameToLayer("UI");
+
+            // 2. 强制设置 RectTransform 的基础属性
+            RectTransform rt = go.GetComponent<RectTransform>();
+            if (rt != null)
+            {
+                rt.localScale = Vector3.one;
+                rt.localPosition = new Vector3(rt.localPosition.x, rt.localPosition.y, 0); // 确保 Z 为 0
+            }
+            // --- 新增：暴力开启组件，确保显示 ---
+            var textComp = go.GetComponentInChildren<Text>();
+            var imageComp = go.GetComponentInChildren<Image>(true);// true 表示即使被禁用了也能找到
+            if (textComp != null)
+            {
+                textComp.enabled = true; // 强制打勾
+                textComp.text = c.ToString();
+                textComp.color = new Color(textComp.color.r, textComp.color.g, textComp.color.b, 1f);
+            }
+
+            if (imageComp != null)
+            {
+                imageComp.enabled = true;
+                imageComp.color = Color.white; // 确保颜色不是全透明
+            }
+            else
+            {
+                // 如果这里报错，说明你的 slotPrefab 真的引错了文件
+                Debug.LogError("致命错误：预制体 " + slotPrefab.name + " 及其子层级里根本没挂 Image 组件！");
+            }
+
+            var debugger = go.GetComponent<VisibilityDebugger>();
+            if (debugger != null)
+            {
+                debugger.enabled = true; // 强制打勾
+            }
+
+            // 确保物体本身也是激活的
+            go.SetActive(true);
 
             if (c == '#') // 生成槽位
             {
                 if (slotPrefab != null)
                 {
-                    go = Instantiate(slotPrefab, formulaArea);
-
-                    // [修复 2] 安全获取组件 (防止报错中断)
+                    // 安全获取组件 (防止报错中断)
                     FormulaSlot slot = go.GetComponent<FormulaSlot>();
                     if (slot != null)
                     {
+                        slot.enabled = true; // 确保脚本也是打勾的
                         slot.Init(this);
                         slots.Add(slot);
                     }
@@ -52,11 +93,18 @@ public class FormulaCardUI : MonoBehaviour
             }
             else // 生成符号 (+ - * /)
             {
+                Text t = go.GetComponentInChildren<Text>();
+                if (t != null)
+                {
+                    // 确保 Alpha 值为 1，且颜色不与背景冲突
+                    Color c_temp = t.color;
+                    c_temp.a = 1f;
+                    t.color = c_temp;
+                }
+                
                 if (textPrefab != null)
                 {
-                    go = Instantiate(textPrefab, formulaArea);
-
-                    // [修复 3] 使用 GetComponentInChildren (兼容 Text 在子物体的情况)
+                    //使用 GetComponentInChildren (兼容 Text 在子物体的情况)
                     Text txt = go.GetComponentInChildren<Text>();
                     if (txt != null)
                     {
@@ -85,8 +133,21 @@ public class FormulaCardUI : MonoBehaviour
                 if (le == null) le = go.AddComponent<LayoutElement>();
             }
         }
-    }
 
+        // 【新增】在循环结束后，强制刷新布局
+        StartCoroutine(ForceUpdateLayout());
+    }
+    private IEnumerator ForceUpdateLayout()
+    {
+        // 等待一帧，让 Unity 完成组件初始化
+        yield return null;
+
+        // 强制刷新当前物体 (FormulaCard) 及其父物体 (FormulaArea) 的布局
+        LayoutRebuilder.ForceRebuildLayoutImmediate(formulaArea.GetComponent<RectTransform>());
+
+        // 如果公式卡本身也在一个 LayoutGroup 里，可能需要刷新根节点
+        LayoutRebuilder.ForceRebuildLayoutImmediate(transform.GetComponent<RectTransform>());
+    }
     void Clear()
     {
         if (formulaArea == null) return;

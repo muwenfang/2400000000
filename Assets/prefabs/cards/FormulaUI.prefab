@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 984061884754047717}
   - component: {fileID: 2837919979249495496}
   - component: {fileID: 2737053162355337753}
+  - component: {fileID: 5934998535821206774}
   m_Layer: 5
   m_Name: Card
   m_TagString: Untagged
@@ -61,7 +62,7 @@ MonoBehaviour:
   m_Material: {fileID: 0}
   m_Color: {r: 0.8113208, g: 0.6356956, b: 0, a: 0.58431375}
   m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
+  m_RaycastPadding: {x: -40, y: -55, z: -40, w: -55}
   m_Maskable: 1
   m_OnCullStateChanged:
     m_PersistentCalls:
@@ -88,6 +89,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 95d732b5bd6eba04aa37139697285519, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+--- !u!114 &5934998535821206774
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 282267348967112850}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6288b4d83a4f2a4bb8d55a14a1c808c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &668247699028066706
 GameObject:
   m_ObjectHideFlags: 0
@@ -100,7 +113,6 @@ GameObject:
   - component: {fileID: 2918081112230676739}
   - component: {fileID: 4158671354668490705}
   - component: {fileID: 1220002632819348385}
-  - component: {fileID: 4416664497270369010}
   - component: {fileID: 7760387387500553571}
   m_Layer: 5
   m_Name: FormulaUI
@@ -127,7 +139,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 26, y: 0}
-  m_SizeDelta: {x: -894.3069, y: -725.0273}
+  m_SizeDelta: {x: -894.3069, y: -2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2918081112230676739
 CanvasRenderer:
@@ -150,7 +162,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 1, a: 0.003921569}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -182,32 +194,6 @@ MonoBehaviour:
   formulaArea: {fileID: 3598395829523233909}
   textPrefab: {fileID: 6620907051930291993}
   slotPrefab: {fileID: 282267348967112850}
---- !u!114 &4416664497270369010
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 668247699028066706}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Padding:
-    m_Left: 0
-    m_Right: 0
-    m_Top: 0
-    m_Bottom: 0
-  m_ChildAlignment: 0
-  m_Spacing: 0
-  m_ChildForceExpandWidth: 0
-  m_ChildForceExpandHeight: 0
-  m_ChildControlWidth: 1
-  m_ChildControlHeight: 1
-  m_ChildScaleWidth: 1
-  m_ChildScaleHeight: 1
-  m_ReverseArrangement: 0
 --- !u!114 &7760387387500553571
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -263,10 +249,10 @@ RectTransform:
   - {fileID: 6987422326867555128}
   m_Father: {fileID: 1600727368693779754}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 0, y: 0}
+  m_SizeDelta: {x: 1025.6931, y: 309.7}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &391178084928052291
 CanvasRenderer:
@@ -289,7 +275,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 1, g: 1, b: 0.85490197, a: 0.28235295}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -343,6 +329,7 @@ GameObject:
   - component: {fileID: 2131818858856089613}
   - component: {fileID: 4994257942243554132}
   - component: {fileID: 8418305462243488320}
+  - component: {fileID: 841025775861046780}
   m_Layer: 5
   m_Name: operation
   m_TagString: Untagged
@@ -411,3 +398,15 @@ MonoBehaviour:
     m_VerticalOverflow: 1
     m_LineSpacing: 1
   m_Text: '*'
+--- !u!114 &841025775861046780
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6620907051930291993}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c6288b4d83a4f2a4bb8d55a14a1c808c, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 

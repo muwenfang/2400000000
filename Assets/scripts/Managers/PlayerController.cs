@@ -18,14 +18,16 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     CanvasGroup canvasGroup;
     private Transform originalParent;
     public NumberCardInstance BoundCard { get; private set; }
+    // 【关键】记录当前卡牌在哪
+    public FormulaSlot currentSlot;
+    public bool isPlacedInSlot = false;
 
     void Awake()
     {
         rectTransform = GetComponent<RectTransform>();
         canvas = GetComponentInParent<Canvas>();
         canvasGroup = GetComponent<CanvasGroup>();
-        originalParent = transform.parent;
-        originalLocalPos = rectTransform.localPosition;
+
     }
     public void Bind(NumberCardInstance card)
     {
@@ -36,21 +38,32 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
     public void OnBeginDrag(PointerEventData eventData)
     {
+        // 1. 如果是从槽位里拖出来的，通知槽位清空数据
+        if (currentSlot != null)
+        {
+            currentSlot.ClearSlot();
+            currentSlot = null;
+        }
+        isPlacedInSlot = false; // 开始拖拽时重置标记
+
+        // 2. 记录原始父物体和位置
+        originalParent = transform.parent;
+        originalLocalPos = rectTransform.localPosition;
         // 添加半透明效果
         GetComponent<CanvasGroup>().alpha = 0.6f;
         GetComponent<CanvasGroup>().blocksRaycasts = false;
 
+        // 【优化】拖拽时把父物体设为 Canvas，防止被手牌区的 LayoutGroup 限制
+        transform.SetParent(canvas.transform, true);
         transform.SetAsLastSibling();
-        RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, Input.mousePosition, canvas.worldCamera, out dragOffset);
-        canvasGroup.blocksRaycasts = false;
+        //RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, Input.mousePosition, canvas.worldCamera, out dragOffset);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
-        if (RectTransformUtility.ScreenPointToLocalPointInRectangle(originalParent as RectTransform, Input.mousePosition - (UnityEngine.Vector3)dragOffset, canvas.worldCamera, out UnityEngine.Vector2 localPos))
-        {
-            rectTransform.localPosition = localPos;
-        }
+        // 直接将物体的世界坐标设为鼠标的屏幕坐标
+        // 这样无论 UI 缩放是多少，卡牌都会精准在鼠标指针下方
+        transform.position = eventData.position;
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -59,25 +72,22 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         GetComponent<CanvasGroup>().alpha = 1f;
         GetComponent<CanvasGroup>().blocksRaycasts = true;
 
-        transform.SetParent(originalParent);
-        rectTransform.localPosition = originalLocalPos;
-
-        // 检测是否拖到公式区域
-        if (eventData.pointerEnter != null &&
-            eventData.pointerEnter.CompareTag("FormulaArea"))
+        if (!isPlacedInSlot)
         {
-            if (eventData.pointerEnter != null &&
-    eventData.pointerEnter.CompareTag("FormulaArea"))
-            {
-                if (BoundCard != null)
-                {
-                    CardManager.Instance.AddNumberCardToFormula(BoundCard);
-                }
-            }
-
+            // ❌ 没进槽位 → 回原位
+            transform.SetParent(originalParent, false);
+            rectTransform.localPosition = originalLocalPos;
         }
-        canvasGroup.blocksRaycasts = true;
+
     }
-    
+    // 给 FormulaSlot 调用
+    public void OnDroppedIntoSlot(Transform slot)
+    {
+        isPlacedInSlot = true;
+        transform.SetParent(slot, false);
+        rectTransform.anchoredPosition = Vector2.zero;
+    }
+
 }
+
 
