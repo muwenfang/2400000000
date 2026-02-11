@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 using static NumberCardFactory;
-
 /// <summary>
 /// 数字卡数据
 /// </summary>
@@ -20,7 +19,7 @@ public class NumberComponent
 }
 
 [CreateAssetMenu(fileName = "MyNumberCards", menuName = "CardData/NumberCardData", order = 1)]
-public class NumberCardData:ScriptableObject
+public class NumberCardData : ScriptableObject
 {
     public string cardName;
     public NumberCardLayoutType layoutType;
@@ -33,10 +32,12 @@ public class NumberCardData:ScriptableObject
         Addition,
         Multiplication,
         Power,
-        normal
+        Normal
     }
 
     public LogicalType logicalType;
+
+
 
 }
 public class NumberCardInstance 
@@ -166,7 +167,7 @@ public class NumberCardInstance
     private float CalculateNonPowerExpectation(NumberComponent a, NumberComponent b, NumberCardData.LogicalType logic)
     {
         // 单数字卡牌（仅PartA）
-        if (logic == NumberCardData.LogicalType.normal)
+        if (logic == NumberCardData.LogicalType.Normal)
         {
             return GetComponentExpectation(a);
         }

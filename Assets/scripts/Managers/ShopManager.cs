@@ -1,12 +1,29 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Random = UnityEngine.Random; // 明确指定使用 UnityEngine.Random
 
 /// <summary>
 /// 商店系统。读取database中的商品信息，读取玩家信息，处理购买逻辑
 /// </summary>
 
+//商店购买系统
+[System.Serializable]
+public class ShopItem<T>
+{
+    public T cardData;
+    public int price;
+    public bool sold;
+
+    public ShopItem(T data, int price)
+    {
+        this.cardData = data;
+        this.price = price;
+        this.sold = false;
+    }
+}
 //商店抽卡与展示
 public class ShopManager : MonoBehaviour
 {
@@ -32,7 +49,7 @@ public class ShopManager : MonoBehaviour
     public List<FormulaCardData> allFormulaCards = new();
 
     [Header("本次商店商品")]
-    public List<ShopItem<NumberCardData>> shopNumberCards = new();
+    public List<ShopItem<NumberCardInstance>> shopNumberCards = new();
     public List<ShopItem<FormulaCardData>> shopFormulaCards = new();
 
 
@@ -40,8 +57,6 @@ public class ShopManager : MonoBehaviour
     {
         GenerateNumberCards();
         GenerateFormulaCards();
-        // 打开面板
-        UIManager.Instance.shopPanel.SetActive(true);
 
         // --- 新增：通知 UI 刷新 ---
         UIManager.Instance.RefreshShopUI();
@@ -51,36 +66,62 @@ public class ShopManager : MonoBehaviour
     {
         shopNumberCards.Clear();
 
-        for (int i = 0; i < numberCardCount; i++)
-        {
-            NumberCardInstance instance = NumberCardFactory.GenerateRandomCard();
-            NumberCardData cardData = instance.cardData;
 
-            int price = instance.GetNumberCardPrice(cardData);
-            shopNumberCards.Add(new ShopItem<NumberCardData>(cardData, price)); 
+        // 生成所有最大槽位数量的卡（包括锁定的）
+        for (int i = 0; i < MaxnumberCardCount; i++)
+        {
+            if (i < numberCardCount)
+            {
+                // 未锁定的槽位：生成真实卡牌
+                NumberCardInstance instance = NumberCardFactory.GenerateRandomCard();
+                int price = instance.GetNumberCardPrice(instance.cardData);
+                shopNumberCards.Add(new ShopItem<NumberCardInstance>(instance, price));
+                Debug.Log($"生成商店数字卡槽位{i}：{instance.cardData.layoutType}，价格：{price}");
+            }
+            else
+            {
+                // 锁定的槽位：添加null占位
+                shopNumberCards.Add(new ShopItem<NumberCardInstance>(null, 0));
+                Debug.Log($"槽位{i}：锁定状态");
+            }
         }
     }
 
     void GenerateFormulaCards()//从总库中随机选择公式卡
     {
         shopFormulaCards.Clear();
-        List<FormulaCardData> temp = new(allFormulaCards);
+        List<FormulaCardData> tempPool = new List<FormulaCardData>(allFormulaCards);
 
-        for (int i = 0; i < formulaCardCount; i++)
+        // 生成所有最大槽位数量（包括锁定的）
+        for (int i = 0; i < MaxformulaCardCount; i++)
         {
-            if (temp.Count == 0) break;
-
-            int index = Random.Range(0, temp.Count);
-            FormulaCardData card = temp[index];
-
-            shopFormulaCards.Add(new ShopItem<FormulaCardData>(card, card.CardPrice));
-            temp.RemoveAt(index);
+            if (i < formulaCardCount && tempPool.Count > 0)
+            {
+                // 未锁定的槽位：随机抽取公式卡
+                int index = UnityEngine.Random.Range(0, tempPool.Count); // 显式指定 UnityEngine.Random
+                FormulaCardData pickedData = tempPool[index];
+                tempPool.RemoveAt(index);
+                shopFormulaCards.Add(new ShopItem<FormulaCardData>(pickedData, pickedData.CardPrice));
+                Debug.Log($"生成商店公式卡槽位{i}：{pickedData.Name}，价格：{pickedData.CardPrice}");
+            }
+            else
+            {
+                // 锁定的槽位：添加null占位
+                shopFormulaCards.Add(new ShopItem<FormulaCardData>(null, 0));
+                Debug.Log($"公式卡槽位{i}：锁定状态");
+            }
         }
+
     }
 
-    
+
     public bool TryBuyNumberCard(ShopItem<NumberCardData> item)
     {
+        if (item == null || item.cardData == null)
+        {
+            Debug.Log("槽位已锁定，无法购买");
+            return false;
+        }
         if (item.sold) 
         {
             Debug.Log("商品已售出");
@@ -102,6 +143,12 @@ public class ShopManager : MonoBehaviour
     }
     public bool TryBuyFormulaCard(ShopItem<FormulaCardData> item)
     {
+        if (item == null || item.cardData == null)
+        {
+            Debug.Log("槽位已锁定，无法购买");
+            return false;
+        }
+
         if (item.sold)
         {
             Debug.Log("商品已售出");
@@ -151,19 +198,7 @@ public class ShopManager : MonoBehaviour
 
 }
 
-//商店购买系统
-[System.Serializable]
-public class ShopItem<T>
-{
-    public T cardData;
-    public int price;
-    public bool sold;
 
-    public ShopItem(T data, int price)
-    {
-        this.cardData = data;
-        this.price = price;
-        this.sold = false;
-    }
-}
+
+
 

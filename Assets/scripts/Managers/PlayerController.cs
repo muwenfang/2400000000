@@ -11,16 +11,22 @@ public interface NumberCardLayoutView
 }
 public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
-    private UnityEngine.Vector2 originalLocalPos;
-    private UnityEngine.Vector2 dragOffset;
+    private UnityEngine.Vector2 originalLocalPos;      // 记录卡牌原始位置
+    private Vector3 dragOffset;          // 鼠标与卡牌中心的偏移量
     private RectTransform rectTransform;
+    private Transform originalParent;
     private Canvas canvas;
     CanvasGroup canvasGroup;
-    private Transform originalParent;
-    public NumberCardInstance BoundCard { get; private set; }
+
     // 【关键】记录当前卡牌在哪
     public FormulaSlot currentSlot;
     public bool isPlacedInSlot = false;
+    private int originalSiblingIndex; // 【新增】记录原始层级索引
+    public NumberCardInstance BoundCard { get; private set; }
+
+    [Header("UI 显示引用")]
+    public Text textA;       // 对应 PartA 的数值显示
+    public Text textB;       // 对应 PartB 的数值显示
 
     void Awake()
     {
@@ -32,9 +38,37 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     public void Bind(NumberCardInstance card)
     {
         BoundCard = card;
+        // 1. 更新 PartA 的显示
+        if (textA != null)
+        {
+            textA.text = card.currentA.ToString();
+            // 视觉反馈：如果是递增数，可以设为绿色
+            if (card.cardData.partA.isIncremental) textA.color = Color.green;
+            else textA.color = Color.black;
+        }
+
+        // 2. 根据逻辑类型处理 PartB 和 运算符
+        if (card.cardData.logicalType == NumberCardData.LogicalType.normal)
+        {
+            // 单数字模式：隐藏 PartB 和 运算符
+            if (textB != null) textB.gameObject.SetActive(false);
+        }
+        else
+        {
+            // 运算模式：显示并更新内容
+            if (textB != null)
+            {
+                textB.gameObject.SetActive(true);
+                textB.text = card.currentB.ToString();
+                if (card.cardData.partB.isIncremental) textB.color = Color.green;
+            }
+
+        }
+
         // 检查是否每张卡牌都被绑定
         Debug.Log($"绑定卡牌：{card.cardData.layoutType}");
     }
+
 
     public void OnBeginDrag(PointerEventData eventData)
     {
@@ -46,24 +80,30 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         }
         isPlacedInSlot = false; // 开始拖拽时重置标记
 
-        // 2. 记录原始父物体和位置
+        //计算偏移量：记录鼠标点击时相对于卡牌中心的位置
+        // transform.position 是世界坐标，eventData.position 也是屏幕世界坐标
+        dragOffset = transform.position - (Vector3)eventData.position;
+
+        // 记录原始父物体和位置
         originalParent = transform.parent;
         originalLocalPos = rectTransform.localPosition;
+        // 记录它在手牌区的顺序位置
+        originalSiblingIndex = transform.GetSiblingIndex();
+
         // 添加半透明效果
         GetComponent<CanvasGroup>().alpha = 0.6f;
         GetComponent<CanvasGroup>().blocksRaycasts = false;
 
-        // 【优化】拖拽时把父物体设为 Canvas，防止被手牌区的 LayoutGroup 限制
+        // 拖拽时把父物体设为 Canvas，防止被手牌区的 LayoutGroup 限制
         transform.SetParent(canvas.transform, true);
         transform.SetAsLastSibling();
-        //RectTransformUtility.ScreenPointToLocalPointInRectangle(rectTransform, Input.mousePosition, canvas.worldCamera, out dragOffset);
     }
 
     public void OnDrag(PointerEventData eventData)
     {
         // 直接将物体的世界坐标设为鼠标的屏幕坐标
         // 这样无论 UI 缩放是多少，卡牌都会精准在鼠标指针下方
-        transform.position = eventData.position;
+        transform.position = (Vector3)eventData.position + dragOffset;
     }
 
     public void OnEndDrag(PointerEventData eventData)
@@ -76,7 +116,11 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         {
             // ❌ 没进槽位 → 回原位
             transform.SetParent(originalParent, false);
+            // 恢复它原来的排列顺序
+            transform.SetSiblingIndex(originalSiblingIndex);
+            // 恢复坐标
             rectTransform.localPosition = originalLocalPos;
+            
         }
 
     }

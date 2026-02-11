@@ -294,6 +294,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30511e58e3b276e40b9583213e78f456, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentSlot: {fileID: 0}
+  isPlacedInSlot: 0
+  textA: {fileID: 6007742199861496413}
+  textB: {fileID: 6259451740796557640}
 --- !u!225 &1323733714708296363
 CanvasGroup:
   m_ObjectHideFlags: 0

@@ -58,11 +58,11 @@ public class FormulaCardUI : MonoBehaviour
                 imageComp.enabled = true;
                 imageComp.color = Color.white; // 确保颜色不是全透明
             }
-            else
-            {
-                // 如果这里报错，说明你的 slotPrefab 真的引错了文件
-                Debug.LogError("致命错误：预制体 " + slotPrefab.name + " 及其子层级里根本没挂 Image 组件！");
-            }
+            //else
+            //{
+            //    // 如果这里报错，说明你的 slotPrefab 真的引错了文件
+            //    Debug.LogError("致命错误：预制体 " + slotPrefab.name + " 及其子层级里根本没挂 Image 组件！");
+            //}
 
             var debugger = go.GetComponent<VisibilityDebugger>();
             if (debugger != null)

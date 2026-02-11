@@ -168,6 +168,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentSlot: {fileID: 0}
   isPlacedInSlot: 0
+  textA: {fileID: 6943866760147138193}
+  textB: {fileID: 0}
 --- !u!1 &3699530215291058940
 GameObject:
   m_ObjectHideFlags: 0

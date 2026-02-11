@@ -9,7 +9,7 @@ public enum NumberCardLayoutType
     Single,        // a
     Add_AB,        // a + b
     Multiply_AB,   // a × b
-    Composite_AB,  // 类似右图那种组合
+    Composite_AB,  
 }
 
 public class UIManager : MonoBehaviour
@@ -26,6 +26,9 @@ public class UIManager : MonoBehaviour
     public GameObject gameUIPanel; // 游戏内UI面板
     public GameObject gameOverPanel; // 游戏结束面板
     public GameObject shopPanel; // 商店面板
+    public GameObject pointstagePanel; // 点数阶段面板
+    //public GameObject blessingPanel; // 祝福面板
+
     //public GameObject confirmPanel;// 确认面板
 
     [Header("UI组件")]
@@ -38,7 +41,8 @@ public class UIManager : MonoBehaviour
     public Transform shopNumberArea;
     public Transform shopFormulaArea;
 
-    public GameObject shopSlotPrefab; // 拖入那个带价格显示和购买按钮的 Prefab
+    public GameObject formulaCardShopPrefab; // 拖入那个带价格显示和购买按钮的 Prefab
+    public GameObject numberCardShopPrefab; // 用于显示商店中的数字卡
     public GameObject formulaCardUIPrefab; // 用于显示商店中的公式卡
 
     void Awake()
@@ -59,11 +63,23 @@ public class UIManager : MonoBehaviour
         if (gameUIPanel != null) gameUIPanel.SetActive(false);
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (shopPanel != null) shopPanel.SetActive(false);
-
+        
         // 激活目标
         panelToShow.SetActive(true);
         // 强制把这个面板排到最前面（防止被其他没关掉的UI遮挡）
         panelToShow.transform.SetAsLastSibling();
+
+        if (panelToShow == gameUIPanel || panelToShow == shopPanel)
+        {
+            if (pointstagePanel != null) 
+            {
+                pointstagePanel.SetActive(true);
+                // 强制把这个面板排到最前面（防止被其他没关掉的UI遮挡）
+                pointstagePanel.transform.SetAsLastSibling();
+            }
+
+        }
+
         Debug.Log($"已激活并置顶面板: {panelToShow.name}");
         
     }
@@ -215,7 +231,7 @@ public class UIManager : MonoBehaviour
         foreach (var item in items)
         {
             // 1. 先生成商店的“外壳”（带价格和按钮）
-            GameObject slotGo = Instantiate(shopSlotPrefab, shopNumberArea);
+            GameObject slotGo = Instantiate(numberCardShopPrefab, shopNumberArea);
             ShopCardUI shopUI = slotGo.GetComponent<ShopCardUI>();
 
             // 2. 从工厂获取卡牌“主体”
@@ -251,36 +267,51 @@ public class UIManager : MonoBehaviour
             Destroy(child.gameObject);
     }
 
-    // 在 UIManager 类中添加 ShowShopPanel 方法
-    public void ShowShopPanel()
-    {
-        if (shopPanel != null)
-        {
-            shopPanel.SetActive(true);
-        }
-    }
+    // 2. 刷新 UI (核心修改：循环至最大槽位数)
     public void RefreshShopUI()
     {
-        // 1. 清理旧的商品格子
+        // 1. 清理旧槽位
         foreach (Transform child in shopNumberArea) Destroy(child.gameObject);
         foreach (Transform child in shopFormulaArea) Destroy(child.gameObject);
 
-        // 2. 生成数字卡商品
-        foreach (var item in ShopManager.Instance.shopNumberCards)
+        // 2. 生成数字卡槽位
+        var numItems = ShopManager.Instance.shopNumberCards;
+        for (int i = 0; i < numItems.Count; i++)
         {
-            if (item.sold) continue; // 如果卖掉了就不显示
-            GameObject slotGo = Instantiate(shopSlotPrefab, shopNumberArea);
-            slotGo.GetComponent<ShopSlotUI>().SetItem(item);
+            GameObject go = Instantiate(numberCardShopPrefab, shopNumberArea);
+            var ui = go.GetComponent<ShopSlotUI>();
+
+            if (ui != null)
+            {
+                ui.BindNumberCard(numItems[i], i);
+            }
+            else
+            {
+                Debug.LogError("numberCardShopPrefab 缺少 ShopSlotUI 组件！");
+            }
         }
 
-        // 3. 生成公式卡商品
-        foreach (var item in ShopManager.Instance.shopFormulaCards)
+        // 3. 生成公式卡槽位
+        var formulaItems = ShopManager.Instance.shopFormulaCards;
+        for (int i = 0; i < formulaItems.Count; i++)
         {
-            if (item.sold) continue;
-            GameObject slotGo = Instantiate(shopSlotPrefab, shopFormulaArea);
-            slotGo.GetComponent<ShopSlotUI>().SetItem(item);
+            GameObject go = Instantiate(formulaCardShopPrefab, shopFormulaArea);
+            var ui = go.GetComponent<ShopSlotUI>();
+
+            if (ui != null)
+            {
+                ui.BindFormulaCard(formulaItems[i], i);
+            }
+            else
+            {
+                Debug.LogError("formulaCardShopPrefab 缺少 ShopSlotUI 组件！");
+            }
         }
+
+        Debug.Log($"商店UI刷新完成：数字卡{numItems.Count}个，公式卡{formulaItems.Count}个");
+
     }
+
 }
 
 

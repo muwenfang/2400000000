@@ -31,7 +31,7 @@ public class NumberCardFactory
         }
         else
         {
-            data.logicalType = NumberCardData.LogicalType.normal;
+            data.logicalType = NumberCardData.LogicalType.Normal;
             data.layoutType = NumberCardLayoutType.Single; // 对应 a
         }
         SetupNumberComponent(data.partA);

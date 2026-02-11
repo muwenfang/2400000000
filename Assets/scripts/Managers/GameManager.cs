@@ -110,7 +110,6 @@ public class GameManager : MonoBehaviour
         //[to do]
 
 
-
         // 添加到总点数
         AddPoints(result);
 
@@ -121,12 +120,14 @@ public class GameManager : MonoBehaviour
     public void AddPoints(BigInteger points)
     {
         currentPoints += points;
-        // 更新UI显示
-        UIManager.Instance.UpdatePointsDisplay(currentPoints);
+
     }
 
     public void EndTurn()
     {
+        // 更新UI显示
+        UIManager.Instance.UpdatePointsDisplay(currentPoints);
+        // 检查阶段要求
         foreach (int stageRound in stageRounds)
         {
             if (currentRound == stageRound)
@@ -136,7 +137,7 @@ public class GameManager : MonoBehaviour
         }
         currentState = GameState.Shop;
         shopManager.OpenShop();
-
+        ChangeState(GameState.Shop);
     }
 
     void CheckStageRequirement()

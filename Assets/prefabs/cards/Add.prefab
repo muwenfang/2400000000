@@ -581,3 +581,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 30511e58e3b276e40b9583213e78f456, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  currentSlot: {fileID: 0}
+  isPlacedInSlot: 0
+  textA: {fileID: 6192043971756098895}
+  textB: {fileID: 5795935553713100378}
+  logicSymbol: {fileID: 0}
