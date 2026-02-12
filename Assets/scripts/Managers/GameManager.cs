@@ -51,21 +51,6 @@ public class GameManager : MonoBehaviour
         ChangeState(GameState.MainMenu);
     }
 
-    //void EnterMainMenu()
-    //{
-    //    currentState = GameState.MainMenu;
-
-    //    // 添加空引用检查，防止 UIManager 还没准备好
-    //    if (UIManager.Instance != null)
-    //    {
-    //        UIManager.Instance.ShowStartMenu();
-    //    }
-    //    else
-    //    {
-    //        Debug.LogError("UIManager 实例未找到！请检查场景中是否挂载了 UIManager 脚本。");
-    //    }
-    //}
-
     public void InitializeGame()
     {   
         Debug.Log("初始化游戏");
@@ -74,13 +59,15 @@ public class GameManager : MonoBehaviour
         // 确保调用了 ChangeState，这样上面的 UI 逻辑才会跑起来
         ChangeState(GameState.PlayerTurn);
 
+        // 初始化UI显示
+        UIManager.Instance.UpdatePointsDisplay(currentPoints);
+        UIManager.Instance.UpdateRoundDisplay(currentRound);
+        UIManager.Instance.UpdateTargetPointsDisplay(targetPoints);
+
+
         // 执行抽卡逻辑
         cardManager.InitializeStarterDeck();
 
-        //// 3. 关键：通知 UI 刷新视觉显示
-        //UIManager.Instance.RefreshGameUI();
-
-        Debug.Log("UI 刷新请求已发送");
         // 开始第一回合
         StartPlayerTurn();
 
@@ -93,7 +80,9 @@ public class GameManager : MonoBehaviour
         Debug.Log("开始回合");
         ChangeState(GameState.PlayerTurn);
         Debug.Assert(currentState == GameState.PlayerTurn);
-        //UIManager.Instance.ShowGameUI();
+        
+        // 刷新所有游戏信息UI
+        UIManager.Instance.RefreshAllGameInfo();
         // 抽填空计算卡和对应数量的数字卡
         cardManager.DrawCardsForTurn();
     }
@@ -109,6 +98,8 @@ public class GameManager : MonoBehaviour
         // 计算祝福加成与倍率
         //[to do]
 
+        // 显示获得的点数
+        UIManager.Instance.ShowPointsGain(result);
 
         // 添加到总点数
         AddPoints(result);
@@ -120,6 +111,8 @@ public class GameManager : MonoBehaviour
     public void AddPoints(BigInteger points)
     {
         currentPoints += points;
+        // 立即更新UI显示
+        UIManager.Instance.UpdatePointsDisplay(currentPoints);
 
     }
 
@@ -127,7 +120,7 @@ public class GameManager : MonoBehaviour
     {
         // 更新UI显示
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
-        // 检查阶段要求
+        UIManager.Instance.UpdateRoundDisplay(currentRound);// 检查阶段要求
         foreach (int stageRound in stageRounds)
         {
             if (currentRound == stageRound)
@@ -161,6 +154,8 @@ public class GameManager : MonoBehaviour
         shopManager.CloseShop();
         // 2. 增加回合数
         currentRound++;
+        // 3. 更新回合数显示
+        UIManager.Instance.UpdateRoundDisplay(currentRound);
         // 3. 开始新回合
         StartPlayerTurn();
     }

@@ -9,7 +9,7 @@ public enum NumberCardLayoutType
     Single,        // a
     Add_AB,        // a + b
     Multiply_AB,   // a × b
-    Composite_AB,  
+    Composite_AB,
 }
 
 public class UIManager : MonoBehaviour
@@ -27,13 +27,19 @@ public class UIManager : MonoBehaviour
     public GameObject gameOverPanel; // 游戏结束面板
     public GameObject shopPanel; // 商店面板
     public GameObject pointstagePanel; // 点数阶段面板
-    //public GameObject blessingPanel; // 祝福面板
 
-    //public GameObject confirmPanel;// 确认面板
-
-    [Header("UI组件")]
+    [Header("游戏信息显示")]
     public Text pointsText;//显示当前点数
     public Text roundText;//显示当前回合
+    public Text targetPointsText;//显示目标点数
+    public Text stageRequirementText;//显示当前阶段要求点数
+
+    [Header("点数获得提示")]
+    public GameObject pointsGainPanel; // 显示获得点数的面板
+    public Text pointsGainText; // 显示获得的点数数值
+    public float pointsGainDisplayTime = 2f; // 显示时长
+
+    [Header("手牌和公式区域")]
     public Transform handArea;//手牌区域
     public Transform formulaArea;//填空卡区域
 
@@ -41,9 +47,9 @@ public class UIManager : MonoBehaviour
     public Transform shopNumberArea;
     public Transform shopFormulaArea;
 
-    public GameObject formulaCardShopPrefab; // 拖入那个带价格显示和购买按钮的 Prefab
-    public GameObject numberCardShopPrefab; // 用于显示商店中的数字卡
-    public GameObject formulaCardUIPrefab; // 用于显示商店中的公式卡
+    [Header("商店卡牌Prefab")]
+    public GameObject shopNumberCardPrefab; // 数字卡商店槽位Prefab（带ShopNumberCardSlot组件）
+    public GameObject shopFormulaCardPrefab; // 公式卡商店槽位Prefab（带ShopFormulaCardSlot组件）
 
     void Awake()
     {
@@ -53,9 +59,11 @@ public class UIManager : MonoBehaviour
         }
         else
         {
-            Destroy(gameObject); // 保证全局只有一个 UIManager
+            Destroy(gameObject);
         }
     }
+
+    #region 面板切换
     public void ShowPanel(GameObject panelToShow)
     {
         // 隐藏所有面板
@@ -63,45 +71,187 @@ public class UIManager : MonoBehaviour
         if (gameUIPanel != null) gameUIPanel.SetActive(false);
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (shopPanel != null) shopPanel.SetActive(false);
-        
+
         // 激活目标
         panelToShow.SetActive(true);
-        // 强制把这个面板排到最前面（防止被其他没关掉的UI遮挡）
+        // 强制把这个面板排到最前面
         panelToShow.transform.SetAsLastSibling();
 
         if (panelToShow == gameUIPanel || panelToShow == shopPanel)
         {
-            if (pointstagePanel != null) 
+            if (pointstagePanel != null)
             {
                 pointstagePanel.SetActive(true);
-                // 强制把这个面板排到最前面（防止被其他没关掉的UI遮挡）
                 pointstagePanel.transform.SetAsLastSibling();
             }
-
         }
 
         Debug.Log($"已激活并置顶面板: {panelToShow.name}");
-        
     }
+    #endregion
+
+    #region 游戏信息更新
+    /// <summary>
+    /// 更新点数显示
+    /// </summary>
+    public void UpdatePointsDisplay(System.Numerics.BigInteger points)
+    {
+        if (pointsText != null)
+        {
+            pointsText.text = $"点数: {FormatBigNumber(points)}";
+        }
+    }
+
+    /// <summary>
+    /// 更新回合数显示
+    /// </summary>
+    public void UpdateRoundDisplay(int round)
+    {
+        if (roundText != null)
+        {
+            roundText.text = $"回合: {round}";
+        }
+    }
+
+    /// <summary>
+    /// 更新目标点数显示
+    /// </summary>
+    public void UpdateTargetPointsDisplay(System.Numerics.BigInteger targetPoints)
+    {
+        if (targetPointsText != null)
+        {
+            targetPointsText.text = $"目标: {FormatBigNumber(targetPoints)}";
+        }
+    }
+
+    /// <summary>
+    /// 更新阶段要求点数显示
+    /// </summary>
+    public void UpdateStageRequirementDisplay(System.Numerics.BigInteger requirement)
+    {
+        if (stageRequirementText != null)
+        {
+            stageRequirementText.text = $"阶段要求: {FormatBigNumber(requirement)}";
+        }
+    }
+
+    /// <summary>
+    /// 显示获得的点数（带动画效果）
+    /// </summary>
+    public void ShowPointsGain(System.Numerics.BigInteger gainedPoints)
+    {
+        if (pointsGainPanel == null || pointsGainText == null)
+        {
+            Debug.LogWarning("pointsGainPanel 或 pointsGainText 未设置！");
+            return;
+        }
+
+        // 设置文本
+        pointsGainText.text = $"+{FormatBigNumber(gainedPoints)}";
+
+        // 显示面板
+        pointsGainPanel.SetActive(true);
+
+        // 启动协程在一段时间后隐藏
+        StartCoroutine(HidePointsGainAfterDelay());
+    }
+
+    /// <summary>
+    /// 延迟隐藏点数获得提示
+    /// </summary>
+    IEnumerator HidePointsGainAfterDelay()
+    {
+        yield return new WaitForSeconds(pointsGainDisplayTime);
+
+        if (pointsGainPanel != null)
+        {
+            pointsGainPanel.SetActive(false);
+        }
+    }
+
+    /// <summary>
+    /// 刷新所有游戏UI（点数、回合、阶段要求等）
+    /// </summary>
+    public void RefreshAllGameInfo()
+    {
+        UpdatePointsDisplay(GameManager.Instance.currentPoints);
+        UpdateRoundDisplay(GameManager.Instance.currentRound);
+        UpdateTargetPointsDisplay(GameManager.Instance.targetPoints);
+
+        // 获取当前阶段的要求点数
+        System.Numerics.BigInteger currentRequirement = GetCurrentStageRequirement();
+        UpdateStageRequirementDisplay(currentRequirement);
+    }
+
+    /// <summary>
+    /// 获取当前阶段的要求点数
+    /// </summary>
+    System.Numerics.BigInteger GetCurrentStageRequirement()
+    {
+        int currentRound = GameManager.Instance.currentRound;
+        var stageRounds = GameManager.Instance.stageRounds;
+        var requirements = GameManager.Instance.stagePointRequirements;
+
+        // 找到当前回合对应的阶段要求
+        for (int i = 0; i < stageRounds.Count; i++)
+        {
+            if (currentRound <= stageRounds[i])
+            {
+                return requirements[i];
+            }
+        }
+
+        // 如果超过所有阶段，返回最终目标
+        return GameManager.Instance.targetPoints;
+    }
+
+    /// <summary>
+    /// 格式化大数字显示（例如：1,234,567 或 1.23M）
+    /// </summary>
+    string FormatBigNumber(System.Numerics.BigInteger number)
+    {
+        if (number < 1000)
+        {
+            return number.ToString();
+        }
+        else if (number < 1000000)
+        {
+            return $"{number / 1000}K";
+        }
+        else if (number < 1000000000)
+        {
+            return $"{number / 1000000}M";
+        }
+        else if (number < 1000000000000)
+        {
+            return $"{number / 1000000000}B";
+        }
+        else
+        {
+            return $"{number / 1000000000000}T";
+        }
+    }
+    #endregion
+
+    #region 手牌显示
     public void RefreshGameUI()
     {
         Debug.Log("开始刷新游戏界面卡牌...");
+
         // 1. 显示公式卡
         ClearArea(formulaArea);
 
         if (CardManager.Instance.currentFormulaCard != null)
         {
             var go = Instantiate(formulaCardPrefab, formulaArea);
-            go.transform.localScale = UnityEngine.Vector3.one; // 确保缩放正确
+            go.transform.localScale = UnityEngine.Vector3.one;
             var formulaUI = go.GetComponent<FormulaCardUI>();
             formulaUI.Bind(CardManager.Instance.currentFormulaCard);
         }
 
-
         // 2. 显示数字手牌
-        // 先清理旧手牌
         foreach (Transform child in handArea) { Destroy(child.gameObject); }
-        Debug.Log($"开始刷新游戏界面卡牌... 当前手牌数量: {CardManager.Instance.currentNumberCards.Count}");
+        Debug.Log($"当前手牌数量: {CardManager.Instance.currentNumberCards.Count}");
 
         // 生成新手牌
         foreach (var cardData in CardManager.Instance.currentNumberCards)
@@ -112,16 +262,14 @@ public class UIManager : MonoBehaviour
                 Debug.LogError($"找不到布局类型为 {cardData.cardData.layoutType} 的 Prefab！");
                 continue;
             }
-            
+
             GameObject cardGo = Instantiate(prefab, handArea);
             cardGo.transform.localPosition = UnityEngine.Vector3.zero;
             cardGo.transform.localScale = UnityEngine.Vector3.one;
-            cardGo.transform.localRotation = UnityEngine.Quaternion.identity; // 防止旋转偏移
+            cardGo.transform.localRotation = UnityEngine.Quaternion.identity;
             cardGo.SetActive(true);
 
-            // ==================== 修复点 1: 视图绑定 ====================
-            // 不要用 GetComponent<NumberCardView>，改用接口 NumberCardLayoutView
-            // 这样无论是 SingleNumberView 还是其他类型的 View 都能被获取到
+            // 视图绑定
             var view = cardGo.GetComponent<NumberCardLayoutView>();
             if (view != null)
             {
@@ -130,14 +278,13 @@ public class UIManager : MonoBehaviour
             }
             else
             {
-                // 如果还是找不到，我们可以打印出这个物体上到底挂了哪些脚本，帮你排查
                 MonoBehaviour[] components = cardGo.GetComponentsInChildren<MonoBehaviour>();
                 string names = "";
                 foreach (var c in components) names += c.GetType().Name + ", ";
-                Debug.LogWarning($"[警告] {cardGo.name} 及其子物体上找不到接口！现有脚本: {names}");
+                Debug.LogWarning($"[警告] {cardGo.name} 缺少接口！现有脚本: {names}");
             }
-            // ==================== 修复点 2: 逻辑绑定 (解决移动问题) ====================
-            // 必须获取 PlayerController 并将卡牌实例(cardData)传给它
+
+            // 逻辑绑定
             var controller = cardGo.GetComponent<PlayerController>();
             if (controller != null)
             {
@@ -145,25 +292,17 @@ public class UIManager : MonoBehaviour
             }
             else
             {
-                // 如果你的卡牌不需要移动，可以忽略这个，但通常卡牌游戏都需要
-                Debug.LogWarning($"[警告] {cardGo.name} 缺少 PlayerController 组件，无法进行交互！");
+                Debug.LogWarning($"[警告] {cardGo.name} 缺少 PlayerController 组件！");
             }
-
         }
 
         // 强制刷新布局
         LayoutRebuilder.ForceRebuildLayoutImmediate(handArea.GetComponent<RectTransform>());
-    }
-    public void UpdatePointsDisplay(BigInteger points)
-    {
-        pointsText.text = $"点数: {points}";
+
+        // 刷新游戏信息
+        RefreshAllGameInfo();
     }
 
-    public void UpdateRoundDisplay(int round)
-    {
-        roundText.text = $"回合: {round}";
-    }
-    // 手牌显示
     public void ShowHandCards(List<NumberCardInstance> handCards)
     {
         if (handArea == null)
@@ -177,15 +316,12 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-
         ClearArea(handArea);
 
         foreach (var card in handCards)
         {
-            GameObject prefab =
-                numberCardLibrary.GetPrefab(card.cardData.layoutType);
+            GameObject prefab = numberCardLibrary.GetPrefab(card.cardData.layoutType);
 
-            // 检查 Prefab 是否获取成功
             if (prefab == null)
             {
                 Debug.LogError($"【UIManager报错】工厂里没配置 {card.cardData.layoutType} 类型的预制体！");
@@ -194,7 +330,6 @@ public class UIManager : MonoBehaviour
 
             GameObject go = Instantiate(prefab, handArea);
 
-            // 使用 TryGetComponent 更安全，如果没挂脚本就不会崩溃
             if (go.TryGetComponent<NumberCardLayoutView>(out var view))
             {
                 view.Bind(card.cardData);
@@ -210,84 +345,43 @@ public class UIManager : MonoBehaviour
             }
             else
             {
-                Debug.LogError($"Prefab {go.name} 缺少 PlayerController 脚本！请在编辑器里挂载。");
+                Debug.LogError($"Prefab {go.name} 缺少 PlayerController 脚本！");
             }
         }
     }
+
     public void ShowFormulaCard(FormulaCardData formula)
     {
         ClearArea(formulaArea);
-
         var go = Instantiate(formulaCardPrefab, formulaArea);
         go.GetComponent<FormulaCardUI>().Bind(formula);
     }
+    #endregion
 
-
-    // 商店显示
-    public void ShowShopNumberCards(List<ShopItem<NumberCardData>> items)
-    {
-        ClearArea(shopNumberArea);
-
-        foreach (var item in items)
-        {
-            // 1. 先生成商店的“外壳”（带价格和按钮）
-            GameObject slotGo = Instantiate(numberCardShopPrefab, shopNumberArea);
-            ShopCardUI shopUI = slotGo.GetComponent<ShopCardUI>();
-
-            // 2. 从工厂获取卡牌“主体”
-            GameObject cardPrefab = numberCardLibrary.GetPrefab(item.cardData.layoutType);
-            if (cardPrefab != null)
-            {
-                // 3. 将主体生成为外壳的子物体（通常生成在 shopUI 内部指定的 contentRoot 下）
-                GameObject cardBody = Instantiate(cardPrefab, shopUI.numberCardView.contentRoot);
-
-                // 4. 绑定卡牌数据（显示数值）
-                cardBody.GetComponent<NumberCardLayoutView>().Bind(item.cardData);
-            }
-
-            // 5. 绑定商店数据（显示价格、处理点击）
-            shopUI.BindNumberItem(item);
-        }
-    }
-
-    public void ShowShopFormulaCards(List<ShopItem<FormulaCardData>> items)
-    {
-        ClearArea(shopFormulaArea);
-
-        foreach (var item in items)
-        {
-            var go = Instantiate(formulaCardPrefab, shopFormulaArea);
-            go.GetComponent<ShopCardUI>().BindFormulaItem(item);
-        }
-    }
-
-    void ClearArea(Transform area)
-    {
-        foreach (Transform child in area)
-            Destroy(child.gameObject);
-    }
-
-    // 2. 刷新 UI (核心修改：循环至最大槽位数)
+    #region 商店UI
+    /// <summary>
+    /// 刷新商店UI（使用独立的数字卡和公式卡Slot组件）
+    /// </summary>
     public void RefreshShopUI()
     {
         // 1. 清理旧槽位
-        foreach (Transform child in shopNumberArea) Destroy(child.gameObject);
-        foreach (Transform child in shopFormulaArea) Destroy(child.gameObject);
+        ClearArea(shopNumberArea);
+        ClearArea(shopFormulaArea);
 
         // 2. 生成数字卡槽位
         var numItems = ShopManager.Instance.shopNumberCards;
         for (int i = 0; i < numItems.Count; i++)
         {
-            GameObject go = Instantiate(numberCardShopPrefab, shopNumberArea);
-            var ui = go.GetComponent<ShopSlotUI>();
+            GameObject slotGo = Instantiate(shopNumberCardPrefab, shopNumberArea);
+            var slotUI = slotGo.GetComponent<ShopNumberCardSlot>();
 
-            if (ui != null)
+            if (slotUI != null)
             {
-                ui.BindNumberCard(numItems[i], i);
+                slotUI.BindNumberCard(numItems[i], i);
             }
             else
             {
-                Debug.LogError("numberCardShopPrefab 缺少 ShopSlotUI 组件！");
+                Debug.LogError("shopNumberCardPrefab 缺少 ShopNumberCardSlot 组件！");
             }
         }
 
@@ -295,74 +389,30 @@ public class UIManager : MonoBehaviour
         var formulaItems = ShopManager.Instance.shopFormulaCards;
         for (int i = 0; i < formulaItems.Count; i++)
         {
-            GameObject go = Instantiate(formulaCardShopPrefab, shopFormulaArea);
-            var ui = go.GetComponent<ShopSlotUI>();
+            GameObject slotGo = Instantiate(shopFormulaCardPrefab, shopFormulaArea);
+            var slotUI = slotGo.GetComponent<ShopFormulaCardSlot>();
 
-            if (ui != null)
+            if (slotUI != null)
             {
-                ui.BindFormulaCard(formulaItems[i], i);
+                slotUI.BindFormulaCard(formulaItems[i], i);
             }
             else
             {
-                Debug.LogError("formulaCardShopPrefab 缺少 ShopSlotUI 组件！");
+                Debug.LogError("shopFormulaCardPrefab 缺少 ShopFormulaCardSlot 组件！");
             }
         }
 
         Debug.Log($"商店UI刷新完成：数字卡{numItems.Count}个，公式卡{formulaItems.Count}个");
-
     }
+    #endregion
 
+    #region 工具方法
+    void ClearArea(Transform area)
+    {
+        if (area == null) return;
+
+        foreach (Transform child in area)
+            Destroy(child.gameObject);
+    }
+    #endregion
 }
-
-
-public class ShopCardUI : MonoBehaviour
-{
-    ShopItem<NumberCardData> numberItem;
-    ShopItem<FormulaCardData> formulaItem;
-
-    public Text titleText;
-    public Text priceText;
-    public Button buyButton;
-
-    public NumberCardView numberCardView;
-
-
-    public void BindNumberItem(ShopItem<NumberCardData> item)
-    {
-        numberItem = item;
-        priceText.text = $"价格: {item.price}"; //
-
-        // 注意：这里不再需要调用 numberCardView.Bind，
-        // 因为 UIManager 已经手动把卡牌生成在里面并 Bind 好了。
-
-        buyButton.onClick.RemoveAllListeners();
-        buyButton.onClick.AddListener(OnBuyClick);
-    }
-
-
-    public void BindFormulaItem(ShopItem<FormulaCardData> item)
-    {
-        formulaItem = item;
-        numberItem = null;
-
-        titleText.text = item.cardData.Name;
-        priceText.text = item.price.ToString();
-    }
-
-    public void OnBuyClick()
-    {
-        // 这里调用你的 ShopManager 逻辑
-        if (ShopManager.Instance.TryBuyNumberCard(numberItem))
-        {
-            buyButton.interactable = false;
-            priceText.text = "已售出";
-        }
-    }
-}
-
-
-
-
-
-
-

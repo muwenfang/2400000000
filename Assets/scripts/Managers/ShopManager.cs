@@ -48,6 +48,9 @@ public class ShopManager : MonoBehaviour
     [Header("公式卡总库")]
     public List<FormulaCardData> allFormulaCards = new();
 
+    [Header("卡牌库引用")]
+    public NumberCardLibrary numberCardLibrary; // 新增：数字卡库的引用
+
     [Header("本次商店商品")]
     public List<ShopItem<NumberCardInstance>> shopNumberCards = new();
     public List<ShopItem<FormulaCardData>> shopFormulaCards = new();
@@ -66,17 +69,38 @@ public class ShopManager : MonoBehaviour
     {
         shopNumberCards.Clear();
 
-
+        // 检查卡牌库是否存在
+        if (numberCardLibrary == null || numberCardLibrary.allCards == null || numberCardLibrary.allCards.Count == 0)
+        {
+            Debug.LogError("NumberCardLibrary 未设置或为空！请在 ShopManager 的 Inspector 中拖入 NumberCardLibrary 资源。");
+            return;
+        }
         // 生成所有最大槽位数量的卡（包括锁定的）
         for (int i = 0; i < MaxnumberCardCount; i++)
         {
             if (i < numberCardCount)
             {
-                // 未锁定的槽位：生成真实卡牌
-                NumberCardInstance instance = NumberCardFactory.GenerateRandomCard();
-                int price = instance.GetNumberCardPrice(instance.cardData);
-                shopNumberCards.Add(new ShopItem<NumberCardInstance>(instance, price));
-                Debug.Log($"生成商店数字卡槽位{i}：{instance.cardData.layoutType}，价格：{price}");
+                // 未锁定的槽位：从库中随机抽取卡牌
+                NumberCardData randomCardData = GetRandomCardFromLibrary();
+
+                if (randomCardData != null)
+                {
+                    // 创建卡牌实例
+                    NumberCardInstance instance = new NumberCardInstance(randomCardData);
+
+                    // 计算价格
+                    int price = instance.GetNumberCardPrice(randomCardData);
+
+                    // 添加到商店
+                    shopNumberCards.Add(new ShopItem<NumberCardInstance>(instance, price));
+
+                    Debug.Log($"生成商店数字卡槽位{i}：{randomCardData.cardName}，布局类型：{randomCardData.layoutType}，价格：{price}");
+                }
+                else
+                {
+                    Debug.LogWarning($"槽位{i}：无法从库中获取卡牌");
+                    shopNumberCards.Add(new ShopItem<NumberCardInstance>(null, 0));
+                }
             }
             else
             {
@@ -84,6 +108,52 @@ public class ShopManager : MonoBehaviour
                 shopNumberCards.Add(new ShopItem<NumberCardInstance>(null, 0));
                 Debug.Log($"槽位{i}：锁定状态");
             }
+        }
+    }
+    /// <summary>
+    /// 从卡牌库中随机获取一张卡牌数据
+    /// </summary>
+    private NumberCardData GetRandomCardFromLibrary()
+    {
+        if (numberCardLibrary.allCards.Count == 0)
+        {
+            Debug.LogError("卡牌库为空！");
+            return null;
+        }
+
+        // 随机选择一张卡牌
+        int randomIndex = Random.Range(0, numberCardLibrary.allCards.Count);
+        NumberCardData selectedCard = numberCardLibrary.allCards[randomIndex];
+
+        // 推断并设置 layoutType（如果没有设置的话）
+        if (selectedCard != null)
+        {
+            selectedCard.layoutType = InferLayoutType(selectedCard);
+        }
+
+        return selectedCard;
+    }
+    /// <summary>
+    /// 根据卡牌的逻辑类型推断布局类型
+    /// </summary>
+    private NumberCardLayoutType InferLayoutType(NumberCardData card)
+    {
+        switch (card.logicalType)
+        {
+            case NumberCardData.LogicalType.Normal:
+                return NumberCardLayoutType.Single;
+
+            case NumberCardData.LogicalType.Addition:
+                return NumberCardLayoutType.Add_AB;
+
+            case NumberCardData.LogicalType.Multiplication:
+                return NumberCardLayoutType.Multiply_AB;
+
+            case NumberCardData.LogicalType.Power:
+                return NumberCardLayoutType.Composite_AB;
+
+            default:
+                return NumberCardLayoutType.Single;
         }
     }
 
@@ -115,7 +185,7 @@ public class ShopManager : MonoBehaviour
     }
 
 
-    public bool TryBuyNumberCard(ShopItem<NumberCardData> item)
+    public bool TryBuyNumberCard(ShopItem<NumberCardInstance> item)
     {
         if (item == null || item.cardData == null)
         {
@@ -135,8 +205,14 @@ public class ShopManager : MonoBehaviour
         
         GameManager.Instance.AddPoints(-item.price);//扣除点数
         
-        Debug.Log("购买成功");
-        PlayerCardInventory.Instance.AddNumberCard(item.cardData);//添加数字卡到卡组
+        // item.cardData 现在是 Instance，所以要访问 .cardData.cardData.cardName
+        Debug.Log($"购买成功: {item.cardData.cardData.cardName}");
+
+        // 添加到背包
+        // 注意：item.cardData 是 NumberCardInstance 类型
+        // item.cardData.cardData 是 NumberCardData (ScriptableObject) 类型
+        // 根据你之前的代码逻辑，PlayerCardInventory 似乎需要传入 ScriptableObject
+        PlayerCardInventory.Instance.AddNumberCard(item.cardData.cardData);
 
         item.sold = true;
         return true;
