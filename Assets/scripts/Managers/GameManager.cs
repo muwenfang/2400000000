@@ -62,7 +62,6 @@ public class GameManager : MonoBehaviour
         // 初始化UI显示
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
         UIManager.Instance.UpdateRoundDisplay(currentRound);
-        UIManager.Instance.UpdateTargetPointsDisplay(targetPoints);
 
 
         // 执行抽卡逻辑

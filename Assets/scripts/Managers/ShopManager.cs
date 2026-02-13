@@ -45,8 +45,8 @@ public class ShopManager : MonoBehaviour
     //刷新次数
     public int refreshCount = 0;
 
-    [Header("公式卡总库")]
-    public List<FormulaCardData> allFormulaCards = new();
+    [Tooltip("公式卡库 - 拖入 FormulaCardLibrary 资源")]
+    public FormulaCardLibrary formulaCardLibrary;
 
     [Header("卡牌库引用")]
     public NumberCardLibrary numberCardLibrary; // 新增：数字卡库的引用
@@ -65,73 +65,46 @@ public class ShopManager : MonoBehaviour
         UIManager.Instance.RefreshShopUI();
     }
 
-    void GenerateNumberCards()//从工厂生成随机数字卡
+    /// <summary>
+    /// 生成数字卡商品
+    /// </summary>
+    void GenerateNumberCards()
     {
         shopNumberCards.Clear();
 
-        // 检查卡牌库是否存在
+        // 验证库是否存在
         if (numberCardLibrary == null || numberCardLibrary.allCards == null || numberCardLibrary.allCards.Count == 0)
         {
-            Debug.LogError("NumberCardLibrary 未设置或为空！请在 ShopManager 的 Inspector 中拖入 NumberCardLibrary 资源。");
+            Debug.LogError("NumberCardLibrary 未设置或为空！");
             return;
         }
-        // 生成所有最大槽位数量的卡（包括锁定的）
+
+        // 生成所有槽位（包括锁定的）
         for (int i = 0; i < MaxnumberCardCount; i++)
         {
             if (i < numberCardCount)
             {
-                // 未锁定的槽位：从库中随机抽取卡牌
-                NumberCardData randomCardData = GetRandomCardFromLibrary();
+                // 未锁定槽位：随机抽取一张卡
+                int randomIndex = Random.Range(0, numberCardLibrary.allCards.Count);
+                NumberCardData randomCard = numberCardLibrary.allCards[randomIndex];
 
-                if (randomCardData != null)
-                {
-                    // 创建卡牌实例
-                    NumberCardInstance instance = new NumberCardInstance(randomCardData);
+                // 推断布局类型
+                randomCard.layoutType = InferLayoutType(randomCard);
 
-                    // 计算价格
-                    int price = instance.GetNumberCardPrice(randomCardData);
+                // 创建实例并计算价格
+                NumberCardInstance instance = new NumberCardInstance(randomCard);
+                int price = instance.GetNumberCardPrice(randomCard);
 
-                    // 添加到商店
-                    shopNumberCards.Add(new ShopItem<NumberCardInstance>(instance, price));
-
-                    Debug.Log($"生成商店数字卡槽位{i}：{randomCardData.cardName}，布局类型：{randomCardData.layoutType}，价格：{price}");
-                }
-                else
-                {
-                    Debug.LogWarning($"槽位{i}：无法从库中获取卡牌");
-                    shopNumberCards.Add(new ShopItem<NumberCardInstance>(null, 0));
-                }
+                shopNumberCards.Add(new ShopItem<NumberCardInstance>(instance, price));
+                Debug.Log($"槽位{i}：{randomCard.cardName}，价格 {price}");
             }
             else
             {
-                // 锁定的槽位：添加null占位
+                // 锁定槽位
                 shopNumberCards.Add(new ShopItem<NumberCardInstance>(null, 0));
-                Debug.Log($"槽位{i}：锁定状态");
+                Debug.Log($"槽位{i}：🔒 锁定");
             }
         }
-    }
-    /// <summary>
-    /// 从卡牌库中随机获取一张卡牌数据
-    /// </summary>
-    private NumberCardData GetRandomCardFromLibrary()
-    {
-        if (numberCardLibrary.allCards.Count == 0)
-        {
-            Debug.LogError("卡牌库为空！");
-            return null;
-        }
-
-        // 随机选择一张卡牌
-        int randomIndex = Random.Range(0, numberCardLibrary.allCards.Count);
-        NumberCardData selectedCard = numberCardLibrary.allCards[randomIndex];
-
-        // 推断并设置 layoutType（如果没有设置的话）
-        if (selectedCard != null)
-        {
-            selectedCard.layoutType = InferLayoutType(selectedCard);
-        }
-
-        return selectedCard;
     }
     /// <summary>
     /// 根据卡牌的逻辑类型推断布局类型
@@ -157,33 +130,44 @@ public class ShopManager : MonoBehaviour
         }
     }
 
-    void GenerateFormulaCards()//从总库中随机选择公式卡
+    /// <summary>
+    /// 生成公式卡商品
+    /// </summary>
+    void GenerateFormulaCards()
     {
         shopFormulaCards.Clear();
-        List<FormulaCardData> tempPool = new List<FormulaCardData>(allFormulaCards);
 
-        // 生成所有最大槽位数量（包括锁定的）
+        // 验证库是否存在
+        if (formulaCardLibrary == null || formulaCardLibrary.allCards == null || formulaCardLibrary.allCards.Count == 0)
+        {
+            Debug.LogError("FormulaCardLibrary 未设置或为空！");
+            return;
+        }
+
+        // 创建临时池，避免重复抽取
+        List<FormulaCardData> tempPool = new List<FormulaCardData>(formulaCardLibrary.allCards);
+
+        // 生成所有槽位
         for (int i = 0; i < MaxformulaCardCount; i++)
         {
             if (i < formulaCardCount && tempPool.Count > 0)
             {
-                // 未锁定的槽位：随机抽取公式卡
-                int index = UnityEngine.Random.Range(0, tempPool.Count); // 显式指定 UnityEngine.Random
-                FormulaCardData pickedData = tempPool[index];
-                tempPool.RemoveAt(index);
-                shopFormulaCards.Add(new ShopItem<FormulaCardData>(pickedData, pickedData.CardPrice));
-                Debug.Log($"生成商店公式卡槽位{i}：{pickedData.Name}，价格：{pickedData.CardPrice}");
+                // 未锁定槽位：随机抽取
+                int randomIndex = Random.Range(0, tempPool.Count);
+                FormulaCardData randomCard = tempPool[randomIndex];
+                tempPool.RemoveAt(randomIndex); // 避免重复
+
+                shopFormulaCards.Add(new ShopItem<FormulaCardData>(randomCard, randomCard.CardPrice));
+                Debug.Log($"槽位{i}：{randomCard.Name}，价格 {randomCard.CardPrice}");
             }
             else
             {
-                // 锁定的槽位：添加null占位
+                // 锁定槽位
                 shopFormulaCards.Add(new ShopItem<FormulaCardData>(null, 0));
-                Debug.Log($"公式卡槽位{i}：锁定状态");
+                Debug.Log($"槽位{i}：🔒 锁定");
             }
         }
-
     }
-
 
     public bool TryBuyNumberCard(ShopItem<NumberCardInstance> item)
     {
@@ -211,7 +195,6 @@ public class ShopManager : MonoBehaviour
         // 添加到背包
         // 注意：item.cardData 是 NumberCardInstance 类型
         // item.cardData.cardData 是 NumberCardData (ScriptableObject) 类型
-        // 根据你之前的代码逻辑，PlayerCardInventory 似乎需要传入 ScriptableObject
         PlayerCardInventory.Instance.AddNumberCard(item.cardData.cardData);
 
         item.sold = true;

@@ -48,7 +48,7 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         }
 
         // 2. 根据逻辑类型处理 PartB 和 运算符
-        if (card.cardData.logicalType == NumberCardData.LogicalType.normal)
+        if (card.cardData.logicalType == NumberCardData.LogicalType.Normal)
         {
             // 单数字模式：隐藏 PartB 和 运算符
             if (textB != null) textB.gameObject.SetActive(false);

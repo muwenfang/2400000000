@@ -16,6 +16,13 @@ public class CardManager : MonoBehaviour
     public List<FormulaCardData> formulaCardDeck = new List<FormulaCardData>();//填空卡牌库
     public Transform handCardParent;///建立手牌的父对象,作为后续给卡牌排版的容器
 
+    [Header("卡牌库引用 - 新方式")]
+    [Tooltip("数字卡库 - 拖入 NumberCardLibrary 资源")]
+    public NumberCardLibrary numberCardLibrary;
+
+    [Tooltip("公式卡库 - 拖入 FormulaCardLibrary 资源")]
+    public FormulaCardLibrary formulaCardLibrary;
+
     // 添加 CardContent 字段并初始化为 handCardParent
     private Transform CardContent => handCardParent;
 
@@ -35,6 +42,8 @@ public class CardManager : MonoBehaviour
         Debug.Log("初始化玩家起始卡组");
         // 初始化玩家的起始卡组
         PlayerCardInventory.Instance.ClearAll();
+        // 同步到当前牌堆
+        SyncDeckFromInventory();
 
         foreach (var card in starterNumberCards)
         {
@@ -53,6 +62,22 @@ public class CardManager : MonoBehaviour
         Debug.Log($"同步完成，当前牌堆公式卡数量: {formulaCardDeck.Count}");
     }
 
+    /// <summary>
+    /// 从玩家库存同步当前牌堆
+    /// </summary>
+    void SyncDeckFromInventory()
+    {
+        numberCardDeck.Clear();
+        foreach (var instance in PlayerCardInventory.Instance.GetAllNumberCards())
+        {
+            if (instance != null && instance.cardData != null)
+            {
+                numberCardDeck.Add(instance.cardData);
+            }
+        }
+
+        formulaCardDeck = new List<FormulaCardData>(PlayerCardInventory.Instance.GetAllFormulaCards());
+    }
     public void DrawCardsForTurn()// 抽取当前回合手牌
     {
         ClearHand();
@@ -68,15 +93,15 @@ public class CardManager : MonoBehaviour
             return;
         }  
 
-        numberCardDeck = new List<NumberCardData>();
-        foreach (var instance in PlayerCardInventory.Instance.GetAllNumberCards())
-        {
-            if (instance != null && instance.cardData != null)
-            {
-                numberCardDeck.Add(instance.cardData);
-            }
-        }
-        formulaCardDeck = PlayerCardInventory.Instance.GetAllFormulaCards();
+        //numberCardDeck = new List<NumberCardData>();
+        //foreach (var instance in PlayerCardInventory.Instance.GetAllNumberCards())
+        //{
+        //    if (instance != null && instance.cardData != null)
+        //    {
+        //        numberCardDeck.Add(instance.cardData);
+        //    }
+        //}
+        //formulaCardDeck = PlayerCardInventory.Instance.GetAllFormulaCards();
 
         // 【修改点】：先执行抽卡！
         DrawFormulaCards();
@@ -161,8 +186,7 @@ public class CardManager : MonoBehaviour
 
         BigInteger result =
             FormulaCalculator.Calculate(
-                currentFormulaCard,
-                selectedNumberCards);
+                currentFormulaCard,selectedNumberCards);
 
         Debug.Log($"公式结果：{result}");
         return result;

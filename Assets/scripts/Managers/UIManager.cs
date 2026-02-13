@@ -27,11 +27,15 @@ public class UIManager : MonoBehaviour
     public GameObject gameOverPanel; // 游戏结束面板
     public GameObject shopPanel; // 商店面板
     public GameObject pointstagePanel; // 点数阶段面板
+    public GameObject myCardButton;// 我的卡牌按钮面板
+    public GameObject myNumberCardPanel;// 数字卡
+    public GameObject myFormulaCardPanel;// 公式卡
+    public GameObject myBlessPanel;// 祝福
 
     [Header("游戏信息显示")]
     public Text pointsText;//显示当前点数
     public Text roundText;//显示当前回合
-    public Text targetPointsText;//显示目标点数
+    //public Text targetPointsText;//显示目标点数
     public Text stageRequirementText;//显示当前阶段要求点数
 
     [Header("点数获得提示")]
@@ -71,6 +75,11 @@ public class UIManager : MonoBehaviour
         if (gameUIPanel != null) gameUIPanel.SetActive(false);
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (shopPanel != null) shopPanel.SetActive(false);
+        if (pointsGainPanel != null) pointsGainPanel.SetActive(false);
+        if (myCardButton != null) myCardButton.SetActive(false);
+        if (myNumberCardPanel != null) myNumberCardPanel.SetActive(false);
+        if (myFormulaCardPanel != null) myFormulaCardPanel.SetActive(false);
+        if (myBlessPanel != null) myBlessPanel.SetActive(false);
 
         // 激活目标
         panelToShow.SetActive(true);
@@ -83,6 +92,14 @@ public class UIManager : MonoBehaviour
             {
                 pointstagePanel.SetActive(true);
                 pointstagePanel.transform.SetAsLastSibling();
+            }
+        }
+        if (panelToShow == gameUIPanel || panelToShow == myBlessPanel || panelToShow == myNumberCardPanel || panelToShow == myFormulaCardPanel)
+        {
+            if(myCardButton != null)
+            {
+                myCardButton.SetActive(true);
+                myCardButton.transform.SetAsLastSibling();
             }
         }
 
@@ -98,7 +115,7 @@ public class UIManager : MonoBehaviour
     {
         if (pointsText != null)
         {
-            pointsText.text = $"点数: {FormatBigNumber(points)}";
+            pointsText.text = $"{FormatBigNumber(points)}";
         }
     }
 
@@ -109,20 +126,10 @@ public class UIManager : MonoBehaviour
     {
         if (roundText != null)
         {
-            roundText.text = $"回合: {round}";
+            roundText.text = $"{round}";
         }
     }
 
-    /// <summary>
-    /// 更新目标点数显示
-    /// </summary>
-    public void UpdateTargetPointsDisplay(System.Numerics.BigInteger targetPoints)
-    {
-        if (targetPointsText != null)
-        {
-            targetPointsText.text = $"目标: {FormatBigNumber(targetPoints)}";
-        }
-    }
 
     /// <summary>
     /// 更新阶段要求点数显示
@@ -131,7 +138,7 @@ public class UIManager : MonoBehaviour
     {
         if (stageRequirementText != null)
         {
-            stageRequirementText.text = $"阶段要求: {FormatBigNumber(requirement)}";
+            stageRequirementText.text = $"{FormatBigNumber(requirement)}";
         }
     }
 
@@ -176,7 +183,6 @@ public class UIManager : MonoBehaviour
     {
         UpdatePointsDisplay(GameManager.Instance.currentPoints);
         UpdateRoundDisplay(GameManager.Instance.currentRound);
-        UpdateTargetPointsDisplay(GameManager.Instance.targetPoints);
 
         // 获取当前阶段的要求点数
         System.Numerics.BigInteger currentRequirement = GetCurrentStageRequirement();
