@@ -27,6 +27,12 @@ public class GameManager : MonoBehaviour
     public BlessingManager blessingManager;
     public ShopManager shopManager;
 
+    [Header("结算动画配置")]
+    [Tooltip("显示本回合得分的停留时间（秒）")]
+    public float roundScoreDisplayTime = 1.5f;
+
+    [Tooltip("显示总分更新的停留时间（秒）")]
+    public float totalScoreDisplayTime = 1.0f;
 
     //阶段点数数据
     public List<BigInteger> stagePointRequirements = new List<BigInteger>()
@@ -63,7 +69,6 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
         UIManager.Instance.UpdateRoundDisplay(currentRound);
 
-
         // 执行抽卡逻辑
         cardManager.InitializeStarterDeck();
 
@@ -82,6 +87,11 @@ public class GameManager : MonoBehaviour
         
         // 刷新所有游戏信息UI
         UIManager.Instance.RefreshAllGameInfo();
+        // 重置本回合得分
+        UIManager.Instance.ResetRoundScore();
+        // 更新目标回合显示
+        int nextTarget = GetNextStageRound();
+        UIManager.Instance.UpdateTargetRoundDisplay(nextTarget);
         // 抽填空计算卡和对应数量的数字卡
         cardManager.DrawCardsForTurn();
     }
@@ -90,29 +100,107 @@ public class GameManager : MonoBehaviour
     {
         if (currentState != GameState.PlayerTurn)
             return;
+        // 检查是否填满了所有卡牌
+        if (!IsFormulaComplete())
+        {
+            Debug.LogWarning("未填满所有卡牌，无法结算");
+            return;
+        }
 
         currentState = GameState.Calculation;
         // 计算填空卡结果
-        BigInteger result = formula.CalculateResult();
-        // 计算祝福加成与倍率
+        BigInteger baseScore = formula.CalculateResult();
+
+        // 计算倍率（从祝福管理器获取）
+        float multiplier = GetCurrentMultiplier();
+
+        // 计算最终得分
+        BigInteger finalScore = (BigInteger)((decimal)baseScore * (decimal)multiplier);
+
+        // 计算祝福加成
         //[to do]
 
-        // 显示获得的点数
-        UIManager.Instance.ShowPointsGain(result);
+        // 启动分步显示协程
+        StartCoroutine(ShowScoreStepByStep(baseScore, multiplier, finalScore));
 
-        // 添加到总点数
-        AddPoints(result);
+    }
+    /// <summary>
+    /// 分步显示得分的协程
+    /// </summary>
+    IEnumerator ShowScoreStepByStep(BigInteger baseScore, float multiplier, BigInteger finalScore)
+    {
+        // 第1步：显示本回合得分（基础分 × 倍率）
+        Debug.Log("第1步：显示本回合得分");
+        UIManager.Instance.ShowPointsGain(finalScore); // 弹出 "+XXX" 提示
 
-        // 检查点数，开启商店
+        yield return new WaitForSeconds(roundScoreDisplayTime);
+
+        // 第2步：加入总分并显示
+        Debug.Log("第2步：更新总分");
+        AddPoints(finalScore);
+
+        yield return new WaitForSeconds(totalScoreDisplayTime);
+
+        // 第3步：进入商店
+        Debug.Log("第3步：进入商店");
         EndTurn();
     }
 
+    /// <summary>
+    /// 检查公式是否填满
+    /// </summary>
+    bool IsFormulaComplete()
+    {
+        if (cardManager.currentFormulaCard == null)
+        {
+            Debug.LogWarning("没有公式卡");
+            return false;
+        }
+
+        int requiredCount = cardManager.currentFormulaCard.RequiredCount;
+        int filledCount = cardManager.selectedNumberCards.Count;
+
+        Debug.Log($"公式卡要求: {requiredCount}, 已填入: {filledCount}");
+
+        return filledCount >= requiredCount;
+    }
+    // 添加一个辅助方法，获取下一个结算回合
+    public int GetNextStageRound()
+    {
+        // 遍历 stageRounds 列表 (3, 8, 15...)
+        foreach (int roundLimit in stageRounds)
+        {
+            // 如果列表里的回合数大于或等于当前回合，它就是咱们的下一个目标
+            if (roundLimit >= currentRound)
+            {
+                return roundLimit;
+            }
+        }
+        // 如果超过了所有配置的回合，返回最后一个或显示最大值
+        return stageRounds[stageRounds.Count - 1];
+    }
+
+    /// <summary>
+    /// 获取当前倍率
+    /// </summary>
+    float GetCurrentMultiplier()
+    {
+        // TODO: 从祝福管理器获取实际倍率
+        // 目前返回默认值
+        if (blessingManager != null)
+        {
+            // return blessingManager.GetTotalMultiplier();
+        }
+
+        return 1.0f; // 默认倍率
+    }
     public void AddPoints(BigInteger points)
     {
         currentPoints += points;
         // 立即更新UI显示
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
 
+        Debug.Log($"总分更新: {currentPoints}");
     }
 
     public void EndTurn()
@@ -120,6 +208,7 @@ public class GameManager : MonoBehaviour
         // 更新UI显示
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
         UIManager.Instance.UpdateRoundDisplay(currentRound);// 检查阶段要求
+
         foreach (int stageRound in stageRounds)
         {
             if (currentRound == stageRound)

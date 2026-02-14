@@ -33,15 +33,16 @@ public class UIManager : MonoBehaviour
     public GameObject myBlessPanel;// 祝福
 
     [Header("游戏信息显示")]
-    public Text pointsText;//显示当前点数
-    public Text roundText;//显示当前回合
-    //public Text targetPointsText;//显示目标点数
-    public Text stageRequirementText;//显示当前阶段要求点数
+    public Text pointsText;              // 总分数
+    public Text roundText;               // 当前回合
+    public Text stageRequirementText;    // 阶段要求点数
+    public Text targetRoundText; // 拖入用于显示 "目标回合: X" 的文本组件
 
     [Header("点数获得提示")]
-    public GameObject pointsGainPanel; // 显示获得点数的面板
     public Text pointsGainText; // 显示获得的点数数值
     public float pointsGainDisplayTime = 2f; // 显示时长
+    public Text multiplierText;          // 倍率显示
+    public Button calculateButton;       // 结算按钮
 
     [Header("手牌和公式区域")]
     public Transform handArea;//手牌区域
@@ -75,7 +76,6 @@ public class UIManager : MonoBehaviour
         if (gameUIPanel != null) gameUIPanel.SetActive(false);
         if (gameOverPanel != null) gameOverPanel.SetActive(false);
         if (shopPanel != null) shopPanel.SetActive(false);
-        if (pointsGainPanel != null) pointsGainPanel.SetActive(false);
         if (myCardButton != null) myCardButton.SetActive(false);
         if (myNumberCardPanel != null) myNumberCardPanel.SetActive(false);
         if (myFormulaCardPanel != null) myFormulaCardPanel.SetActive(false);
@@ -92,6 +92,7 @@ public class UIManager : MonoBehaviour
             {
                 pointstagePanel.SetActive(true);
                 pointstagePanel.transform.SetAsLastSibling();
+                Debug.Log($"已激活pointstagePanel");
             }
         }
         if (panelToShow == gameUIPanel || panelToShow == myBlessPanel || panelToShow == myNumberCardPanel || panelToShow == myFormulaCardPanel)
@@ -104,6 +105,50 @@ public class UIManager : MonoBehaviour
         }
 
         Debug.Log($"已激活并置顶面板: {panelToShow.name}");
+    }
+    // --- 1. 卡牌库显示逻辑 (弹窗模式) ---
+
+    // 打开数字卡库
+    public void OpenNumberCardDeck()
+    {
+        // 只打开面板，不关闭原来的界面（Shop或Game），实现“不影响进度”
+        myNumberCardPanel.SetActive(true);
+        myFormulaCardPanel.SetActive(false); // 互斥显示
+        myBlessPanel.SetActive(false);
+        myNumberCardPanel.transform.SetAsLastSibling(); // 确保数字卡库在其他面板之上显示
+
+        // 调用刷新逻辑 (需要 ShowMyCard 挂在面板上)
+        var showScript = myNumberCardPanel.GetComponent<ShowMyCard>();
+        if (showScript != null) showScript.RefreshAllCards();
+    }
+
+    // 打开公式卡库
+    public void OpenFormulaCardDeck()
+    {
+        myFormulaCardPanel.SetActive(true);
+        myNumberCardPanel.SetActive(false);
+        myBlessPanel.SetActive(false);
+        myFormulaCardPanel.transform.SetAsLastSibling(); // 确保公式卡库在数字卡库之上显示
+
+        var showScript = myFormulaCardPanel.GetComponent<ShowMyCard>();
+        if (showScript != null) showScript.RefreshAllCards();
+    }
+    public void OpenBlessCardDeck()
+    {
+        myBlessPanel.SetActive(true);
+        myNumberCardPanel.SetActive(false);
+        myFormulaCardPanel.SetActive(false);
+        myBlessPanel.transform.SetAsLastSibling(); // 确保祝福卡库在其他卡库之上显示
+
+        var showScript = myBlessPanel.GetComponent<ShowMyCard>();
+        if (showScript != null) showScript.RefreshAllCards();
+    }
+
+    // 关闭卡牌库（返回原来的界面）
+    public void CloseCardDeck()
+    {
+        myNumberCardPanel.SetActive(false);
+        myFormulaCardPanel.SetActive(false);
     }
     #endregion
 
@@ -141,39 +186,67 @@ public class UIManager : MonoBehaviour
             stageRequirementText.text = $"{FormatBigNumber(requirement)}";
         }
     }
+    /// <summary>
+    /// 更新目标检查回合显示
+    /// </summary>
+    public void UpdateTargetRoundDisplay(int targetRound)
+    {
+        if (targetRoundText != null)
+        {
+            targetRoundText.text = $"{targetRound}"; 
+        }
+    }
+    /// <summary>
+    /// 更新倍率显示
+    /// </summary>
+    public void UpdateMultiplier(float multiplier)
+    {
+        if (multiplierText != null)
+        {
+            multiplierText.text = $"×{multiplier:F1}";
+
+            // 倍率大于1时高亮
+            if (multiplier > 1.0f)
+            {
+                multiplierText.color = Color.yellow;
+            }
+            else
+            {
+                multiplierText.color = Color.black;
+            }
+        }
+    }
+    /// <summary>
+    /// 重置本回合得分和倍率（回合开始时调用）
+    /// </summary>
+    public void ResetRoundScore()
+    {
+        if (pointsGainText != null)
+        {
+            pointsGainText.text = "0";
+        }
+
+        if (multiplierText != null)
+        {
+            multiplierText.text = "×1.0";
+            multiplierText.color = Color.black;
+        }
+    }
 
     /// <summary>
-    /// 显示获得的点数（带动画效果）
+    /// 显示获得的点数
     /// </summary>
     public void ShowPointsGain(System.Numerics.BigInteger gainedPoints)
     {
-        if (pointsGainPanel == null || pointsGainText == null)
+        if (pointsGainText == null)
         {
-            Debug.LogWarning("pointsGainPanel 或 pointsGainText 未设置！");
+            Debug.LogWarning("pointsGainPanel未设置！");
             return;
         }
 
         // 设置文本
         pointsGainText.text = $"+{FormatBigNumber(gainedPoints)}";
 
-        // 显示面板
-        pointsGainPanel.SetActive(true);
-
-        // 启动协程在一段时间后隐藏
-        StartCoroutine(HidePointsGainAfterDelay());
-    }
-
-    /// <summary>
-    /// 延迟隐藏点数获得提示
-    /// </summary>
-    IEnumerator HidePointsGainAfterDelay()
-    {
-        yield return new WaitForSeconds(pointsGainDisplayTime);
-
-        if (pointsGainPanel != null)
-        {
-            pointsGainPanel.SetActive(false);
-        }
     }
 
     /// <summary>
@@ -237,7 +310,44 @@ public class UIManager : MonoBehaviour
             return $"{number / 1000000000000}T";
         }
     }
-    #endregion
+    #endregion #region 结算按钮控制
+    ///// <summary>
+    ///// 检查是否可以结算（所有卡牌是否填入）
+    ///// </summary>
+    //public void CheckCanCalculate()
+    //{
+    //    if (CardManager.Instance == null || CardManager.Instance.currentFormulaCard == null)
+    //    {
+    //        SetCalculateButtonEnabled(false);
+    //        return;
+    //    }
+
+    //    // 检查填入的卡牌数量是否满足要求
+    //    int requiredCount = CardManager.Instance.currentFormulaCard.RequiredCount;
+    //    int selectedCount = CardManager.Instance.selectedNumberCards.Count;
+
+    //    bool canCalculate = (selectedCount == requiredCount);
+    //    SetCalculateButtonEnabled(canCalculate);
+
+    //    Debug.Log($"填入卡牌: {selectedCount}/{requiredCount}，可结算: {canCalculate}");
+    //}
+
+    ///// <summary>
+    ///// 设置结算按钮可用状态
+    ///// </summary>
+    //public void SetCalculateButtonEnabled(bool enabled)
+    //{
+    //    if (calculateButton != null)
+    //    {
+    //        calculateButton.interactable = enabled;
+
+    //        if (pointsGainText != null)
+    //        {
+    //            pointsGainText.text = enabled ? "结算" : "填入所有卡牌";
+    //            pointsGainText.color = enabled ? Color.black : Color.blue;
+    //        }
+    //    }
+    //}
 
     #region 手牌显示
     public void RefreshGameUI()
@@ -307,6 +417,12 @@ public class UIManager : MonoBehaviour
 
         // 刷新游戏信息
         RefreshAllGameInfo();
+
+        // 重置本回合得分
+        ResetRoundScore();
+
+        //// 禁用结算按钮
+        //SetCalculateButtonEnabled(false);
     }
 
     public void ShowHandCards(List<NumberCardInstance> handCards)
@@ -328,13 +444,24 @@ public class UIManager : MonoBehaviour
         {
             GameObject prefab = numberCardLibrary.GetPrefab(card.cardData.layoutType);
 
+            GameObject go = Instantiate(prefab, handArea);
+
             if (prefab == null)
             {
                 Debug.LogError($"【UIManager报错】工厂里没配置 {card.cardData.layoutType} 类型的预制体！");
                 continue;
             }
+            // 1. 强制重置缩放为 1 (防止被LayoutGroup压缩成0，或者继承了错误的缩放)
+            go.transform.localScale = UnityEngine.Vector3.one;
 
-            GameObject go = Instantiate(prefab, handArea);
+            // 2. 强制归零局部坐标 (特别是 Z 轴，必须为 0 才能在 UI 上显示)
+            go.transform.localPosition = UnityEngine.Vector3.zero;
+
+            // 3. 重置旋转
+            go.transform.localRotation = UnityEngine.Quaternion.identity;
+
+            // 4. 确保物体是激活的
+            go.SetActive(true);
 
             if (go.TryGetComponent<NumberCardLayoutView>(out var view))
             {
