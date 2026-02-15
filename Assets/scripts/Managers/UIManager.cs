@@ -289,26 +289,8 @@ public class UIManager : MonoBehaviour
     /// </summary>
     string FormatBigNumber(System.Numerics.BigInteger number)
     {
-        if (number < 1000)
-        {
-            return number.ToString();
-        }
-        else if (number < 1000000)
-        {
-            return $"{number / 1000}K";
-        }
-        else if (number < 1000000000)
-        {
-            return $"{number / 1000000}M";
-        }
-        else if (number < 1000000000000)
-        {
-            return $"{number / 1000000000}B";
-        }
-        else
-        {
-            return $"{number / 1000000000000}T";
-        }
+            return $"{number}";
+        
     }
     #endregion #region 结算按钮控制
     ///// <summary>

@@ -93,17 +93,7 @@ public class CardManager : MonoBehaviour
             return;
         }  
 
-        //numberCardDeck = new List<NumberCardData>();
-        //foreach (var instance in PlayerCardInventory.Instance.GetAllNumberCards())
-        //{
-        //    if (instance != null && instance.cardData != null)
-        //    {
-        //        numberCardDeck.Add(instance.cardData);
-        //    }
-        //}
-        //formulaCardDeck = PlayerCardInventory.Instance.GetAllFormulaCards();
-
-        // 【修改点】：先执行抽卡！
+        // 先执行抽卡！
         DrawFormulaCards();
 
         if (currentFormulaCard == null)
@@ -123,6 +113,10 @@ public class CardManager : MonoBehaviour
         currentNumberCards.Clear();
         currentFormulaCard = null;
 
+        // 清空上一回合填入的卡牌
+        selectedNumberCards.Clear();
+        Debug.Log("已清空上一回合的选择卡牌");
+
         foreach (Transform child in CardContent)
         {
             Destroy(child.gameObject);
@@ -132,25 +126,32 @@ public class CardManager : MonoBehaviour
 
     void DrawNumberCards(int count)
     {
-        // 用临时池，避免一回合内重复抽
-        List<NumberCardData> tempDeck = new List<NumberCardData>(numberCardDeck);
-        Debug.Log("正在抽取数字卡牌");
+        // 关键修复2：从库存中获取实例，而不是创建新实例
+        var inventoryInstances = PlayerCardInventory.Instance.GetAllNumberCards();
+
+        // 创建临时池（使用库存中的实例）
+        List<NumberCardInstance> tempPool = new List<NumberCardInstance>(inventoryInstances);
+
+        Debug.Log($"正在抽取数字卡牌，库存中共有 {tempPool.Count} 张卡");
+
         for (int i = 0; i < count; i++)
         {
-            if (tempDeck.Count == 0) break;
+            if (tempPool.Count == 0)
+            {
+                Debug.LogWarning($"卡牌不足！只抽到 {i} 张");
+                break;
+            }
 
-            int randomIndex = Random.Range(0, tempDeck.Count);
-            NumberCardData selectedData = tempDeck[randomIndex];
-            tempDeck.RemoveAt(randomIndex);// 从临时池中移除已抽取的卡牌
+            int randomIndex = Random.Range(0, tempPool.Count);
+            NumberCardInstance selectedInstance = tempPool[randomIndex];
+            tempPool.RemoveAt(randomIndex);
 
-            // 创建卡牌实例
-            NumberCardInstance instance = new NumberCardInstance(selectedData);
+            //抽中时处理骰子和递增
+            selectedInstance.OnDrawn();
 
-            // 抽中,掷骰
-            instance.OnDrawn();
+            currentNumberCards.Add(selectedInstance);
 
-            currentNumberCards.Add(instance);
-
+            Debug.Log($"抽到卡牌: {selectedInstance.cardData.cardName}, 当前值: A={selectedInstance.currentA}, B={selectedInstance.currentB}");
         }
         Debug.Log("数字卡牌抽取完成");
     }
@@ -189,9 +190,43 @@ public class CardManager : MonoBehaviour
                 currentFormulaCard,selectedNumberCards);
 
         Debug.Log($"公式结果：{result}");
+
+        //结算后更新递增卡的值
+        UpdateIncrementalCards();
+
         return result;
     }
+    /// <summary>
+    /// 更新递增卡的值（结算后调用）
+    /// </summary>
+    void UpdateIncrementalCards()
+    {
+        foreach (var card in selectedNumberCards)
+        {
+            bool updated = false;
 
+            // 更新 Part A 的递增值
+            if (card.cardData.partA.isIncremental)
+            {
+                card.currentA++;
+                updated = true;
+                Debug.Log($"递增卡更新：{card.cardData.cardName} Part A: {card.currentA - 1} → {card.currentA}");
+            }
+
+            // 更新 Part B 的递增值
+            if (card.cardData.partB != null && card.cardData.partB.isIncremental)
+            {
+                card.currentB++;
+                updated = true;
+                Debug.Log($"递增卡更新：{card.cardData.cardName} Part B: {card.currentB - 1} → {card.currentB}");
+            }
+
+            if (updated)
+            {
+                Debug.Log($"递增卡 {card.cardData.cardName} 已更新，下次使用值为 A={card.currentA}, B={card.currentB}");
+            }
+        }
+    }
     public void AddNumberCardToFormula(NumberCardInstance card)
     {
         if (currentFormulaCard == null)

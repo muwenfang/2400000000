@@ -51,28 +51,45 @@ public class NumberCardInstance
     {
         this.cardData = cardData;
         currentA = cardData.partA.value;
-        currentB = cardData.partB.value;
-    }
-
-
-    public void OnDrawn()
-    {   // 抽中时调用，处理掷骰和递增
-        SpecialNumberHandler(cardData.partA, ref currentA);
-        SpecialNumberHandler(cardData.partB, ref currentB);
-    }
-    private void SpecialNumberHandler(NumberComponent comp, ref int currentValue)
-    {
-        if (comp.isDice)
-        {   
-            // 掷骰子
-            currentValue = DiceHelper.RollDice(comp.diceSides);
-        }
-        else if (comp.isIncremental)
+        if (cardData.partB != null)
         {
-            // 递增
-            currentValue++;
+            currentB = cardData.partB.value;
         }
     }
+
+
+    /// <summary>
+    /// 抽中时调用，只处理骰子，不处理递增
+    /// 递增在结算后由 UpdateIncrementalCards 处理
+    /// </summary>
+    public void OnDrawn()
+    {
+        // 只处理骰子，递增值保持不变
+        if (cardData.partA.isDice)
+        {
+            currentA = DiceHelper.RollDice(cardData.partA.diceSides);
+            Debug.Log($"骰子 {cardData.cardName} Part A 掷出：{currentA}");
+        }
+
+        if (cardData.partB != null && cardData.partB.isDice)
+        {
+            currentB = DiceHelper.RollDice(cardData.partB.diceSides);
+            Debug.Log($"骰子 {cardData.cardName} Part B 掷出：{currentB}");
+        }
+    }
+    //private void SpecialNumberHandler(NumberComponent comp, ref int currentValue)
+    //{
+    //    if (comp.isDice)
+    //    {   
+    //        // 掷骰子
+    //        currentValue = DiceHelper.RollDice(comp.diceSides);
+    //    }
+    //    else if (comp.isIncremental)
+    //    {
+    //        // 递增
+    //        currentValue++;
+    //    }
+    //}
 
 
     public int GetOutPutValue()
