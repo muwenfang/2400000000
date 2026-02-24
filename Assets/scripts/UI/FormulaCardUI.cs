@@ -5,7 +5,9 @@ using UnityEngine.UI;
 
 public class FormulaCardUI : MonoBehaviour
 {
+    [Header("容器")]
     public Transform formulaArea;          // UI 容器
+    [Header("预制体")]
     public GameObject textPrefab;           // 显示 + * ( )
     public GameObject slotPrefab;           // # 槽位
 
@@ -14,7 +16,6 @@ public class FormulaCardUI : MonoBehaviour
     public void Bind(FormulaCardData formula)
     {
         Clear();
-        Debug.Log("开始绑定公式卡");
         // 1. 安全检查
         if (formulaArea == null)
         {
@@ -26,6 +27,7 @@ public class FormulaCardUI : MonoBehaviour
             Debug.LogError("【错误】FormulaCardUI: 传入的 formula 数据为 null");
             return;
         }
+        Debug.Log($"绑定公式卡：{formula.Pattern}");
 
         foreach (char c in formula.Pattern)
         {
@@ -58,11 +60,6 @@ public class FormulaCardUI : MonoBehaviour
                 imageComp.enabled = true;
                 imageComp.color = Color.white; // 确保颜色不是全透明
             }
-            //else
-            //{
-            //    // 如果这里报错，说明你的 slotPrefab 真的引错了文件
-            //    Debug.LogError("致命错误：预制体 " + slotPrefab.name + " 及其子层级里根本没挂 Image 组件！");
-            //}
 
             var debugger = go.GetComponent<VisibilityDebugger>();
             if (debugger != null)

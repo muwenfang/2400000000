@@ -117,6 +117,11 @@ public class UIManager : MonoBehaviour
         myBlessPanel.SetActive(false);
         myNumberCardPanel.transform.SetAsLastSibling(); // 确保数字卡库在其他面板之上显示
 
+        if (myCardButton != null)
+        {
+            myCardButton.SetActive(true);
+            myCardButton.transform.SetAsLastSibling();
+        }
         // 调用刷新逻辑 (需要 ShowMyCard 挂在面板上)
         var showScript = myNumberCardPanel.GetComponent<ShowMyCard>();
         if (showScript != null) showScript.RefreshAllCards();
@@ -130,6 +135,12 @@ public class UIManager : MonoBehaviour
         myBlessPanel.SetActive(false);
         myFormulaCardPanel.transform.SetAsLastSibling(); // 确保公式卡库在数字卡库之上显示
 
+        if (myCardButton != null)
+        {
+            myCardButton.SetActive(true);
+            myCardButton.transform.SetAsLastSibling();
+        }
+
         var showScript = myFormulaCardPanel.GetComponent<ShowMyCard>();
         if (showScript != null) showScript.RefreshAllCards();
     }
@@ -140,6 +151,12 @@ public class UIManager : MonoBehaviour
         myFormulaCardPanel.SetActive(false);
         myBlessPanel.transform.SetAsLastSibling(); // 确保祝福卡库在其他卡库之上显示
 
+        if (myCardButton != null)
+        {
+            myCardButton.SetActive(true);
+            myCardButton.transform.SetAsLastSibling();
+        }
+
         var showScript = myBlessPanel.GetComponent<ShowMyCard>();
         if (showScript != null) showScript.RefreshAllCards();
     }
@@ -149,6 +166,7 @@ public class UIManager : MonoBehaviour
     {
         myNumberCardPanel.SetActive(false);
         myFormulaCardPanel.SetActive(false);
+        myBlessPanel.SetActive(false);       
     }
     #endregion
 

@@ -15,8 +15,13 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     private Vector3 dragOffset;          // 鼠标与卡牌中心的偏移量
     private RectTransform rectTransform;
     private Transform originalParent;
+
+    [Header("配置")]
     private Canvas canvas;
     CanvasGroup canvasGroup;
+
+    [Header("卡牌数据")]
+    private NumberCardInstance cardInstance;
 
     // 【关键】记录当前卡牌在哪
     public FormulaSlot currentSlot;
@@ -44,7 +49,16 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
             textA.text = card.currentA.ToString();
             // 视觉反馈：如果是递增数，可以设为绿色
             if (card.cardData.partA.isIncremental) textA.color = Color.green;
+            else if (card.cardData.partA.isDice) textA.color = Color.red;
             else textA.color = Color.black;
+        }
+        if (textB != null)
+        {
+            textB.text = card.currentB.ToString();
+            // 视觉反馈：如果是递增数，可以设为绿色
+            if (card.cardData.partB.isIncremental) textA.color = Color.green;
+            else if (card.cardData.partB.isDice) textA.color = Color.red;
+            else textB.color = Color.black;
         }
 
         // 2. 根据逻辑类型处理 PartB 和 运算符
@@ -68,7 +82,13 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         // 检查是否每张卡牌都被绑定
         Debug.Log($"绑定卡牌：{card.cardData.layoutType}");
     }
-
+    /// <summary>
+    /// 获取卡牌实例
+    /// </summary>
+    public NumberCardInstance GetCardInstance()
+    {
+        return cardInstance;
+    }
 
     public void OnBeginDrag(PointerEventData eventData)
     {
@@ -114,7 +134,7 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
         if (!isPlacedInSlot)
         {
-            // ❌ 没进槽位 → 回原位
+            // 没进槽位 → 回原位
             transform.SetParent(originalParent, false);
             // 恢复它原来的排列顺序
             transform.SetSiblingIndex(originalSiblingIndex);

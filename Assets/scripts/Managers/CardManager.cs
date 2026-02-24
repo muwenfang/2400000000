@@ -100,7 +100,6 @@ public class CardManager : MonoBehaviour
         {
             Debug.LogError("严重错误：本回合未能抽到公式卡！停止发牌。");
         }
-
         DrawNumberCards(currentFormulaCard.RequiredCount);
 
         // 通知UI管理器更新显示
@@ -185,11 +184,18 @@ public class CardManager : MonoBehaviour
             return 0;
         }
 
-        BigInteger result =
-            FormulaCalculator.Calculate(
-                currentFormulaCard,selectedNumberCards);
+        Debug.Log($"========== 开始计算 ==========");
+        Debug.Log($"公式：{currentFormulaCard.Pattern}");
+        for (int i = 0; i < selectedNumberCards.Count; i++)
+        {
+            var card = selectedNumberCards[i];
+            Debug.Log($"  位置 {i}: {card.cardData.cardName} → 输出值: {card.GetOutPutValue()}");
+        }
 
-        Debug.Log($"公式结果：{result}");
+        BigInteger result = FormulaCalculator.Calculate(currentFormulaCard, selectedNumberCards);
+
+        Debug.Log($" 计算结果：{result}");
+        Debug.Log($"==============================");
 
         //结算后更新递增卡的值
         UpdateIncrementalCards();
@@ -203,13 +209,10 @@ public class CardManager : MonoBehaviour
     {
         foreach (var card in selectedNumberCards)
         {
-            bool updated = false;
-
             // 更新 Part A 的递增值
             if (card.cardData.partA.isIncremental)
             {
                 card.currentA++;
-                updated = true;
                 Debug.Log($"递增卡更新：{card.cardData.cardName} Part A: {card.currentA - 1} → {card.currentA}");
             }
 
@@ -217,14 +220,9 @@ public class CardManager : MonoBehaviour
             if (card.cardData.partB != null && card.cardData.partB.isIncremental)
             {
                 card.currentB++;
-                updated = true;
                 Debug.Log($"递增卡更新：{card.cardData.cardName} Part B: {card.currentB - 1} → {card.currentB}");
             }
 
-            if (updated)
-            {
-                Debug.Log($"递增卡 {card.cardData.cardName} 已更新，下次使用值为 A={card.currentA}, B={card.currentB}");
-            }
         }
     }
     public void AddNumberCardToFormula(NumberCardInstance card)
@@ -244,6 +242,29 @@ public class CardManager : MonoBehaviour
         selectedNumberCards.Add(card);
         Debug.Log($"加入数字卡：{card.GetOutPutValue()}");
     }
+    /// <summary>
+    /// 从公式中移除数字卡（支持退回）
+    /// </summary>
+    public void RemoveNumberCardFromFormula(NumberCardInstance card)
+    {
+        if (selectedNumberCards.Remove(card))
+        {
+            Debug.Log($"移除卡牌: {card.cardData.cardName}");
+        }
+        else
+        {
+            Debug.LogWarning($"尝试移除不存在的卡牌: {card.cardData.cardName}");
+        }
+    }
+
+    /// <summary>
+    /// 检查卡牌是否在公式中
+    /// </summary>
+    public bool IsCardInFormula(NumberCardInstance card)
+    {
+        return selectedNumberCards.Contains(card);
+    }
+
 
     private void Awake()
     {
