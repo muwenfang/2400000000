@@ -401,29 +401,14 @@ public static class FormulaCalculator
     /// </summary>
     static BigInteger ParseExpression()
     {
-        if (enableDebugLog)
-        {
-            Debug.Log($"ParseExpression: 位置 {index}，字符 '{GetCurrentChar()}'");
-        }
-
         BigInteger value = ParseTerm();
 
         while (index < expr.Length && expr[index] == '+')
         {
             index++; // skip '+'
 
-            if (enableDebugLog)
-            {
-                Debug.Log($"  加法: {value} + ...");
-            }
-
             BigInteger right = ParseTerm();
             value += right;
-
-            if (enableDebugLog)
-            {
-                Debug.Log($"  结果: {value}");
-            }
         }
 
         return value;
@@ -434,29 +419,14 @@ public static class FormulaCalculator
     /// </summary>
     static BigInteger ParseTerm()
     {
-        if (enableDebugLog)
-        {
-            Debug.Log($"ParseTerm: 位置 {index}，字符 '{GetCurrentChar()}'");
-        }
-
         BigInteger value = ParseFactor();
 
         while (index < expr.Length && expr[index] == '*')
         {
             index++; // skip '*'
 
-            if (enableDebugLog)
-            {
-                Debug.Log($"  乘法: {value} * ...");
-            }
-
             BigInteger right = ParseFactor();
             value *= right;
-
-            if (enableDebugLog)
-            {
-                Debug.Log($"  结果: {value}");
-            }
         }
 
         return value;
@@ -471,11 +441,6 @@ public static class FormulaCalculator
         {
             Debug.LogError($"ParseFactor: 索引 {index} 超出表达式长度 {expr.Length}");
             throw new Exception("表达式意外结束");
-        }
-
-        if (enableDebugLog)
-        {
-            Debug.Log($"ParseFactor: 位置 {index}，字符 '{expr[index]}'");
         }
 
         // 处理括号
@@ -510,12 +475,6 @@ public static class FormulaCalculator
             number = number * 10 + (expr[index] - '0');
             index++;
         }
-
-        if (enableDebugLog)
-        {
-            Debug.Log($"  解析数字: {numberStr} = {number}");
-        }
-
         return number;
     }
 

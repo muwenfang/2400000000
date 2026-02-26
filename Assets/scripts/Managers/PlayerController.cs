@@ -26,8 +26,11 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     // 【关键】记录当前卡牌在哪
     public FormulaSlot currentSlot;
     public bool isPlacedInSlot = false;
-    private int originalSiblingIndex; // 【新增】记录原始层级索引
+    private int originalSiblingIndex; // 记录原始层级索引
     public NumberCardInstance BoundCard { get; private set; }
+
+    //由槽位决定最终要返回到哪个父物体（解决 OnEndDrag 与 OnDrop 的执行顺序冲突）
+    public Transform desiredDropParent;
 
     [Header("UI 显示引用")]
     public Text textA;       // 对应 PartA 的数值显示
@@ -132,15 +135,40 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         GetComponent<CanvasGroup>().alpha = 1f;
         GetComponent<CanvasGroup>().blocksRaycasts = true;
 
+        //if (!isPlacedInSlot)
+        //{
+        //    // 没进槽位 → 回原位
+        //    transform.SetParent(originalParent, false);
+        //    // 恢复它原来的排列顺序
+        //    transform.SetSiblingIndex(originalSiblingIndex);
+        //    // 恢复坐标
+        //    rectTransform.localPosition = originalLocalPos;
+        //    rectTransform.localScale = Vector3.one;
+        //    desiredDropParent = null;
+
+        //}
         if (!isPlacedInSlot)
         {
-            // 没进槽位 → 回原位
-            transform.SetParent(originalParent, false);
-            // 恢复它原来的排列顺序
-            transform.SetSiblingIndex(originalSiblingIndex);
-            // 恢复坐标
-            rectTransform.localPosition = originalLocalPos;
-            
+            // 优先使用 desiredDropParent（由槽位在 OnDrop 时设置），能解决 OnEndDrag 与 OnDrop 顺序问题
+            if (desiredDropParent != null)
+            {
+                transform.SetParent(desiredDropParent, false);
+                // 将卡片放到目标父对象的末尾
+                transform.SetAsLastSibling();
+                // 重置本地坐标与缩放以保证布局显示合理
+                rectTransform.localPosition = Vector3.zero;
+                rectTransform.localScale = Vector3.one;
+                desiredDropParent = null;
+            }
+            else
+            {
+                // 没进槽位 → 回原位
+                transform.SetParent(originalParent, false);
+                // 恢复它原来的排列顺序
+                transform.SetSiblingIndex(originalSiblingIndex);
+                // 恢复坐标
+                rectTransform.localPosition = originalLocalPos;
+            }
         }
 
     }
@@ -148,6 +176,8 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     public void OnDroppedIntoSlot(Transform slot)
     {
         isPlacedInSlot = true;
+        // 把期望父物体清空（真正放入槽位，取消之前的返回指令）
+        desiredDropParent = null;
         transform.SetParent(slot, false);
         rectTransform.anchoredPosition = Vector2.zero;
     }

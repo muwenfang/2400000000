@@ -19,7 +19,7 @@ public class ShopNumberCardSlot : MonoBehaviour
 
     [Header("锁定状态")]
     public GameObject lockedPanel;      // 锁定状态的遮罩面板
-    public Text lockedText;             // 锁定提示文本（例如："🔒 已锁定"）
+    public Text lockedText;             // 锁定提示文本
 
     [Header("引用")]
     public NumberCardUIFactory numberCardLibrary; // 用于获取数字卡 Prefab

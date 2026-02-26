@@ -16,7 +16,7 @@ public class CardManager : MonoBehaviour
     public List<FormulaCardData> formulaCardDeck = new List<FormulaCardData>();//填空卡牌库
     public Transform handCardParent;///建立手牌的父对象,作为后续给卡牌排版的容器
 
-    [Header("卡牌库引用 - 新方式")]
+    [Header("卡牌库引用")]
     [Tooltip("数字卡库 - 拖入 NumberCardLibrary 资源")]
     public NumberCardLibrary numberCardLibrary;
 
@@ -131,8 +131,6 @@ public class CardManager : MonoBehaviour
         // 创建临时池（使用库存中的实例）
         List<NumberCardInstance> tempPool = new List<NumberCardInstance>(inventoryInstances);
 
-        Debug.Log($"正在抽取数字卡牌，库存中共有 {tempPool.Count} 张卡");
-
         for (int i = 0; i < count; i++)
         {
             if (tempPool.Count == 0)
@@ -184,18 +182,13 @@ public class CardManager : MonoBehaviour
             return 0;
         }
 
-        Debug.Log($"========== 开始计算 ==========");
         Debug.Log($"公式：{currentFormulaCard.Pattern}");
         for (int i = 0; i < selectedNumberCards.Count; i++)
         {
             var card = selectedNumberCards[i];
-            Debug.Log($"  位置 {i}: {card.cardData.cardName} → 输出值: {card.GetOutPutValue()}");
         }
 
         BigInteger result = FormulaCalculator.Calculate(currentFormulaCard, selectedNumberCards);
-
-        Debug.Log($" 计算结果：{result}");
-        Debug.Log($"==============================");
 
         //结算后更新递增卡的值
         UpdateIncrementalCards();
@@ -225,7 +218,8 @@ public class CardManager : MonoBehaviour
 
         }
     }
-    public void AddNumberCardToFormula(NumberCardInstance card)
+    // 按槽位索引插入（保证顺序）
+    public void AddNumberCardToFormula(NumberCardInstance card, int index)
     {
         if (currentFormulaCard == null)
         {
@@ -233,30 +227,64 @@ public class CardManager : MonoBehaviour
             return;
         }
 
-        if (selectedNumberCards.Count >= currentFormulaCard.RequiredCount)
+        int required = currentFormulaCard.RequiredCount;
+        if (index < 0 || index >= required)
         {
-            Debug.LogWarning("数字卡数量已满");
+            Debug.LogError($"无效槽位索引 {index}（范围 0..{required - 1}）");
             return;
         }
 
-        selectedNumberCards.Add(card);
-        Debug.Log($"加入数字卡：{card.GetOutPutValue()}");
+        if (selectedNumberCards == null) selectedNumberCards = new List<NumberCardInstance>();
+
+        // 扩展到 required 长度，使用 null 占位
+        while (selectedNumberCards.Count < required)
+            selectedNumberCards.Add(null);
+
+        // 若卡牌已经在其他位置，先清除（置 null）
+        for (int i = 0; i < selectedNumberCards.Count; i++)
+        {
+            if (selectedNumberCards[i] == card)
+            {
+                selectedNumberCards[i] = null;
+                Debug.Log($"卡牌 {card.cardData.cardName} 从位置 {i} 移除以重新放置到 {index}");
+            }
+        }
+
+        selectedNumberCards[index] = card;
+        Debug.Log($"加入数字卡（索引 {index}）：{card.GetOutPutValue()}");
     }
+
     /// <summary>
     /// 从公式中移除数字卡（支持退回）
     /// </summary>
     public void RemoveNumberCardFromFormula(NumberCardInstance card)
     {
-        if (selectedNumberCards.Remove(card))
+        if (selectedNumberCards == null) return;
+        bool found = false;
+        for (int i = 0; i < selectedNumberCards.Count; i++)
         {
-            Debug.Log($"移除卡牌: {card.cardData.cardName}");
+            if (selectedNumberCards[i] == card)
+            {
+                selectedNumberCards[i] = null; // 置 null 保持索引
+                found = true;
+                Debug.Log($"移除卡牌（置空）: {card.cardData.cardName} at {i}");
+                // 不 break，防止重复实例（一般只会有一个）
+            }
         }
-        else
-        {
+        if (!found)
             Debug.LogWarning($"尝试移除不存在的卡牌: {card.cardData.cardName}");
+    }
+    // 新增：按索引移除（FormulaSlot 点击或 ClearSlot 使用）
+    public void RemoveNumberCardFromFormulaAtIndex(int index)
+    {
+        if (selectedNumberCards == null) return;
+        if (index < 0 || index >= selectedNumberCards.Count) return;
+        if (selectedNumberCards[index] != null)
+        {
+            Debug.Log($"按索引移除卡牌 at {index}: {selectedNumberCards[index].cardData.cardName}");
+            selectedNumberCards[index] = null;
         }
     }
-
     /// <summary>
     /// 检查卡牌是否在公式中
     /// </summary>

@@ -1,31 +1,30 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// 公式槽位 - 增强版
 /// 支持拖放、点击退回、防止重复
 /// </summary>
-public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IPointerEnterHandler, IPointerExitHandler
+public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler
 {
     private FormulaCardUI parentUI;
+    private int slotIndex = -1;
     public NumberCardInstance currentCard;
 
     [Header("UI组件")]
     public Image background;
 
     [Header("颜色配置")]
-    public Color emptyColor = new Color(0.5f, 0.5f, 0.5f, 0.5f);
-    public Color occupiedColor = new Color(0f, 1f, 0f, 0.8f);
-    public Color hoverColor = new Color(1f, 1f, 0f, 0.5f);
+    public Color emptyColor = new Color(0f, 1f, 0f, 0.8f);
 
     /// <summary>
     /// 初始化，由 FormulaCardUI 调用
     /// </summary>
-    public void Init(FormulaCardUI ui)
+    public void Init(FormulaCardUI ui, int index)
     {
         parentUI = ui;
-        UpdateVisual();
+        slotIndex = index;
     }
 
     /// <summary>
@@ -33,13 +32,6 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IP
     /// </summary>
     public void OnDrop(PointerEventData eventData)
     {
-        // 检查1：槽位是否已占用
-        if (currentCard != null)
-        {
-            Debug.LogWarning("槽位已有卡牌！");
-            return;
-        }
-
         // 获取拖动的卡牌控制器
         var draggedCard = eventData.pointerDrag?.GetComponent<PlayerController>();
 
@@ -55,21 +47,60 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IP
             return;
         }
 
-        //  检查2：卡牌是否已在其他槽位
-        if (IsCardInAnySlot(draggedCard.BoundCard))
+        // 如果槽位视觉上已有卡（子对象中存在 PlayerController），拒绝放置并把拖拽卡退回手牌
+        foreach (Transform child in transform)
         {
-            Debug.LogWarning("卡牌已在其他槽位！");
+            if (child.GetComponent<PlayerController>() != null)
+            {
+                Debug.LogWarning("槽位已有卡牌，将拖拽卡退回手牌区。");
+
+                // 将拖拽的卡返回手牌区
+                //Transform handArea = CardManager.Instance.handCardParent;
+                //draggedCard.transform.SetParent(handArea, false);
+                //draggedCard.transform.localPosition = Vector3.zero;
+                //draggedCard.transform.localScale = Vector3.one;
+
+                // 不直接 SetParent（会被 OnEndDrag 覆盖），改为告知 PlayerController 在 OnEndDrag 时回到手牌区
+                Transform handArea = CardManager.Instance.handCardParent;
+                draggedCard.desiredDropParent = handArea;
+
+                draggedCard.isPlacedInSlot = false;
+                draggedCard.currentSlot = null;
+                var cg = draggedCard.GetComponent<CanvasGroup>();
+                if (cg != null) cg.blocksRaycasts = true;
+                return;
+            }
+        }
+        // 检查数据层：卡是否已经在某个槽位中
+        if (CardManager.Instance.IsCardInFormula(draggedCard.BoundCard))
+        {
+            Debug.LogWarning("卡牌已在其他槽位（数据层），拒绝重复放置。");
+            // 如果卡已经在其他槽位，也把拖拽卡退回手牌（保持一致性）
+            Transform handArea = CardManager.Instance.handCardParent;
+            //draggedCard.transform.SetParent(handArea, false);
+            //draggedCard.transform.localPosition = Vector3.zero;
+            //draggedCard.transform.localScale = Vector3.one;
+            draggedCard.desiredDropParent = handArea;
+
+            draggedCard.isPlacedInSlot = false;
+            draggedCard.currentSlot = null;
+            var cg2 = draggedCard.GetComponent<CanvasGroup>();
+            if (cg2 != null) cg2.blocksRaycasts = true;
             return;
         }
 
         Debug.Log($"接收卡牌: {draggedCard.BoundCard.cardData.cardName} → 值: {draggedCard.BoundCard.GetOutPutValue()}");
 
+        // 使用 PlayerController 的封装方法完成父级设置与定位（保证一致性）
+        draggedCard.OnDroppedIntoSlot(transform);
+
         // 标记卡牌已放置
         draggedCard.isPlacedInSlot = true;
         draggedCard.currentSlot = this;
 
-        // 通知父级 UI
-        parentUI.OnSlotFilled(draggedCard.BoundCard);
+        // 通知父级 UI（告知槽位索引）
+        if (parentUI != null)
+            parentUI.OnSlotFilled(slotIndex, draggedCard.BoundCard);
 
         // 视觉：卡牌吸附到槽位中心
         draggedCard.transform.SetParent(transform);
@@ -89,8 +120,6 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IP
         // 记录当前卡牌
         currentCard = draggedCard.BoundCard;
 
-        // 更新视觉
-        UpdateVisual();
     }
 
     /// <summary>
@@ -98,6 +127,14 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IP
     /// </summary>
     public void OnPointerClick(PointerEventData eventData)
     {
+        // 先查找是否存在子级卡牌 UI
+        PlayerController childController = null;
+        foreach (Transform child in transform)
+        {
+            var pc = child.GetComponent<PlayerController>();
+            if (pc != null) { childController = pc; break; }
+        }
+
         if (currentCard == null)
         {
             return;
@@ -113,8 +150,19 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IP
 
         Debug.Log($" 点击槽位，退回卡牌 {currentCard.cardData.cardName}");
 
-        // 从 CardManager 移除
-        CardManager.Instance.RemoveNumberCardFromFormula(currentCard);
+        // 确定要移除的卡牌实例（优先使用 currentCard）
+        NumberCardInstance cardToRemove = currentCard ?? (childController != null ? childController.BoundCard : null);
+        //Debug.Log($"点击槽位，退回卡牌 {(cardToRemove != null ? cardToRemove.cardData.cardName : "未知")}");
+
+        // 从 CardManager 数据层按索引移除
+        if (slotIndex >= 0)
+        {
+            CardManager.Instance.RemoveNumberCardFromFormulaAtIndex(slotIndex);
+        }
+        else if (cardToRemove != null)
+        {
+            CardManager.Instance.RemoveNumberCardFromFormula(cardToRemove);
+        }
 
         // 找到卡牌的 UI 并显示回手牌区
         ShowCardInHand(currentCard);
@@ -156,56 +204,30 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler, IP
     }
 
     /// <summary>
-    /// 检查卡牌是否已在其他槽位
-    /// </summary>
-    bool IsCardInAnySlot(NumberCardInstance card)
-    {
-        if (CardManager.Instance == null)
-        {
-            return false;
-        }
-
-        return CardManager.Instance.selectedNumberCards.Contains(card);
-    }
-
-    /// <summary>
-    /// 鼠标悬停
-    /// </summary>
-    public void OnPointerEnter(PointerEventData eventData)
-    {
-        if (currentCard == null && background != null)
-        {
-            background.color = hoverColor;
-        }
-    }
-
-    /// <summary>
-    /// 鼠标离开
-    /// </summary>
-    public void OnPointerExit(PointerEventData eventData)
-    {
-        UpdateVisual();
-    }
-
-    /// <summary>
     /// 清空槽位
     /// </summary>
     public void ClearSlot()
     {
-        currentCard = null;
-        UpdateVisual();
-        Debug.Log("槽位已清空");
-    }
-
-    /// <summary>
-    /// 更新视觉显示
-    /// </summary>
-    void UpdateVisual()
-    {
-        if (background != null)
+        // 如果有记录的卡牌，从数据层移除，避免 selectedNumberCards 残留
+        if (currentCard != null)
         {
-            background.color = currentCard != null ? occupiedColor : emptyColor;
+            CardManager.Instance.RemoveNumberCardFromFormula(currentCard);
         }
+
+        // 如果槽位中存在子级 UI，清理其槽位标记（不移动 UI，拖拽逻辑会处理）
+        foreach (Transform child in transform)
+        {
+            var controller = child.GetComponent<PlayerController>();
+            if (controller != null)
+            {
+                controller.isPlacedInSlot = false;
+                controller.currentSlot = null;
+                break;
+            }
+        }
+
+        currentCard = null;
+        Debug.Log("槽位已清空");
     }
 
 }

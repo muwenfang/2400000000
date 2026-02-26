@@ -29,23 +29,42 @@ public class FormulaCardUI : MonoBehaviour
         }
         Debug.Log($"绑定公式卡：{formula.Pattern}");
 
-        foreach (char c in formula.Pattern)
+        // 确保 formulaArea 有 HorizontalLayoutGroup
+        HorizontalLayoutGroup layoutGroup = formulaArea.GetComponent<HorizontalLayoutGroup>();
+        if (layoutGroup == null)
         {
+            layoutGroup = formulaArea.gameObject.AddComponent<HorizontalLayoutGroup>();
+            // 关键设置：不要由 LayoutGroup 强制控制子项尺寸或拉伸它们
+            layoutGroup.childControlWidth = false;
+            layoutGroup.childControlHeight = false;
+            layoutGroup.childForceExpandWidth = false;
+            layoutGroup.childForceExpandHeight = false;
+            layoutGroup.spacing = 10f; // 元素间距，可在 Inspector 调整
+            layoutGroup.childAlignment = TextAnchor.MiddleCenter;
+        }
+        
+        // 槽位计数器：只对 '#' 增加，保证槽位索引连续并与 CardManager.selectedNumberCards 对齐
+        int slotIndexCounter = 0;
+
+        for (int i = 0; i < formula.Pattern.Length; i++)
+        {
+            char c = formula.Pattern[i];
             // 在 Bind 方法的循环内
             GameObject go = Instantiate(c == '#' ? slotPrefab : textPrefab, formulaArea);
+            go.transform.SetSiblingIndex(i); // 确保顺序一致
 
             // --- 强化显示逻辑 ---
-            // 1. 确保它是在 UI 层
+            // 确保它是在 UI 层
             go.layer = LayerMask.NameToLayer("UI");
 
-            // 2. 强制设置 RectTransform 的基础属性
+            // 强制设置 RectTransform 的基础属性
             RectTransform rt = go.GetComponent<RectTransform>();
             if (rt != null)
             {
                 rt.localScale = Vector3.one;
                 rt.localPosition = new Vector3(rt.localPosition.x, rt.localPosition.y, 0); // 确保 Z 为 0
             }
-            // --- 新增：暴力开启组件，确保显示 ---
+            // --- 暴力开启组件，确保显示 ---
             var textComp = go.GetComponentInChildren<Text>();
             var imageComp = go.GetComponentInChildren<Image>(true);// true 表示即使被禁用了也能找到
             if (textComp != null)
@@ -70,6 +89,24 @@ public class FormulaCardUI : MonoBehaviour
             // 确保物体本身也是激活的
             go.SetActive(true);
 
+            // 配置 LayoutElement（关键）
+            LayoutElement le = go.GetComponent<LayoutElement>();
+            if (le == null) le = go.AddComponent<LayoutElement>();
+            {
+                le.flexibleWidth = 0;
+                le.flexibleHeight = 0;
+
+            }
+            // 尝试读取对应预制体的 RectTransform.sizeDelta 作为首选尺寸（更贴合视觉）
+            RectTransform prefabRT = (c == '#') ? (slotPrefab ? slotPrefab.GetComponent<RectTransform>() : null)
+                                                : (textPrefab ? textPrefab.GetComponent<RectTransform>() : null);
+            if (prefabRT != null)
+            {
+                // 使用预制体的 sizeDelta 作为 preferredSize（如果预制体在 Inspector 中正确设置了宽高）
+                le.preferredWidth = prefabRT.sizeDelta.x > 0 ? prefabRT.sizeDelta.x : 50f;
+                le.preferredHeight = prefabRT.sizeDelta.y > 0 ? prefabRT.sizeDelta.y : 50f;
+            }
+
             if (c == '#') // 生成槽位
             {
                 if (slotPrefab != null)
@@ -79,8 +116,10 @@ public class FormulaCardUI : MonoBehaviour
                     if (slot != null)
                     {
                         slot.enabled = true; // 确保脚本也是打勾的
-                        slot.Init(this);
+                        slot.Init(this,slotIndexCounter);
                         slots.Add(slot);
+                        slotIndexCounter++;
+
                     }
                     else
                     {
@@ -97,6 +136,7 @@ public class FormulaCardUI : MonoBehaviour
                     Color c_temp = t.color;
                     c_temp.a = 1f;
                     t.color = c_temp;
+
                 }
                 
                 if (textPrefab != null)
@@ -125,13 +165,10 @@ public class FormulaCardUI : MonoBehaviour
                 pos.z = 0f;
                 go.transform.localPosition = pos;
 
-                // 确保有布局元素，否则 LayoutGroup 可能无法正确控制大小
-                var le = go.GetComponent<LayoutElement>();
-                if (le == null) le = go.AddComponent<LayoutElement>();
             }
         }
 
-        // 【新增】在循环结束后，强制刷新布局
+        //在循环结束后，强制刷新布局
         StartCoroutine(ForceUpdateLayout());
     }
     private IEnumerator ForceUpdateLayout()
@@ -153,9 +190,10 @@ public class FormulaCardUI : MonoBehaviour
         slots.Clear();
     }
 
-    // 被 Slot 调用
-    public void OnSlotFilled(NumberCardInstance card)
+    // 父级被槽位调用：告知槽位索引与卡牌
+    public void OnSlotFilled(int slotIndex, NumberCardInstance card)
     {
-        CardManager.Instance.AddNumberCardToFormula(card);
+        // 交给 CardManager 以索引写入
+        CardManager.Instance.AddNumberCardToFormula(card, slotIndex);
     }
 }

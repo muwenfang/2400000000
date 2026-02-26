@@ -92,7 +92,6 @@ public class UIManager : MonoBehaviour
             {
                 pointstagePanel.SetActive(true);
                 pointstagePanel.transform.SetAsLastSibling();
-                Debug.Log($"已激活pointstagePanel");
             }
         }
         if (panelToShow == gameUIPanel || panelToShow == myBlessPanel || panelToShow == myNumberCardPanel || panelToShow == myFormulaCardPanel)
@@ -389,7 +388,7 @@ public class UIManager : MonoBehaviour
             var view = cardGo.GetComponent<NumberCardLayoutView>();
             if (view != null)
             {
-                Debug.Log($"正在绑定手牌数据：{cardData.cardData.cardName}");
+                //Debug.Log($"正在绑定手牌数据：{cardData.cardData.cardName}");
                 view.Bind(cardData.cardData);
             }
             else

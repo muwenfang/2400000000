@@ -20,7 +20,7 @@ public class ShowMyCard : MonoBehaviour
 
     [Header("颜色配置")]
     public Color incrementalColor = Color.green;   // 递增数字：绿色
-    public Color diceColor = new Color(1f, 0.8f, 0f); // 骰子数字：金黄色
+    public Color diceColor = Color.red; // 骰子数字：红色
     public Color normalColor = Color.black;        // 普通数字：黑色
 
     private void OnEnable()

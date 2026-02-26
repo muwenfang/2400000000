@@ -12,7 +12,7 @@ GameObject:
   - component: {fileID: 2918081112230676739}
   - component: {fileID: 4158671354668490705}
   - component: {fileID: 7760387387500553571}
-  - component: {fileID: 2612886548443438502}
+  - component: {fileID: 3284710138447151869}
   m_Layer: 5
   m_Name: FormulaUI
   m_TagString: FormulaArea
@@ -38,7 +38,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -700, y: -2}
+  m_SizeDelta: {x: 0, y: -2}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2918081112230676739
 CanvasRenderer:
@@ -98,7 +98,7 @@ MonoBehaviour:
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
---- !u!114 &2612886548443438502
+--- !u!114 &3284710138447151869
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -150,7 +150,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 0, y: 0}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 150, y: 220}
+  m_SizeDelta: {x: 180, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6576932874463783158
 CanvasRenderer:
@@ -204,8 +204,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   background: {fileID: 8551323680719047535}
   emptyColor: {r: 0.5, g: 0.5, b: 0.5, a: 0.5}
-  occupiedColor: {r: 0.9056604, g: 0.47920436, b: 0.07119953, a: 0.8}
-  hoverColor: {r: 0.91823894, g: 0.8194667, b: 0.23389095, a: 0.5}
 --- !u!114 &7288276406959800327
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -219,10 +217,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 140
-  m_MinHeight: 200
-  m_PreferredWidth: 150
-  m_PreferredHeight: 220
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 180
+  m_PreferredHeight: 250
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1
@@ -263,8 +261,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.0030098, y: 0}
-  m_SizeDelta: {x: 1220, y: 309.7}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 1424.3701, y: 309.7}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &391178084928052291
 CanvasRenderer:
@@ -322,13 +320,13 @@ MonoBehaviour:
     m_Top: 0
     m_Bottom: 0
   m_ChildAlignment: 4
-  m_Spacing: 0
-  m_ChildForceExpandWidth: 1
-  m_ChildForceExpandHeight: 1
+  m_Spacing: 10
+  m_ChildForceExpandWidth: 0
+  m_ChildForceExpandHeight: 0
   m_ChildControlWidth: 0
   m_ChildControlHeight: 0
-  m_ChildScaleWidth: 0
-  m_ChildScaleHeight: 0
+  m_ChildScaleWidth: 1
+  m_ChildScaleHeight: 1
   m_ReverseArrangement: 0
 --- !u!1 &6620907051930291993
 GameObject:
@@ -423,10 +421,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 20
-  m_MinHeight: 180
+  m_MinWidth: -1
+  m_MinHeight: -1
   m_PreferredWidth: 25
-  m_PreferredHeight: 180
+  m_PreferredHeight: 200
   m_FlexibleWidth: -1
   m_FlexibleHeight: -1
   m_LayoutPriority: 1

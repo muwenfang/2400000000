@@ -14,7 +14,6 @@ public class NumberComponent
     public bool isDice = false;
     public bool isIncremental = false;
     public int value;//数值
-    public int price;//价格
     public int diceSides;
 }
 
@@ -36,8 +35,6 @@ public class NumberCardData : ScriptableObject
     }
 
     public LogicalType logicalType;
-
-
 
 }
 public class NumberCardInstance 

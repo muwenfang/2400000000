@@ -894,9 +894,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   showNumberCards: 0
   showFormulaCards: 1
-  showBlessCards: 1
   contentRoot: {fileID: 1350498825}
   cardScale: 1
+  incrementalColor: {r: 0, g: 1, b: 0, a: 1}
+  diceColor: {r: 1, g: 0, b: 0, a: 1}
+  normalColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!114 &496826563
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2100,7 +2102,7 @@ MonoBehaviour:
   formulaCardDeck:
   - {fileID: 11400000, guid: 9004f4a3287e2b347ae28eb2420845ea, type: 2}
   handCardParent: {fileID: 941149352}
-  numberCardLibrary: {fileID: 0}
+  numberCardLibrary: {fileID: 11400000, guid: a2fa7726265124f4f82bcb330c2edc3c, type: 2}
   formulaCardLibrary: {fileID: 0}
   starterNumberCards:
   - {fileID: 11400000, guid: 1b3c376fe57bb674a945d29e3b6ecc87, type: 2}
@@ -2234,9 +2236,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   showNumberCards: 0
   showFormulaCards: 0
-  showBlessCards: 1
   contentRoot: {fileID: 869926021}
   cardScale: 1
+  incrementalColor: {r: 0, g: 1, b: 0, a: 1}
+  diceColor: {r: 1, g: 0, b: 0, a: 1}
+  normalColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!114 &896898553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3682,9 +3686,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   showNumberCards: 1
   showFormulaCards: 0
-  showBlessCards: 0
   contentRoot: {fileID: 1702525666}
   cardScale: 1
+  incrementalColor: {r: 0, g: 1, b: 0, a: 1}
+  diceColor: {r: 1, g: 0, b: 0, a: 1}
+  normalColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1 &1348500145
 GameObject:
   m_ObjectHideFlags: 0
@@ -4386,7 +4392,7 @@ MonoBehaviour:
   formulaCardCount: 1
   refreshCount: 0
   formulaCardLibrary: {fileID: 0}
-  numberCardLibrary: {fileID: 0}
+  numberCardLibrary: {fileID: 11400000, guid: a2fa7726265124f4f82bcb330c2edc3c, type: 2}
   shopNumberCards:
   - price: 0
     sold: 0
