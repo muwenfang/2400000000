@@ -9,6 +9,7 @@ using UnityEngine.UI;
 /// </summary>
 public class CardManager : MonoBehaviour
 {
+    //非常典型的 C# 单例模式（Singleton Pattern） 实现的一部分，用于创建一个全局唯一、易于访问的 GameManager 实例
     public static CardManager Instance { get; private set; }
 
     [Header("卡牌库")]
