@@ -10,10 +10,10 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: a4d963ad1f6d039429cdcea2a6ebb51a, type: 3}
-  m_Name: NewFormulaCard
+  m_Name: NewFormulaCard 17
   m_EditorClassIdentifier: 
-  Pattern: '#*#*#'
-  Name: '#*#*#'
-  RequiredCount: 3
-  CardPrice: 1000
-  FormulaCardId: 0
+  Pattern: (#+#+#)*#*#*#
+  Name: (#+#+#)*#*#*#
+  RequiredCount: 6
+  CardPrice: 30000
+  FormulaCardId: 17
