@@ -505,6 +505,21 @@ public class UIManager : MonoBehaviour
         for (int i = 0; i < numItems.Count; i++)
         {
             GameObject slotGo = Instantiate(shopNumberCardPrefab, shopNumberArea);
+
+            // 关键修复1：强制设置Transform
+            slotGo.transform.localScale = UnityEngine.Vector3.one;
+            slotGo.transform.localPosition = UnityEngine.Vector3.zero;
+            slotGo.transform.localRotation = UnityEngine.Quaternion.identity;
+
+            // 关键修复2：强制激活物体
+            slotGo.SetActive(true);
+
+            // 关键修复3：禁用LayoutGroup的自动调整
+            HorizontalLayoutGroup hlg = slotGo.GetComponent<HorizontalLayoutGroup>();
+            if (hlg != null) hlg.enabled = false;
+            VerticalLayoutGroup vlg = slotGo.GetComponent<VerticalLayoutGroup>();
+            if (vlg != null) vlg.enabled = false;
+
             var slotUI = slotGo.GetComponent<ShopNumberCardSlot>();
 
             if (slotUI != null)
@@ -522,6 +537,21 @@ public class UIManager : MonoBehaviour
         for (int i = 0; i < formulaItems.Count; i++)
         {
             GameObject slotGo = Instantiate(shopFormulaCardPrefab, shopFormulaArea);
+
+            // 关键修复1：强制设置Transform
+            slotGo.transform.localScale = UnityEngine.Vector3.one;
+            slotGo.transform.localPosition = UnityEngine.Vector3.zero;
+            slotGo.transform.localRotation = UnityEngine.Quaternion.identity;
+
+            // 关键修复2：强制激活物体
+            slotGo.SetActive(true);
+
+            // 关键修复3：禁用LayoutGroup的自动调整
+            HorizontalLayoutGroup hlg = slotGo.GetComponent<HorizontalLayoutGroup>();
+            if (hlg != null) hlg.enabled = false;
+            VerticalLayoutGroup vlg = slotGo.GetComponent<VerticalLayoutGroup>();
+            if (vlg != null) vlg.enabled = false;
+
             var slotUI = slotGo.GetComponent<ShopFormulaCardSlot>();
 
             if (slotUI != null)
@@ -532,6 +562,15 @@ public class UIManager : MonoBehaviour
             {
                 Debug.LogError("shopFormulaCardPrefab 缺少 ShopFormulaCardSlot 组件！");
             }
+        }
+        // 4. 强制刷新布局
+        if (shopNumberArea != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)shopNumberArea);
+        }
+        if (shopFormulaArea != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)shopFormulaArea);
         }
 
         Debug.Log($"商店UI刷新完成：数字卡{numItems.Count}个，公式卡{formulaItems.Count}个");

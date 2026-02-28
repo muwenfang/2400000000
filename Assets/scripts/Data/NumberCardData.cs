@@ -65,30 +65,13 @@ public class NumberCardInstance
         if (cardData.partA.isDice)
         {
             currentA = DiceHelper.RollDice(cardData.partA.diceSides);
-            Debug.Log($"骰子 {cardData.cardName} Part A 掷出：{currentA}");
         }
 
         if (cardData.partB != null && cardData.partB.isDice)
         {
             currentB = DiceHelper.RollDice(cardData.partB.diceSides);
-            Debug.Log($"骰子 {cardData.cardName} Part B 掷出：{currentB}");
         }
     }
-    //private void SpecialNumberHandler(NumberComponent comp, ref int currentValue)
-    //{
-    //    if (comp.isDice)
-    //    {   
-    //        // 掷骰子
-    //        currentValue = DiceHelper.RollDice(comp.diceSides);
-    //    }
-    //    else if (comp.isIncremental)
-    //    {
-    //        // 递增
-    //        currentValue++;
-    //    }
-    //}
-
-
     public int GetOutPutValue()
     {
 

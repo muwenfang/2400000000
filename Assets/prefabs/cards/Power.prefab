@@ -35,8 +35,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.000015259, y: -19}
-  m_SizeDelta: {x: 190, y: 98.694}
+  m_AnchoredPosition: {x: 0, y: -19}
+  m_SizeDelta: {x: 180, y: 98.694}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6963293755055252282
 CanvasRenderer:
@@ -68,7 +68,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 80
+    m_FontSize: 60
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 3
@@ -94,7 +94,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   aText: {fileID: 0}
   bText: {fileID: 0}
-  operatorText: {fileID: 0}
 --- !u!1 &5146640723386804250
 GameObject:
   m_ObjectHideFlags: 0
@@ -129,7 +128,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.32857144}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 43.18, y: 177.5}
+  m_AnchoredPosition: {x: 38.18, y: 182.5}
   m_SizeDelta: {x: 103.64, y: -115.003}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &595934559544936487
@@ -162,12 +161,12 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 60
+    m_FontSize: 40
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 3
     m_MaxSize: 80
-    m_Alignment: 1
+    m_Alignment: 4
     m_AlignByGeometry: 0
     m_RichText: 1
     m_HorizontalOverflow: 1
@@ -296,6 +295,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   currentSlot: {fileID: 0}
   isPlacedInSlot: 0
+  desiredDropParent: {fileID: 0}
   textA: {fileID: 6007742199861496413}
   textB: {fileID: 6259451740796557640}
 --- !u!225 &1323733714708296363
@@ -324,7 +324,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   aText: {fileID: 6007742199861496413}
   bText: {fileID: 6259451740796557640}
-  operatorText: {fileID: 0}
 --- !u!114 &1452207098723668908
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -338,8 +337,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_IgnoreLayout: 0
-  m_MinWidth: 120
-  m_MinHeight: 180
+  m_MinWidth: -1
+  m_MinHeight: -1
   m_PreferredWidth: 180
   m_PreferredHeight: 250
   m_FlexibleWidth: -1
@@ -380,7 +379,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 190, y: 240}
+  m_SizeDelta: {x: 180, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &6245454651157297098
 CanvasRenderer:

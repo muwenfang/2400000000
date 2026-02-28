@@ -7,7 +7,15 @@ using UnityEngine.UI;
 /// </summary>
 public interface NumberCardLayoutView
 {
+    /// <summary>
+    /// 绑定静态卡牌数据（仅显示初始值）
+    /// </summary>
     void Bind(NumberCardData data);
+
+    /// <summary>
+    /// 绑定卡牌实例（显示当前值，支持颜色）
+    /// </summary>
+    void BindInstance(NumberCardInstance instance);
 }
 public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
@@ -59,8 +67,8 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         {
             textB.text = card.currentB.ToString();
             // 视觉反馈：如果是递增数，可以设为绿色
-            if (card.cardData.partB.isIncremental) textA.color = Color.green;
-            else if (card.cardData.partB.isDice) textA.color = Color.red;
+            if (card.cardData.partB.isIncremental) textB.color = Color.green;
+            else if (card.cardData.partB.isDice) textB.color = Color.red;
             else textB.color = Color.black;
         }
 
@@ -77,7 +85,7 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
             {
                 textB.gameObject.SetActive(true);
                 textB.text = card.currentB.ToString();
-                if (card.cardData.partB.isIncremental) textB.color = Color.green;
+                //if (card.cardData.partB.isIncremental) textB.color = Color.green;
             }
 
         }
@@ -135,18 +143,6 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         GetComponent<CanvasGroup>().alpha = 1f;
         GetComponent<CanvasGroup>().blocksRaycasts = true;
 
-        //if (!isPlacedInSlot)
-        //{
-        //    // 没进槽位 → 回原位
-        //    transform.SetParent(originalParent, false);
-        //    // 恢复它原来的排列顺序
-        //    transform.SetSiblingIndex(originalSiblingIndex);
-        //    // 恢复坐标
-        //    rectTransform.localPosition = originalLocalPos;
-        //    rectTransform.localScale = Vector3.one;
-        //    desiredDropParent = null;
-
-        //}
         if (!isPlacedInSlot)
         {
             // 优先使用 desiredDropParent（由槽位在 OnDrop 时设置），能解决 OnEndDrag 与 OnDrop 顺序问题

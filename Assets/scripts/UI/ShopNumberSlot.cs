@@ -15,7 +15,6 @@ public class ShopNumberCardSlot : MonoBehaviour
     [Header("价格和购买")]
     public Text priceText;              // 价格文本
     public Button buyButton;            // 购买按钮
-    public Text buyButtonText;          // 购买按钮上的文字
 
     [Header("锁定状态")]
     public GameObject lockedPanel;      // 锁定状态的遮罩面板
@@ -48,29 +47,66 @@ public class ShopNumberCardSlot : MonoBehaviour
         // 清理旧内容
         ClearCardContent();
 
+        // 防御性检查：cardContentRoot 必须存在
+        if (cardContentRoot == null)
+        {
+            Debug.LogError("ShopNumberCardSlot: cardContentRoot 未绑定！无法显示卡牌内容（检查 prefab 的 Inspector）");
+            ShowLockedState();
+            return;
+        }
+        // 选择工厂：优先使用本组件配置，其次回退到 UIManager 的全局库（便于 prefab 未赋值时仍能工作）
+        NumberCardUIFactory factory = numberCardLibrary;
+        if (factory == null && UIManager.Instance != null)
+            factory = UIManager.Instance.numberCardLibrary;
+
+        if (factory == null)
+        {
+            Debug.LogError("ShopNumberCardSlot: 未配置 NumberCardUIFactory（本槽位与 UIManager 均未设置）。无法获取卡牌 Prefab。");
+            ShowLockedState();
+            return;
+        }
+
+        // 防御性检查：实例对象及其数据
+        if (item.cardData == null || item.cardData.cardData == null)
+        {
+            Debug.LogError($"ShopNumberCardSlot: slot {index} 的 ShopItem 数据不完整（NumberCardInstance 或其 cardData 为 null）。");
+            ShowLockedState();
+            return;
+        }
         // 获取对应布局的 Prefab
-        GameObject prefab = numberCardLibrary.GetPrefab(item.cardData.cardData.layoutType);
+        GameObject prefab = factory.GetPrefab(item.cardData.cardData.layoutType);
         if (prefab != null)
         {
             // 生成卡牌主体
             GameObject cardGo = Instantiate(prefab, cardContentRoot);
             cardGo.transform.localScale = Vector3.one;
             cardGo.transform.localPosition = Vector3.zero;
+            cardGo.transform.localRotation = Quaternion.identity;
+            cardGo.SetActive(true);
 
             // 绑定数据
             var view = cardGo.GetComponent<NumberCardLayoutView>();
             if (view != null)
             {
-                view.Bind(item.cardData.cardData);
+                // 使用 BindInstance 而不是 Bind，这样可以显示当前值和颜色
+                view.BindInstance(item.cardData);
             }
             else
             {
-                Debug.LogError($"数字卡槽位 {index} 的 Prefab 缺少 NumberCardLayoutView 组件！");
+                // 调试信息：列出此物体上的所有组件
+                var allComponents = cardGo.GetComponentsInChildren<MonoBehaviour>();
+                string componentList = "";
+                foreach (var comp in allComponents)
+                    componentList += comp.GetType().Name + ", ";
+
+                Debug.LogError($"[ShopNumberCardSlot] 槽位 {index}: 卡牌 Prefab 缺少 NumberCardLayoutView！现有组件: {componentList}");
             }
         }
         else
         {
-            Debug.LogError($"找不到布局类型 {item.cardData.cardData.layoutType} 的 Prefab！");
+            Debug.LogError($"找不到布局类型 {item.cardData.cardData.layoutType} 的 Prefab！（检查 NumberCardUIFactory 是否包含此布局）");
+            ShowLockedState();
+            return;
         }
 
         // 设置价格
@@ -85,8 +121,11 @@ public class ShopNumberCardSlot : MonoBehaviour
     /// </summary>
     void UpdatePriceDisplay(int price, bool sold)
     {
-        if (priceText == null) return;
-
+        if (priceText == null)
+        {
+            Debug.LogWarning($"[ShopNumberCardSlot] 槽位 {slotIndex}: priceText 未绑定");
+            return;
+        }
         if (sold)
         {
             priceText.text = "已售出";
@@ -104,16 +143,15 @@ public class ShopNumberCardSlot : MonoBehaviour
     /// </summary>
     void SetupBuyButton(bool sold)
     {
-        if (buyButton == null) return;
-
+        if (buyButton == null)
+        {
+            Debug.LogWarning($"[ShopNumberCardSlot] 槽位 {slotIndex}: buyButton 未绑定");
+            return;
+        }
         buyButton.onClick.RemoveAllListeners();
         buyButton.onClick.AddListener(OnBuyClick);
         buyButton.interactable = !sold;
 
-        if (buyButtonText != null)
-        {
-            buyButtonText.text = sold ? "已购买" : "购买";
-        }
     }
 
     /// <summary>
@@ -126,8 +164,6 @@ public class ShopNumberCardSlot : MonoBehaviour
             Debug.LogWarning("没有有效的数字卡可购买");
             return;
         }
-
-
 
         bool success = ShopManager.Instance.TryBuyNumberCard(currentItem);
 
@@ -167,7 +203,7 @@ public class ShopNumberCardSlot : MonoBehaviour
             priceText.gameObject.SetActive(false);
 
         if (lockedText != null)
-            lockedText.text = "🔒 已锁定";
+            lockedText.text = "已锁定";
     }
 
     /// <summary>

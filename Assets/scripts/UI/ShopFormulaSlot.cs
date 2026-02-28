@@ -15,14 +15,16 @@ public class ShopFormulaCardSlot : MonoBehaviour
     [Header("价格和购买")]
     public Text priceText;              // 价格文本
     public Button buyButton;            // 购买按钮
-    public Text buyButtonText;          // 购买按钮上的文字
 
     [Header("锁定状态")]
     public GameObject lockedPanel;      // 锁定状态的遮罩面板
     public Text lockedText;             // 锁定提示文本
 
-    [Header("Prefab引用")]
-    public GameObject formulaCardPrefab; // 公式卡UI的Prefab
+    [Header("公式卡信息文本（在cardContentRoot内创建）")]
+    public Text formulaNameText;
+
+    //[Header("Prefab引用")]
+    //public GameObject formulaCardPrefab; // 公式卡UI的Prefab
 
     private ShopItem<FormulaCardData> currentItem;
     private int slotIndex;
@@ -48,28 +50,38 @@ public class ShopFormulaCardSlot : MonoBehaviour
         // 清理旧内容
         ClearCardContent();
 
-        // 生成公式卡UI
-        if (formulaCardPrefab != null)
-        {
-            GameObject cardGo = Instantiate(formulaCardPrefab, cardContentRoot);
-            cardGo.transform.localScale = Vector3.one;
-            cardGo.transform.localPosition = Vector3.zero;
+        //// 生成公式卡UI
+        //if (formulaCardPrefab != null)
+        //{
+        //    GameObject cardGo = Instantiate(formulaCardPrefab, cardContentRoot);
+        //    cardGo.transform.localScale = Vector3.one;
+        //    cardGo.transform.localPosition = Vector3.zero;
 
-            // 绑定公式卡数据
-            var formulaUI = cardGo.GetComponent<FormulaCardUI>();
-            if (formulaUI != null)
-            {
-                formulaUI.Bind(item.cardData);
-            }
-            else
-            {
-                Debug.LogError($"公式卡槽位 {index} 的 Prefab 缺少 FormulaCardUI 组件！");
-            }
-        }
-        else
+        //    // 绑定公式卡数据
+        //    var formulaUI = cardGo.GetComponent<FormulaCardUI>();
+        //    if (formulaUI != null)
+        //    {
+        //        formulaUI.Bind(item.cardData);
+        //    }
+        //    else
+        //    {
+        //        Debug.LogError($"公式卡槽位 {index} 的 Prefab 缺少 FormulaCardUI 组件！");
+        //    }
+        //}
+        //else
+        //{
+        //    Debug.LogError("formulaCardPrefab 未设置！");
+        //}
+        // 防御性检查：cardContentRoot 必须存在
+        if (cardContentRoot == null)
         {
-            Debug.LogError("formulaCardPrefab 未设置！");
+            Debug.LogError($"[ShopFormulaCardSlot] 槽位 {index}: cardContentRoot 未绑定！");
+            ShowLockedState();
+            return;
         }
+
+        //  新逻辑：直接显示公式卡信息，不生成完整UI
+        DisplayFormulaInfo(item.cardData);
 
         // 设置价格
         UpdatePriceDisplay(item.price, item.sold);
@@ -77,11 +89,31 @@ public class ShopFormulaCardSlot : MonoBehaviour
         // 设置购买按钮
         SetupBuyButton(item.sold);
     }
-
     /// <summary>
-    /// 更新价格显示
+    /// 显示公式卡信息（名字、图案、所需数量）
     /// </summary>
-    void UpdatePriceDisplay(int price, bool sold)
+    void DisplayFormulaInfo(FormulaCardData formulaData)
+    {
+        if (formulaData == null)
+        {
+            Debug.LogError($"[ShopFormulaCardSlot] 槽位 {slotIndex}: formulaData 为 null");
+            return;
+        }
+
+        // 显示公式卡名字（就是Pattern，例如 "#*#*#"）
+        if (formulaNameText != null)
+        {
+            formulaNameText.text = formulaData.Pattern;
+            formulaNameText.fontSize = 90;
+            formulaNameText.color = Color.black;
+            Debug.Log($"[ShopFormulaCardSlot] 槽位 {slotIndex}: 显示公式名字 = {formulaData.Pattern}");
+        }
+    }
+
+        /// <summary>
+        /// 更新价格显示
+        /// </summary>
+        void UpdatePriceDisplay(int price, bool sold)
     {
         if (priceText == null) return;
 
@@ -108,10 +140,6 @@ public class ShopFormulaCardSlot : MonoBehaviour
         buyButton.onClick.AddListener(OnBuyClick);
         buyButton.interactable = !sold;
 
-        if (buyButtonText != null)
-        {
-            buyButtonText.text = sold ? "已购买" : "购买";
-        }
     }
 
     /// <summary>
@@ -162,7 +190,7 @@ public class ShopFormulaCardSlot : MonoBehaviour
             priceText.gameObject.SetActive(false);
 
         if (lockedText != null)
-            lockedText.text = "🔒 已锁定";
+            lockedText.text = "已锁定";
     }
 
     /// <summary>

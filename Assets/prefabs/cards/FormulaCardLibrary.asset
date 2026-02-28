@@ -13,4 +13,24 @@ MonoBehaviour:
   m_Name: FormulaCardLibrary
   m_EditorClassIdentifier: 
   allCards:
-  - {fileID: 0}
+  - {fileID: 11400000, guid: b4a47e8593d7b4a478316ddbcc34306c, type: 2}
+  - {fileID: 11400000, guid: dd20dd645c8da8543a5428d2b874a883, type: 2}
+  - {fileID: 11400000, guid: 5557f3ce9c3749f4d8bd94f754b6f864, type: 2}
+  - {fileID: 11400000, guid: 72c8e2dcfbe91a44ca2feeda648c86ae, type: 2}
+  - {fileID: 11400000, guid: 5ce1e13630ce4ba449d4e209aa932ee1, type: 2}
+  - {fileID: 11400000, guid: 72351d64116926c4bac5ae3343d974ec, type: 2}
+  - {fileID: 11400000, guid: 1a75b51c36344584fbfaa1e6afaa920c, type: 2}
+  - {fileID: 11400000, guid: cc297810b35e8d34fb4bba063b973eaf, type: 2}
+  - {fileID: 11400000, guid: 0dd565eb879bccd4e8374e03bc88be94, type: 2}
+  - {fileID: 11400000, guid: 8753c043b468d384291abf6c68d0cfad, type: 2}
+  - {fileID: 11400000, guid: a4b4a96ee55b3c546ad310484e7e2f01, type: 2}
+  - {fileID: 11400000, guid: 169746490bdde494388377f1fca69db0, type: 2}
+  - {fileID: 11400000, guid: eb2fac02f6144b04f956047023c9fd90, type: 2}
+  - {fileID: 11400000, guid: 634bd5cc6187030459232de09a1c38df, type: 2}
+  - {fileID: 11400000, guid: 573464c3aba557340a47c78c15948b3d, type: 2}
+  - {fileID: 11400000, guid: e7cb8495846128a4f956af7306b4bad1, type: 2}
+  - {fileID: 11400000, guid: 6a38cd12b507afc438d3544ee4fa9166, type: 2}
+  - {fileID: 11400000, guid: afa1508e1e81d094abac30976128879d, type: 2}
+  - {fileID: 11400000, guid: fb8417d89b7d2834cae2416b5f2a06fe, type: 2}
+  - {fileID: 11400000, guid: 5e50fd60165961d488942277497ba0fb, type: 2}
+  - {fileID: 11400000, guid: faa0a4b2176638a4a908e8a383bce691, type: 2}

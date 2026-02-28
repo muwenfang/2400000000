@@ -235,13 +235,11 @@ public static class FormulaCalculator
 
         if (enableDebugLog)
         {
-            Debug.Log($"卡牌详情：");
             for (int i = 0; i < numbers.Count; i++)
             {
                 var card = numbers[i];
                 Debug.Log($"  [{i}] {card.cardData.cardName} → 值: {values[i]}");
             }
-            Debug.Log($"值列表：[{string.Join(", ", values)}]");
         }
 
         // 2. 验证 Pattern 中 # 的数量
