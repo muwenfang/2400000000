@@ -12,6 +12,12 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     [Header("玩家拥有的公式卡")]
     public List<FormulaCardData> formulaCards = new();
 
+    //倍率逻辑:获取玩家拥有的公式卡数量，作为每回合的基础倍率
+    public int GetFormulaCardCount()
+    {
+        return formulaCards.Count;
+    }
+
     private void Awake()
     {
         if (Instance == null)

@@ -111,11 +111,14 @@ public class GameManager : MonoBehaviour
         // 计算填空卡结果
         BigInteger baseScore = formula.CalculateResult();
 
+        // 计算基础倍率（根据公式卡数量）
+        float baseMultiplier = PlayerCardInventory.Instance.GetFormulaCardCount();
+
         // 计算倍率（从祝福管理器获取）
         float multiplier = GetCurrentMultiplier();
 
         // 计算最终得分
-        BigInteger finalScore = (BigInteger)((decimal)baseScore * (decimal)multiplier);
+        BigInteger finalScore = (BigInteger)((decimal)baseScore * (decimal)multiplier * (decimal)baseMultiplier);
 
         // 计算祝福加成
         //[to do]
