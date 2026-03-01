@@ -66,7 +66,7 @@ public class CardManager : MonoBehaviour
     /// <summary>
     /// 从玩家库存同步当前牌堆
     /// </summary>
-    void SyncDeckFromInventory()
+    public void SyncDeckFromInventory()
     {
         numberCardDeck.Clear();
         foreach (var instance in PlayerCardInventory.Instance.GetAllNumberCards())

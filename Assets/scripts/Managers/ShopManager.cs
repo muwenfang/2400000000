@@ -1,10 +1,10 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using Random = UnityEngine.Random; // 明确指定使用 UnityEngine.Random
-
+using System.Numerics;
 /// <summary>
 /// 商店系统。读取database中的商品信息，读取玩家信息，处理购买逻辑
 /// </summary>
@@ -44,7 +44,10 @@ public class ShopManager : MonoBehaviour
 
     //刷新次数
     public int refreshCount = 0;
-
+    //删除卡牌相关配置
+    public int totalRemovedNumberCards = 0;
+    public int baseNumberCardRemoveCost = 5;
+    
     [Tooltip("公式卡库 - 拖入 FormulaCardLibrary 资源")]
     public FormulaCardLibrary formulaCardLibrary;
 
@@ -232,7 +235,7 @@ public class ShopManager : MonoBehaviour
         int currentRound = GameManager.Instance.currentRound;
         long roundSquare = (long)Mathf.Pow(currentRound, 2);
         long powerOfTwo = (long)Mathf.Pow(2, refreshCount);
-        long refreshCost = roundSquare * powerOfTwo;
+        long refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
         if (GameManager.Instance.currentPoints < refreshCost)
         {
             Debug.Log("点数不足，无法刷新");
@@ -254,10 +257,48 @@ public class ShopManager : MonoBehaviour
         //重置刷新次数
         refreshCount = 0;
     }
+    #region 数字卡删除逻辑
+    /// <summary>
+    /// 计算删除数字卡卡牌的消耗点数
+    /// </summary>
+    public BigInteger CalculateNumberRemoveCost()
+    {
+        BigInteger powerOfTwo = BigInteger.Pow(2, totalRemovedNumberCards);
+        return baseNumberCardRemoveCost * powerOfTwo;
+    }
+    ///删除对应的卡牌实例
+    public bool TryRemoveNumberCard(NumberCardInstance NumbercardToRemove)///这里的NumbercardToRemove应该是要跟UI关联起来（？），这个我不太会做
+    {
+        if (NumbercardToRemove == null)///检测是否接收到实例
+        {
+            Debug.LogWarning("没有接受到要删除的数字卡");
+            return false;
+        }
 
+        if (!PlayerCardInventory.Instance.numberCards.Contains(NumbercardToRemove))///检测是否接收到卡组中没有的数字卡
+        {
+            Debug.LogWarning("接收到了玩家未拥有的数字卡");
+            return false;
+        }
+
+        int minRequireCards = 6;///设定最少需要保留几张数字卡，目前设定为6张
+        if (PlayerCardInventory.Instance.numberCards.Count <= minRequireCards)
+        {
+            Debug.LogWarning("卡组中数字卡过少");
+            return false;
+        }
+        BigInteger NumberCardremoveCost = CalculateNumberRemoveCost();///计算所需点数
+        if (GameManager.Instance.currentPoints < NumberCardremoveCost)///检查点数是否足够
+        {
+            Debug.LogWarning("点数不足");
+            return false;
+        }
+        ///删除卡组中的对应数字卡
+        PlayerCardInventory.Instance.numberCards.Remove(NumbercardToRemove);
+        GameManager.Instance.AddPoints(-NumberCardremoveCost);
+        totalRemovedNumberCards++;
+        CardManager.Instance.SyncDeckFromInventory();///应该要调用这个方法同步牌堆（？）
+        return true;
+    }
+    #endregion
 }
-
-
-
-
-
