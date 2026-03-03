@@ -2774,6 +2774,10 @@ PrefabInstance:
     serializedVersion: 3
     m_TransformParent: {fileID: 1050276293}
     m_Modifications:
+    - target: {fileID: 600449696278879903, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      propertyPath: m_Name
+      value: Refresh
+      objectReference: {fileID: 0}
     - target: {fileID: 801129289341839964, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
       value: 1
@@ -2929,6 +2933,22 @@ PrefabInstance:
     - target: {fileID: 2013323877864166930, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_AnchoredPosition.y
       value: -139.9613
+      objectReference: {fileID: 0}
+    - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1713274718}
+    - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
       objectReference: {fileID: 0}
     - target: {fileID: 2052908318990195148, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_IsActive
@@ -3381,6 +3401,34 @@ PrefabInstance:
     - target: {fileID: 7290562765458756537, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: -25
+      objectReference: {fileID: 0}
+    - target: {fileID: 7477572468899276572, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7477572468899276572, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7477572468899276572, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
+      value: 
+      objectReference: {fileID: 1713274719}
+    - target: {fileID: 7477572468899276572, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7477572468899276572, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
+      value: RefreshShop
+      objectReference: {fileID: 0}
+    - target: {fileID: 7477572468899276572, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
+      value: ShopManager, Assembly-CSharp
+      objectReference: {fileID: 0}
+    - target: {fileID: 7477572468899276572, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Arguments.m_ObjectArgumentAssemblyTypeName
+      value: UnityEngine.Object, UnityEngine
       objectReference: {fileID: 0}
     - target: {fileID: 7824841145091164527, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_IsActive
@@ -4371,7 +4419,6 @@ GameObject:
   m_Component:
   - component: {fileID: 1713274720}
   - component: {fileID: 1713274719}
-  - component: {fileID: 1713274721}
   m_Layer: 0
   m_Name: ShopManager
   m_TagString: Untagged
@@ -4396,6 +4443,8 @@ MonoBehaviour:
   numberCardCount: 2
   formulaCardCount: 1
   refreshCount: 0
+  totalRemovedNumberCards: 0
+  baseNumberCardRemoveCost: 5
   formulaCardLibrary: {fileID: 11400000, guid: 09a6b658924651940965cd8a57c4eab9, type: 2}
   numberCardLibrary: {fileID: 11400000, guid: a2fa7726265124f4f82bcb330c2edc3c, type: 2}
   shopNumberCards:
@@ -4420,27 +4469,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1713274721
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1713274718}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ac2d1062b9cb96243b87e387318683ef, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  numberCardSlot: {fileID: 0}
-  formulaCardSlot: {fileID: 0}
-  testNumberCard:
-    price: 0
-    sold: 0
-  testFormulaCard:
-    cardData: {fileID: 0}
-    price: 0
-    sold: 0
 --- !u!1 &1777936256
 GameObject:
   m_ObjectHideFlags: 0
