@@ -47,6 +47,12 @@ public class ShopManager : MonoBehaviour
     //删除卡牌相关配置
     public int totalRemovedNumberCards = 0;
     public int baseNumberCardRemoveCost = 5;
+
+    [Header("槽位解锁配置")]
+    public int baseNumberSlotUnlockCost = 10; // 数字卡槽位基础解锁消耗
+    public int baseFormulaSlotUnlockCost = 20; // 公式卡槽位基础解锁消耗
+    public int numberSlotUnlockTimes = 0; // 数字卡已解锁次数
+    public int formulaSlotUnlockTimes = 0; // 公式卡已解锁次数
     
     [Tooltip("公式卡库 - 拖入 FormulaCardLibrary 资源")]
     public FormulaCardLibrary formulaCardLibrary;
@@ -298,6 +304,111 @@ public class ShopManager : MonoBehaviour
         GameManager.Instance.AddPoints(-NumberCardremoveCost);
         totalRemovedNumberCards++;
         CardManager.Instance.SyncDeckFromInventory();///应该要调用这个方法同步牌堆（？）
+        return true;
+    }
+    #endregion
+
+
+
+    #region 槽位解锁逻辑
+    /// <summary>
+    /// 计算数字卡槽位解锁消耗
+    /// </summary>
+    public long CalculateNumberSlotUnlockCost()
+    {
+        // 指数增长：基础消耗 * 2^已解锁次数（和 删除/刷新逻辑数值体系 一样？）
+        long powerOfTwo = (long)Mathf.Pow(2, numberSlotUnlockTimes);
+        return baseNumberSlotUnlockCost * powerOfTwo;
+    }
+
+    /// <summary>
+    /// 计算公式卡槽位解锁消耗
+    /// </summary>
+    public long CalculateFormulaSlotUnlockCost()
+    {
+        long powerOfTwo = (long)Mathf.Pow(2, formulaSlotUnlockTimes);
+        return baseFormulaSlotUnlockCost * powerOfTwo;
+    }
+
+    /// <summary>
+    /// 获取下一个可解锁的数字卡槽位编号
+    /// </summary>
+    public int GetNextUnlockedNumberSlot()
+    {
+        return numberCardCount;
+    }
+
+    /// <summary>
+    /// 获取下一个可解锁的公式卡槽位编号
+    /// </summary>
+    public int GetNextUnlockedFormulaSlot()
+    {
+        return formulaCardCount;
+    }
+
+    /// <summary>
+    /// 尝试解锁数字卡槽位
+    /// </summary>
+    /// <returns>解锁成功返回true，失败返回false</returns>
+    public bool TryUnlockNumberSlot()
+    {
+        // 判定1：是否已达到最大槽位
+        if (numberCardCount >= MaxnumberCardCount)
+        {
+            Debug.LogWarning("数字卡槽位已解锁至最大值，无法继续解锁");
+            return false;
+        }
+
+        // 判定2：计算消耗并校验点数
+        long unlockCost = CalculateNumberSlotUnlockCost();
+        if (GameManager.Instance.currentPoints < unlockCost)
+        {
+            Debug.LogWarning($"数字卡槽位解锁失败：点数不足，需要{unlockCost}，当前{GameManager.Instance.currentPoints}");
+            return false;
+        }
+
+        // 执行解锁：扣除点数、更新解锁次数、增加可购买槽位数量
+        GameManager.Instance.AddPoints(-unlockCost);
+        numberSlotUnlockTimes++;
+        numberCardCount++;
+
+        Debug.Log($"数字卡槽位解锁成功！当前可购买数量：{numberCardCount}，累计解锁次数：{numberSlotUnlockTimes}");
+
+        // 刷新商店商品和UI
+        OpenShop();
+        return true;
+    }
+
+    /// <summary>
+    /// 尝试解锁公式卡槽位
+    /// </summary>
+    /// <returns>解锁成功返回true，失败返回false</returns>
+    public bool TryUnlockFormulaSlot()
+    {
+        // 判定1：是否已达到最大槽位
+        if (formulaCardCount >= MaxformulaCardCount)
+        {
+            Debug.LogWarning("公式卡槽位已解锁至最大值，无法继续解锁");
+            return false;
+        }
+
+        // 判定2：计算消耗并校验点数
+        long unlockCost = CalculateFormulaSlotUnlockCost();
+        if (GameManager.Instance.currentPoints < unlockCost)
+        {
+            Debug.LogWarning($"公式卡槽位解锁失败：点数不足，需要{unlockCost}，当前{GameManager.Instance.currentPoints}");
+            return false;
+        }
+
+        // 执行解锁：扣除点数、更新解锁次数、增加可购买槽位数量
+        GameManager.Instance.AddPoints(-unlockCost);
+        formulaSlotUnlockTimes++;
+        formulaCardCount++;
+
+        Debug.Log($"公式卡槽位解锁成功！当前可购买数量：{formulaCardCount}，累计解锁次数：{formulaSlotUnlockTimes}");
+
+        // 刷新商店商品和UI
+        OpenShop();
         return true;
     }
     #endregion
