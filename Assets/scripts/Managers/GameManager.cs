@@ -29,7 +29,7 @@ public class GameManager : MonoBehaviour
 
     [Header("结算动画配置")]
     [Tooltip("显示本回合得分的停留时间（秒）")]
-    public float roundScoreDisplayTime = 1.5f;
+    public float roundScoreDisplayTime = 1.0f;
 
     [Tooltip("显示总分更新的停留时间（秒）")]
     public float totalScoreDisplayTime = 1.0f;
@@ -256,18 +256,20 @@ public class GameManager : MonoBehaviour
         ChangeState(GameState.MainMenu);
 
     }
-    void WinGame(bool isWin)
+    void WinGame(bool isWin)//之后的panel会改，暂时先用一个。
     {
         if (isWin)
         {
             currentState = GameState.GameOver;
             // 显示游戏结束界面
-            //[to do]
+            UIManager.Instance.ShowPanel(UIManager.Instance.gameOverPanel);
+            Debug.Log("游戏胜利，达到最终目标");
         }
         else { 
             currentState = GameState.GameLose;
             // 显示游戏失败界面
-            //[to do]
+            UIManager.Instance.ShowPanel(UIManager.Instance.gameOverPanel);
+            Debug.Log("游戏失败，未达到阶段要求");
         }
 
 

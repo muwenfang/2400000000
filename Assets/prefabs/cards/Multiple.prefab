@@ -286,10 +286,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 3431124315012372674}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.32857144}
+  m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 20.632004}
-  m_SizeDelta: {x: 180, y: -89.022}
+  m_AnchoredPosition: {x: 0, y: -71.868}
+  m_SizeDelta: {x: 180, y: 95.978}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &4264181314751209520
 CanvasRenderer:
@@ -485,6 +485,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   aText: {fileID: 6933164840853365322}
   bText: {fileID: 7329132521947771231}
+  priceText: {fileID: 0}
+  IsInShop: 0
+  incrementalColor: {r: 0, g: 1, b: 0, a: 1}
+  diceColor: {r: 1, g: 0, b: 0, a: 1}
+  normalColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!114 &6480514336977354050
 MonoBehaviour:
   m_ObjectHideFlags: 0

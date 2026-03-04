@@ -67,7 +67,7 @@ MonoBehaviour:
       m_Calls: []
   m_FontData:
     m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
-    m_FontSize: 60
+    m_FontSize: 50
     m_FontStyle: 0
     m_BestFit: 0
     m_MinSize: 3
@@ -113,8 +113,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 36.03003, y: 0}
-  m_SizeDelta: {x: 117.94, y: 94.7907}
+  m_AnchoredPosition: {x: 33.53003, y: 0}
+  m_SizeDelta: {x: 112.94, y: 94.7907}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &933566605287853922
 CanvasRenderer:
@@ -190,10 +190,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 288223763141895952}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.32857144}
+  m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0, y: 22.572006}
-  m_SizeDelta: {x: 180, y: -85.1425}
+  m_AnchoredPosition: {x: 0, y: -69.92799}
+  m_SizeDelta: {x: 180, y: 99.8575}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &1077602549261879093
 CanvasRenderer:
@@ -468,6 +468,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   aText: {fileID: 6192043971756098895}
   bText: {fileID: 5795935553713100378}
+  priceText: {fileID: 0}
+  IsInShop: 0
+  incrementalColor: {r: 0, g: 1, b: 0, a: 1}
+  diceColor: {r: 1, g: 0, b: 0, a: 1}
+  normalColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!114 &-3056793389751217298
 MonoBehaviour:
   m_ObjectHideFlags: 0

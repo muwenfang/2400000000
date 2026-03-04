@@ -94,6 +94,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   aText: {fileID: 0}
   bText: {fileID: 0}
+  priceText: {fileID: 0}
+  IsInShop: 0
+  incrementalColor: {r: 0, g: 1, b: 0, a: 1}
+  diceColor: {r: 1, g: 0, b: 0, a: 1}
+  normalColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1 &5146640723386804250
 GameObject:
   m_ObjectHideFlags: 0
@@ -126,10 +131,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 6968698458965176327}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.32857144}
+  m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 38.18, y: 182.5}
-  m_SizeDelta: {x: 103.64, y: -115.003}
+  m_AnchoredPosition: {x: 38.18, y: 90}
+  m_SizeDelta: {x: 103.64, y: 69.997}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &595934559544936487
 CanvasRenderer:
@@ -324,6 +329,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   aText: {fileID: 6007742199861496413}
   bText: {fileID: 6259451740796557640}
+  priceText: {fileID: 0}
+  IsInShop: 0
+  incrementalColor: {r: 0, g: 1, b: 0, a: 1}
+  diceColor: {r: 1, g: 0, b: 0, a: 1}
+  normalColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!114 &1452207098723668908
 MonoBehaviour:
   m_ObjectHideFlags: 0

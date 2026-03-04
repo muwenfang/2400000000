@@ -229,6 +229,7 @@ public class ShopManager : MonoBehaviour
         PlayerCardInventory.Instance.AddFormulaCard(item.cardData);
         GameManager.Instance.AddPoints(-item.price);
         Debug.Log("购买成功");
+        CardManager.Instance.SyncDeckFromInventory();
 
         item.sold = true;
         return true;
@@ -261,6 +262,7 @@ public class ShopManager : MonoBehaviour
         //重置刷新次数
         refreshCount = 0;
     }
+
     #region 数字卡删除逻辑
     /// <summary>
     /// 计算删除数字卡卡牌的消耗点数

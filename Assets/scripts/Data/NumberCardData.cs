@@ -37,7 +37,7 @@ public class NumberCardData : ScriptableObject
     public LogicalType logicalType;
 
 }
-public class NumberCardInstance 
+public class NumberCardInstance
 {
     public NumberCardData cardData; //卡牌数据
     //当前数值
@@ -90,7 +90,7 @@ public class NumberCardInstance
                 return currentA;
         }
 
-    } 
+    }
 
     /// <summary>
     /// 按文档规则计算卡牌价格：期望计算 → 倍率修正 → 舍入
@@ -233,8 +233,8 @@ public class NumberCardInstance
         int x = a.isDice ? a.diceSides : a.value; // 骰子取面数，其他取数值
         int y = b.isDice ? b.diceSides : b.value;
 
-        // 1. x^~y~ （底数普通/递增，指数骰子）
-        if (!aIsDice && bIsDice && !bIsInc)
+        // 1. x^~y~ （底数普通，指数骰子）
+        if (!aIsDice && !aIsInc && bIsDice && !bIsInc)
         {
             float sum = 0;
             for (int j = 1; j <= y; j++)
@@ -243,8 +243,8 @@ public class NumberCardInstance
             }
             return sum / y;
         }
-        // 2. ~x~^y （底数骰子，指数普通/递增）
-        else if (aIsDice && !bIsDice && !bIsInc)
+        // 2. ~x~^y （底数骰子，指数普通）
+        else if (aIsDice && !aIsInc && !bIsDice && !bIsInc)
         {
             float sum = 0;
             for (int i = 1; i <= x; i++)
