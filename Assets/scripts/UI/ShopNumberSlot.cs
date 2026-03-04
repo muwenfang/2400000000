@@ -134,7 +134,7 @@ public class ShopNumberCardSlot : MonoBehaviour
         else
         {
             priceText.text = $"${price}";
-            priceText.color = Color.white;
+            priceText.color = Color.black;
         }
     }
 
@@ -178,11 +178,7 @@ public class ShopNumberCardSlot : MonoBehaviour
 
             Debug.Log($"成功购买数字卡：{currentItem.cardData.cardData.cardName}");
         }
-        else
-        {
-            Debug.Log("购买失败！点数不足");
-            // 可以在这里添加提示动画或音效
-        }
+
     }
 
     /// <summary>

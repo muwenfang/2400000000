@@ -165,7 +165,9 @@ public class UIManager : MonoBehaviour
     {
         myNumberCardPanel.SetActive(false);
         myFormulaCardPanel.SetActive(false);
-        myBlessPanel.SetActive(false);       
+        myBlessPanel.SetActive(false);
+        if(GameManager.Instance.currentState == GameManager.GameState.Shop)
+            myCardButton.SetActive(false) ;
     }
     #endregion
 

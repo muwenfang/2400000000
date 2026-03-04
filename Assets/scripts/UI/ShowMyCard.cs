@@ -58,16 +58,17 @@ public class ShowMyCard : MonoBehaviour
         {
             if (instance == null || instance.cardData == null) continue;
 
-            // 1. 获取 Prefab
+            //  获取 Prefab
             GameObject prefab = UIManager.Instance.numberCardLibrary.GetPrefab(instance.cardData.layoutType);
             if (prefab == null) continue;
 
-            // 2. 实例化
+            // 实例化
             GameObject go = Instantiate(prefab, contentRoot);
+
             go.transform.localScale = Vector3.one * cardScale;
             go.SetActive(true); // 确保显示
 
-            // 3. 【核心修改】判断是哪种视图组件，分别赋值
+            // 判断是哪种视图组件，分别赋值
             // 尝试获取单数字视图
             var singleView = go.GetComponent<SingleNumberView>();
             if (singleView != null)
@@ -92,7 +93,29 @@ public class ShowMyCard : MonoBehaviour
             }
         }
     }
+    /// <summary>
+    ///初始化 RectTransform - 解决红❌问题
+    /// </summary>
+    void InitializeRectTransform(GameObject cardGo)
+    {
+        RectTransform rectTransform = cardGo.GetComponent<RectTransform>();
+        if (rectTransform == null) return;
 
+        // 设置锚点为铺满父容器（如果使用 LayoutGroup）
+        // 或根据需要设置具体的大小
+        rectTransform.anchorMin = Vector2.zero;
+        rectTransform.anchorMax = Vector2.one;
+
+        // 如果父容器使用 LayoutGroup，可以设置 sizeDelta
+        // 如果不使用，则铺满父容器
+        rectTransform.offsetMin = Vector2.zero;
+        rectTransform.offsetMax = Vector2.zero;
+
+        // 设置本地变换
+        rectTransform.localPosition = Vector3.zero;
+        rectTransform.localRotation = Quaternion.identity;
+        rectTransform.localScale = Vector3.one * cardScale;
+    }
     /// <summary>
     /// 通用方法：设置文本内容和颜色
     /// </summary>
@@ -131,6 +154,8 @@ public class ShowMyCard : MonoBehaviour
         {
             GameObject go = Instantiate(prefab, contentRoot);
             go.transform.localScale = Vector3.one * cardScale;
+
+            go.SetActive(true);
 
             var view = go.GetComponent<FormulaCardUI>();
             if (view != null) view.Bind(data);

@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -111,7 +111,6 @@ public class ShopManager : MonoBehaviour
             {
                 // 锁定槽位
                 shopNumberCards.Add(new ShopItem<NumberCardInstance>(null, 0));
-                Debug.Log($"槽位{i}：🔒 锁定");
             }
         }
     }
@@ -173,7 +172,6 @@ public class ShopManager : MonoBehaviour
             {
                 // 锁定槽位
                 shopFormulaCards.Add(new ShopItem<FormulaCardData>(null, 0));
-                Debug.Log($"槽位{i}：🔒 锁定");
             }
         }
     }
@@ -192,7 +190,7 @@ public class ShopManager : MonoBehaviour
         }
         if (GameManager.Instance.currentPoints < item.price)
         {
-            Debug.Log("点数不足，无法购买");
+            Debug.Log("n点数不足，无法购买");
             return false;
         }
         
@@ -225,7 +223,7 @@ public class ShopManager : MonoBehaviour
         
         if (GameManager.Instance.currentPoints < item.price)
         {
-            Debug.Log("点数不足，无法购买");
+            Debug.Log("f点数不足，无法购买");
             return false;
         }
         PlayerCardInventory.Instance.AddFormulaCard(item.cardData);

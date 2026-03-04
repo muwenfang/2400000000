@@ -17,11 +17,11 @@ public class FormulaView : MonoBehaviour
     {
         if (isInShop)
         {
-            priceText.text = $"Price: {formulaCardData.CardPrice}";
+            priceText.text = $"${formulaCardData.CardPrice}";
         }
         else
         {
-            priceText.text = "";
+            priceText.text = "error";
         }
     }
 }
