@@ -31,6 +31,7 @@ public class UIManager : MonoBehaviour
     public GameObject myNumberCardPanel;// 数字卡
     public GameObject myFormulaCardPanel;// 公式卡
     public GameObject myBlessPanel;// 祝福
+    public GameObject confirmationPanel;// 确认对话框
 
     [Header("游戏信息显示")]
     public Text pointsText;              // 总分数
@@ -312,43 +313,6 @@ public class UIManager : MonoBehaviour
         
     }
     #endregion #region 结算按钮控制
-    ///// <summary>
-    ///// 检查是否可以结算（所有卡牌是否填入）
-    ///// </summary>
-    //public void CheckCanCalculate()
-    //{
-    //    if (CardManager.Instance == null || CardManager.Instance.currentFormulaCard == null)
-    //    {
-    //        SetCalculateButtonEnabled(false);
-    //        return;
-    //    }
-
-    //    // 检查填入的卡牌数量是否满足要求
-    //    int requiredCount = CardManager.Instance.currentFormulaCard.RequiredCount;
-    //    int selectedCount = CardManager.Instance.selectedNumberCards.Count;
-
-    //    bool canCalculate = (selectedCount == requiredCount);
-    //    SetCalculateButtonEnabled(canCalculate);
-
-    //    Debug.Log($"填入卡牌: {selectedCount}/{requiredCount}，可结算: {canCalculate}");
-    //}
-
-    ///// <summary>
-    ///// 设置结算按钮可用状态
-    ///// </summary>
-    //public void SetCalculateButtonEnabled(bool enabled)
-    //{
-    //    if (calculateButton != null)
-    //    {
-    //        calculateButton.interactable = enabled;
-
-    //        if (pointsGainText != null)
-    //        {
-    //            pointsGainText.text = enabled ? "结算" : "填入所有卡牌";
-    //            pointsGainText.color = enabled ? Color.black : Color.blue;
-    //        }
-    //    }
-    //}
 
     #region 手牌显示
     public void RefreshGameUI()

@@ -113,9 +113,13 @@ public class GameManager : MonoBehaviour
 
         // 计算基础倍率（根据公式卡数量）
         float baseMultiplier = PlayerCardInventory.Instance.GetFormulaCardCount();
+        Debug.Log("baseMultiplier: " + baseMultiplier);
 
         // 计算倍率（从祝福管理器获取）
         float multiplier = GetCurrentMultiplier();
+
+        //更新ui
+        UIManager.Instance.multiplierText.text  = "×" + baseMultiplier.ToString(); // 更新倍率显示
 
         // 计算最终得分
         BigInteger finalScore = (BigInteger)((decimal)baseScore * (decimal)multiplier * (decimal)baseMultiplier);
@@ -212,30 +216,93 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
         UIManager.Instance.UpdateRoundDisplay(currentRound);// 检查阶段要求
 
-        foreach (int stageRound in stageRounds)
+        // 检查是否到达阶段结算点
+        if (IsStageRound(currentRound))
         {
-            if (currentRound == stageRound)
+            // 【关键修复】获取本阶段的点数要求
+            stageRequirement = GetStageRequirementForRound(currentRound);
+
+            Debug.Log($"第 {currentRound} 回合是阶段回合，要求点数: {stageRequirement}，当前点数: {currentPoints}");
+
+            // 【关键修复】在进入商店之前检查是否到达阶段检查回合
+            if (IsStageRound(currentRound))
             {
-                CheckStageRequirement();
+                // 进行阶段检查
+                if (!CheckStageRequirement())
+                {
+
+                    // 检查失败，游戏结束
+                    return; // 不进入商店
+                }
+            }
+
+            // 检查是否达到最终目标（第75回合）
+            if (currentRound == 75 && currentPoints >= targetPoints)
+            {
+                // 游戏胜利
+                Debug.Log("游戏胜利！达到最终目标");
+                WinGame(true);
+                return; // 不进入商店，直接显示胜利界面
             }
         }
         currentState = GameState.Shop;
         shopManager.OpenShop();
         ChangeState(GameState.Shop);
     }
-
-    void CheckStageRequirement()
+    /// <summary>
+    /// 检查某个回合是否是阶段结算回合
+    /// </summary>
+    private bool IsStageRound(int round)
     {
-        if (currentPoints < stageRequirement)
+        return stageRounds.Contains(round);
+    }
+    /// <summary>
+    /// 执行阶段检查 - 返回值表示是否通过检查
+    /// </summary>
+    bool CheckStageRequirement()
+    {
+        // 找到当前回合对应的阶段索引
+        int stageIndex = stageRounds.IndexOf(currentRound);
+
+        if (stageIndex < 0 || stageIndex >= stagePointRequirements.Count)
         {
-            // 游戏失败
-            WinGame(false);
+            Debug.LogError($"无法找到回合 {currentRound} 对应的阶段要求！");
+            return false;
         }
-        if (currentRound == 75 && currentPoints == targetPoints)
-        {   // 达到最终目标，游戏胜利
-            WinGame(true);
+
+        BigInteger requiredPoints = stagePointRequirements[stageIndex];
+
+        // 【关键】检查点数是否足够
+        if (currentPoints < requiredPoints)
+        {
+            Debug.LogWarning($"阶段检查失败！回合{currentRound}: 需要{requiredPoints}点，当前{currentPoints}点");
+            WinGame(false); // 显示失败界面
+            return false;
+        }
+
+        Debug.Log($"阶段检查通过！回合{currentRound}: 点数{currentPoints} >= 需求{requiredPoints}");
+        return true;
+    }
+
+    /// <summary>
+    /// 根据回合数获取该阶段的点数要求
+    /// </summary>
+    private BigInteger GetStageRequirementForRound(int round)
+    {
+        // 找到对应的阶段索引
+        int stageIndex = stageRounds.IndexOf(round);
+
+        if (stageIndex >= 0 && stageIndex < stagePointRequirements.Count)
+        {
+            return stagePointRequirements[stageIndex];
+        }
+        else
+        {
+            Debug.LogError($"找不到第 {round} 回合的阶段要求！");
+            return BigInteger.Zero;
         }
     }
+
     public void OnShopConfirm()
     {   //确认离开商店，开始下一回合
         if (currentState != GameState.Shop)
@@ -247,14 +314,14 @@ public class GameManager : MonoBehaviour
         currentRound++;
         // 3. 更新回合数显示
         UIManager.Instance.UpdateRoundDisplay(currentRound);
-        // 3. 开始新回合
+        // 4. 开始新回合
         StartPlayerTurn();
     }
     public void ReturnStartMenu()
     {
         //加载主菜单界面
         ChangeState(GameState.MainMenu);
-
+        UIManager.Instance.pointstagePanel.SetActive(false);
     }
     void WinGame(bool isWin)//之后的panel会改，暂时先用一个。
     {
@@ -269,6 +336,7 @@ public class GameManager : MonoBehaviour
             currentState = GameState.GameLose;
             // 显示游戏失败界面
             UIManager.Instance.ShowPanel(UIManager.Instance.gameOverPanel);
+            UIManager.Instance.pointstagePanel.SetActive(false);
             Debug.Log("游戏失败，未达到阶段要求");
         }
 

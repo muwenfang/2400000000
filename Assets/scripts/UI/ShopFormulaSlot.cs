@@ -19,6 +19,8 @@ public class ShopFormulaCardSlot : MonoBehaviour
     [Header("锁定状态")]
     public GameObject lockedPanel;      // 锁定状态的遮罩面板
     public Text lockedText;             // 锁定提示文本
+    public Button unlockButton;         // 新增：解锁按钮
+    public Text unlockCostText;         // 新增：解锁成本显示
 
     [Header("公式卡信息文本（在cardContentRoot内创建）")]
     public Text formulaNameText;
@@ -38,14 +40,12 @@ public class ShopFormulaCardSlot : MonoBehaviour
         currentItem = item;
 
         // 如果是锁定槽位
-        if (item == null || item.cardData == null)
+        if (index >= ShopManager.Instance.formulaCardCount)
         {
             ShowLockedState();
+            SetupUnlockButton();
             return;
         }
-
-        //// 清理旧内容
-        //ClearCardContent();
 
         // 显示正常卡牌
         ShowUnlockedState();
@@ -66,6 +66,10 @@ public class ShopFormulaCardSlot : MonoBehaviour
 
         // 设置购买按钮
         SetupBuyButton(item.sold);
+
+        // 【新增】设置解锁按钮（解锁状态下隐藏）
+        if (unlockButton != null)
+            unlockButton.gameObject.SetActive(false);
     }
     /// <summary>
     /// 显示公式卡信息（名字、图案、所需数量）
@@ -195,7 +199,59 @@ public class ShopFormulaCardSlot : MonoBehaviour
         if (lockedText != null)
             lockedText.text = "已锁定";
     }
+    /// <summary>
+    /// 设置解锁按钮
+    /// </summary>
+    void SetupUnlockButton()
+    {
+        if (unlockButton == null) return;
 
+        unlockButton.onClick.RemoveAllListeners();
+        unlockButton.onClick.AddListener(OnUnlockClick);
+
+        // 更新解锁成本显示
+        UpdateUnlockCostDisplay();
+    }
+
+    /// <summary>
+    /// 更新解锁成本显示
+    /// </summary>
+    void UpdateUnlockCostDisplay()
+    {
+        if (unlockCostText == null) return;
+
+        long unlockCost = ShopManager.Instance.CalculateFormulaSlotUnlockCost();
+        unlockCostText.text = $"解锁: {unlockCost}";
+
+        // 根据点数情况改变颜色
+        if (GameManager.Instance.currentPoints >= unlockCost)
+        {
+            unlockCostText.color = Color.green;
+        }
+        else
+        {
+            unlockCostText.color = Color.red;
+        }
+    }
+
+    /// <summary>
+    /// 解锁按钮点击事件
+    /// </summary>
+    void OnUnlockClick()
+    {
+        bool success = ShopManager.Instance.TryUnlockFormulaSlot();
+
+        if (success)
+        {
+            // 解锁成功，刷新商店UI
+            ShowUnlockedState();
+            Debug.Log("公式卡槽位解锁成功");
+        }
+        else
+        {
+            Debug.LogWarning("公式卡槽位解锁失败");
+        }
+    }
     /// <summary>
     /// 显示解锁状态
     /// </summary>

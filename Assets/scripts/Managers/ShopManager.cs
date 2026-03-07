@@ -58,7 +58,7 @@ public class ShopManager : MonoBehaviour
     public FormulaCardLibrary formulaCardLibrary;
 
     [Header("卡牌库引用")]
-    public NumberCardLibrary numberCardLibrary; // 新增：数字卡库的引用
+    public NumberCardLibrary numberCardLibrary; // 数字卡库的引用
 
     [Header("本次商店商品")]
     public List<ShopItem<NumberCardInstance>> shopNumberCards = new();
@@ -70,7 +70,7 @@ public class ShopManager : MonoBehaviour
         GenerateNumberCards();
         GenerateFormulaCards();
 
-        // --- 新增：通知 UI 刷新 ---
+        // ---通知 UI 刷新 ---
         UIManager.Instance.RefreshShopUI();
     }
 
@@ -91,27 +91,21 @@ public class ShopManager : MonoBehaviour
         // 生成所有槽位（包括锁定的）
         for (int i = 0; i < MaxnumberCardCount; i++)
         {
-            if (i < numberCardCount)
-            {
-                // 未锁定槽位：随机抽取一张卡
-                int randomIndex = Random.Range(0, numberCardLibrary.allCards.Count);
-                NumberCardData randomCard = numberCardLibrary.allCards[randomIndex];
+            // 未锁定槽位：随机抽取一张卡
+             int randomIndex = Random.Range(0, numberCardLibrary.allCards.Count);
+            NumberCardData randomCard = numberCardLibrary.allCards[randomIndex];
 
-                // 推断布局类型
-                randomCard.layoutType = InferLayoutType(randomCard);
+            // 推断布局类型
+            randomCard.layoutType = InferLayoutType(randomCard);
 
-                // 创建实例并计算价格
-                NumberCardInstance instance = new NumberCardInstance(randomCard);
-                int price = instance.GetNumberCardPrice(randomCard);
+            // 创建实例并计算价格
+            NumberCardInstance instance = new NumberCardInstance(randomCard);
+            int price = instance.GetNumberCardPrice(randomCard);
 
-                shopNumberCards.Add(new ShopItem<NumberCardInstance>(instance, price));
-                Debug.Log($"槽位{i}：{randomCard.cardName}，价格 {price}");
-            }
-            else
-            {
-                // 锁定槽位
-                shopNumberCards.Add(new ShopItem<NumberCardInstance>(null, 0));
-            }
+            shopNumberCards.Add(new ShopItem<NumberCardInstance>(instance, price));
+            Debug.Log($"槽位{i}：{randomCard.cardName}，价格 {price}");
+            
+
         }
     }
     /// <summary>
@@ -158,8 +152,6 @@ public class ShopManager : MonoBehaviour
         // 生成所有槽位
         for (int i = 0; i < MaxformulaCardCount; i++)
         {
-            if (i < formulaCardCount && tempPool.Count > 0)
-            {
                 // 未锁定槽位：随机抽取
                 int randomIndex = Random.Range(0, tempPool.Count);
                 FormulaCardData randomCard = tempPool[randomIndex];
@@ -167,12 +159,7 @@ public class ShopManager : MonoBehaviour
 
                 shopFormulaCards.Add(new ShopItem<FormulaCardData>(randomCard, randomCard.CardPrice));
                 Debug.Log($"槽位{i}：{randomCard.Name}，价格 {randomCard.CardPrice}");
-            }
-            else
-            {
-                // 锁定槽位
-                shopFormulaCards.Add(new ShopItem<FormulaCardData>(null, 0));
-            }
+            
         }
     }
 
@@ -370,12 +357,18 @@ public class ShopManager : MonoBehaviour
         // 执行解锁：扣除点数、更新解锁次数、增加可购买槽位数量
         GameManager.Instance.AddPoints(-unlockCost);
         numberSlotUnlockTimes++;
+
+        int newSlotIndex = numberCardCount;  // 记录新槽位的索引
         numberCardCount++;
 
         Debug.Log($"数字卡槽位解锁成功！当前可购买数量：{numberCardCount}，累计解锁次数：{numberSlotUnlockTimes}");
 
-        // 刷新商店商品和UI
-        OpenShop();
+        // 只生成新槽位的卡牌，不改变现有卡牌
+        GenerateNewNumberCardSlot(newSlotIndex);
+
+        // 只刷新UI，不改变卡牌数值
+        UIManager.Instance.RefreshShopUI();
+
         return true;
     }
 
@@ -403,13 +396,82 @@ public class ShopManager : MonoBehaviour
         // 执行解锁：扣除点数、更新解锁次数、增加可购买槽位数量
         GameManager.Instance.AddPoints(-unlockCost);
         formulaSlotUnlockTimes++;
+        int newSlotIndex = formulaCardCount;  // 记录新槽位的索引
         formulaCardCount++;
 
         Debug.Log($"公式卡槽位解锁成功！当前可购买数量：{formulaCardCount}，累计解锁次数：{formulaSlotUnlockTimes}");
 
-        // 刷新商店商品和UI
-        OpenShop();
+        //只生成新槽位的卡牌，不改变现有卡牌
+        GenerateNewFormulaCardSlot(newSlotIndex);
+
+        // 只刷新UI，不改变卡牌数值
+        UIManager.Instance.RefreshShopUI();
+
         return true;
     }
     #endregion
+    /// <summary>
+    ///【新增方法】只生成一个新的公式卡槽位（用于解锁时调用）
+    /// 不改变现有的卡牌数值
+    /// </summary>
+    void GenerateNewFormulaCardSlot(int slotIndex)
+    {
+        // 验证库是否存在
+        if (formulaCardLibrary == null || formulaCardLibrary.allCards == null || formulaCardLibrary.allCards.Count == 0)
+        {
+            Debug.LogError("FormulaCardLibrary 未设置或为空！");
+            return;
+        }
+
+        // 只生成一个新槽位，避免与现有卡牌重复
+        FormulaCardData randomCard = formulaCardLibrary.GetRandomCard();
+
+        // 将新卡牌添加到列表
+        if (slotIndex < shopFormulaCards.Count)
+        {
+            shopFormulaCards[slotIndex] = new ShopItem<FormulaCardData>(randomCard, randomCard.CardPrice);
+        }
+        else
+        {
+            shopFormulaCards.Add(new ShopItem<FormulaCardData>(randomCard, randomCard.CardPrice));
+        }
+
+        Debug.Log($"槽位{slotIndex}：{randomCard.Name}，价格 {randomCard.CardPrice}");
+    }
+    /// <summary>
+    /// 【新增方法】只生成一个新的数字卡槽位（用于解锁时调用）
+    /// 不改变现有的卡牌数值
+    /// </summary>
+    void GenerateNewNumberCardSlot(int slotIndex)
+    {
+        // 验证库是否存在
+        if (numberCardLibrary == null || numberCardLibrary.allCards == null || numberCardLibrary.allCards.Count == 0)
+        {
+            Debug.LogError("NumberCardLibrary 未设置或为空！");
+            return;
+        }
+
+        // 只生成一个新槽位
+        int randomIndex = Random.Range(0, numberCardLibrary.allCards.Count);
+        NumberCardData randomCard = numberCardLibrary.allCards[randomIndex];
+
+        // 推断布局类型
+        randomCard.layoutType = InferLayoutType(randomCard);
+
+        // 创建实例并计算价格
+        NumberCardInstance instance = new NumberCardInstance(randomCard);
+        int price = instance.GetNumberCardPrice(randomCard);
+
+        // 将新卡牌添加到列表
+        if (slotIndex < shopNumberCards.Count)
+        {
+            shopNumberCards[slotIndex] = new ShopItem<NumberCardInstance>(instance, price);
+        }
+        else
+        {
+            shopNumberCards.Add(new ShopItem<NumberCardInstance>(instance, price));
+        }
+
+        Debug.Log($"槽位{slotIndex}：{randomCard.cardName}，价格 {price}");
+    }
 }
