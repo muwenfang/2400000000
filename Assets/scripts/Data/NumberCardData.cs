@@ -11,15 +11,15 @@ using static NumberCardFactory;
 [System.Serializable]
 public class NumberComponent
 {
-    public bool isDice = false;
-    public bool isIncremental = false;
+    public bool isDice = false;//是否为骰子
+    public bool isIncremental = false;//是否为递增
     public int value;//数值
-    public int diceSides;
+    public int diceSides;//骰子面数
 }
 
 [CreateAssetMenu(fileName = "MyNumberCards", menuName = "CardData/NumberCardData", order = 1)]
-public class NumberCardData : ScriptableObject
-{
+public class NumberCardData : ScriptableObject//不挂载在 GameObject 上
+{                                             //直接作为数据容器使用即可
     public string cardName;
     public NumberCardLayoutType layoutType;
 
@@ -37,14 +37,14 @@ public class NumberCardData : ScriptableObject
     public LogicalType logicalType;
 
 }
-public class NumberCardInstance
+public class NumberCardInstance //数字卡实例，包含当前数值和计算方法
 {
     public NumberCardData cardData; //卡牌数据
     //当前数值
     public int currentA = 0;
     public int currentB = 0;
 
-    public NumberCardInstance(NumberCardData cardData)
+    public NumberCardInstance(NumberCardData cardData)//构造函数，初始化当前数值
     {
         this.cardData = cardData;
         currentA = cardData.partA.value;

@@ -334,11 +334,56 @@ public class NumberCardLibrary : ScriptableObject
 
         // 这里可以继续添加更多预设卡牌d
 
+        allCards.Add(CreatePreset("5", 69, NumberCardData.LogicalType.Normal,
+            new NumberComponent { value = 5 }, null ));
+
+        allCards.Add(CreatePreset("35", 70, NumberCardData.LogicalType.Normal,
+            new NumberComponent { value = 35 }, null));
+
+        allCards.Add(CreatePreset("40", 71, NumberCardData.LogicalType.Normal,
+            new NumberComponent { value = 40 }, null));
+
+        allCards.Add(CreatePreset("45", 72, NumberCardData.LogicalType.Normal,
+            new NumberComponent { value = 45 }, null));
+
+        allCards.Add(CreatePreset("60", 73, NumberCardData.LogicalType.Normal,
+            new NumberComponent { value = 60 }, null));
+
+        allCards.Add(CreatePreset("70", 74, NumberCardData.LogicalType.Normal,
+            new NumberComponent { value = 70 }, null ));
+
+        allCards.Add(CreatePreset("80", 75, NumberCardData.LogicalType.Normal,
+            new NumberComponent { value = 80 }, null));
+
+        allCards.Add(CreatePreset("90", 76, NumberCardData.LogicalType.Normal,
+            new NumberComponent { value = 90 }, null));
+
+        allCards.Add(CreatePreset("10^{0}", 77, NumberCardData.LogicalType.Power,
+            new NumberComponent { value = 10 },
+            new NumberComponent { value = 0, isIncremental = true }));
+
+        allCards.Add(CreatePreset("1000^{0}", 78, NumberCardData.LogicalType.Power,
+            new NumberComponent { value = 1000 }, 
+            new NumberComponent { value = 0, isIncremental = true }));
+
+        allCards.Add(CreatePreset("100^{0}", 79, NumberCardData.LogicalType.Power,
+            new NumberComponent { value = 100 }, 
+            new NumberComponent { value = 0, isIncremental = true }));
+
+        allCards.Add(CreatePreset("~20~*{0}", 80, NumberCardData.LogicalType.Multiplication,
+            new NumberComponent { isDice =true , diceSides = 20 }, 
+            new NumberComponent { value = 0, isIncremental = true }));
+
+        allCards.Add(CreatePreset("{114}*{514}", 81, NumberCardData.LogicalType.Multiplication,
+            new NumberComponent { value = 114, isIncremental = true }, 
+            new NumberComponent { value = 514, isIncremental = true }));
     }
 
+
+    //创建预设卡牌的辅助方法，简化重复代码
     private NumberCardData CreatePreset(string name, int id, NumberCardData.LogicalType logic, NumberComponent a, NumberComponent b)
-    {
-        NumberCardData ds = ScriptableObject.CreateInstance<NumberCardData>();
+    { 
+        NumberCardData ds = ScriptableObject.CreateInstance<NumberCardData>();//创建 NumberCardData 实例
         ds.cardName = name;
         ds.logicalType = logic;
         ds.partA = a;
