@@ -224,17 +224,6 @@ public class GameManager : MonoBehaviour
 
             Debug.Log($"第 {currentRound} 回合是阶段回合，要求点数: {stageRequirement}，当前点数: {currentPoints}");
 
-            // 【关键修复】在进入商店之前检查是否到达阶段检查回合
-            if (IsStageRound(currentRound))
-            {
-                // 进行阶段检查
-                if (!CheckStageRequirement())
-                {
-
-                    // 检查失败，游戏结束
-                    return; // 不进入商店
-                }
-            }
 
             // 检查是否达到最终目标（第75回合）
             if (currentRound == 75 && currentPoints >= targetPoints)
@@ -244,6 +233,25 @@ public class GameManager : MonoBehaviour
                 WinGame(true);
                 return; // 不进入商店，直接显示胜利界面
             }
+
+
+
+            // 进行阶段检查
+            if (!CheckStageRequirement())
+            {
+
+               // 检查失败，游戏结束
+               return; // 不进入商店
+            }
+                
+            else   // 检查通过，扣除阶段要求的点数
+                { 
+                    currentPoints -= stageRequirement; 
+                }
+            
+
+            
+           
         }
         currentState = GameState.Shop;
         shopManager.OpenShop();
