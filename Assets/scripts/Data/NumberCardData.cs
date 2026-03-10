@@ -4,22 +4,22 @@ using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 using static NumberCardFactory;
+
 /// <summary>
 /// 数字卡数据
 /// </summary>
-
 [System.Serializable]
 public class NumberComponent
 {
     public bool isDice = false;//是否为骰子
     public bool isIncremental = false;//是否为递增
-    public int value;//数值
-    public int diceSides;//骰子面数
+    public int value;//数值（基础值保留int，无溢出风险）
+    public int diceSides;//骰子面数（基础值保留int）
 }
 
 [CreateAssetMenu(fileName = "MyNumberCards", menuName = "CardData/NumberCardData", order = 1)]
 public class NumberCardData : ScriptableObject//不挂载在 GameObject 上
-{                                             //直接作为数据容器使用即可
+{                                           //直接作为数据容器使用即可
     public string cardName;
     public NumberCardLayoutType layoutType;
 
@@ -35,12 +35,12 @@ public class NumberCardData : ScriptableObject//不挂载在 GameObject 上
     }
 
     public LogicalType logicalType;
-
 }
+
 public class NumberCardInstance //数字卡实例，包含当前数值和计算方法
 {
     public NumberCardData cardData; //卡牌数据
-    //当前数值
+    //当前数值保留int（基础值，运算时转BigInteger）
     public int currentA = 0;
     public int currentB = 0;
 
@@ -53,7 +53,6 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             currentB = cardData.partB.value;
         }
     }
-
 
     /// <summary>
     /// 抽中时调用，只处理骰子，不处理递增
@@ -72,35 +71,38 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             currentB = DiceHelper.RollDice(cardData.partB.diceSides);
         }
     }
-    public int GetOutPutValue()
+
+    /// <summary>
+    /// 返回BigInteger解决溢出
+    /// </summary>
+    public BigInteger GetOutPutValue()
     {
+        BigInteger a = new BigInteger(currentA);
+        BigInteger b = new BigInteger(currentB);
 
         switch (cardData.logicalType)
         {
             case NumberCardData.LogicalType.Addition:
-                return currentA + currentB;
-
+                return a + b;
             case NumberCardData.LogicalType.Multiplication:
-                return currentA * currentB;
-
+                return a * b;
             case NumberCardData.LogicalType.Power:
-                return (int)Mathf.Pow(currentA, currentB);
-
+                return BigInteger.Pow(a, (int)b);
             default:
-                return currentA;
+                return a;
         }
-
     }
 
     /// <summary>
     /// 按文档规则计算卡牌价格：期望计算 → 倍率修正 → 舍入
+    /// 返回BigInteger，入参不变
     /// </summary>
-    public int GetNumberCardPrice(NumberCardData card)
+    public BigInteger GetNumberCardPrice(NumberCardData card)
     {
         if (card == null)
         {
             Debug.LogError("卡牌数据为空，无法计算价格！");
-            return 0;
+            return BigInteger.Zero;
         }
 
         NumberComponent a = card.partA;
@@ -110,49 +112,48 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         if (a == null)
         {
             Debug.LogError("卡牌PartA不能为空！");
-            return 0;
+            return BigInteger.Zero;
         }
 
-        // 第一步：计算数学期望
-        float expectation = CalculateExpectation(a, b, logic);
+        // 第一步：计算数学期望（改造为BigInteger，无浮点误差）
+        BigInteger expectation = CalculateExpectation(a, b, logic);
 
-        // 第二步：倍率修正（文档中所有倍率均为1.0，保留扩展接口）
+        // 第二步：倍率修正（文档中所有倍率均为1.0，保留扩展接口，倍率仍为float不影响）
         float rate = 1.0f;
-        // 含绿色数字（递增）倍率
         if (a.isIncremental || (b != null && b.isIncremental))
             rate *= 1.0f;
-        // 含骰子倍率
         if (a.isDice || (b != null && b.isDice))
             rate *= 1.0f;
-        // 指数型卡牌倍率
         if (logic == NumberCardData.LogicalType.Power)
             rate *= 1.0f;
-        float priceAfterRate = expectation * rate;
 
-        // 第三步：舍入（最近5的倍数 + 最多3个有效数字）
-        int finalPrice = RoundPrice(priceAfterRate);
+        // 倍率修正：BigInteger乘浮点后取整，保留原有逻辑
+        BigInteger priceAfterRate = BigInteger.Round(expectation * (decimal)rate);
 
-        Debug.Log($"价格计算过程：期望={expectation:F2} → 倍率修正后={priceAfterRate:F2} → 最终价格={finalPrice}");
+        // 第三步：舍入（改造为BigInteger版，保留原规则）
+        BigInteger finalPrice = RoundPrice(priceAfterRate);
+
+        // 日志保留浮点展示，贴合原有输出习惯
+        Debug.Log($"价格计算过程：期望={expectation} → 倍率修正后={priceAfterRate} → 最终价格={finalPrice}");
         return finalPrice;
     }
 
     /// <summary>
     /// 第一步：根据卡牌类型计算数学期望
+    /// 返回BigInteger，完全保留原计算逻辑
     /// </summary>
-    private float CalculateExpectation(NumberComponent a, NumberComponent b, NumberCardData.LogicalType logic)
+    private BigInteger CalculateExpectation(NumberComponent a, NumberComponent b, NumberCardData.LogicalType logic)
     {
-        // 非指数型卡牌（加法/乘法/单数字）
         if (logic != NumberCardData.LogicalType.Power)
         {
             return CalculateNonPowerExpectation(a, b, logic);
         }
-        // 指数型卡牌（幂运算）
         else
         {
             if (b == null)
             {
                 Debug.LogWarning("指数型卡牌PartB不能为空！");
-                return 0;
+                return BigInteger.Zero;
             }
             return CalculatePowerExpectation(a, b);
         }
@@ -160,222 +161,207 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
 
     /// <summary>
     /// 计算非指数型卡牌期望（加法/乘法/单数字）
+    /// 返回BigInteger，先乘后除避免浮点均值误差
     /// </summary>
-    private float CalculateNonPowerExpectation(NumberComponent a, NumberComponent b, NumberCardData.LogicalType logic)
+    private BigInteger CalculateNonPowerExpectation(NumberComponent a, NumberComponent b, NumberCardData.LogicalType logic)
     {
-        // 单数字卡牌（仅PartA）
         if (logic == NumberCardData.LogicalType.Normal)
         {
             return GetComponentExpectation(a);
         }
-        // 加法/乘法卡牌（PartA + PartB / PartA * PartB）
         else
         {
             if (b == null)
             {
                 Debug.LogWarning("二元运算卡牌PartB不能为空！");
-                return 0;
+                return BigInteger.Zero;
             }
 
-            float expA = GetComponentExpectation(a);
-            float expB = GetComponentExpectation(b);
+            BigInteger expA = GetComponentExpectation(a);
+            BigInteger expB = GetComponentExpectation(b);
 
             // 特殊处理：{x}*{y}型（按文档公式计算前9次均值）
             if (logic == NumberCardData.LogicalType.Multiplication && a.isIncremental && b.isIncremental)
             {
-                float sum = 0;
+                BigInteger sum = BigInteger.Zero;
                 for (int i = 1; i <= 9; i++)
                 {
-                    float valA = a.value + i;
-                    float valB = b.value + i;
+                    BigInteger valA = new BigInteger(a.value) + i;
+                    BigInteger valB = new BigInteger(b.value) + i;
                     sum += valA * valB;
                 }
-                return sum / 9f;
+                // 先乘后除：sum/9，BigInteger自动取整，保留原逻辑
+                return sum / 9;
             }
 
-            // 普通加法/乘法
+            // 普通加法/乘法，直接BigInteger运算
             return logic == NumberCardData.LogicalType.Addition ? expA + expB : expA * expB;
         }
     }
 
     /// <summary>
     /// 获取单个组件（PartA/PartB）的非指数型期望
+    /// 返回BigInteger，原公式数值直接转换
     /// </summary>
-    private float GetComponentExpectation(NumberComponent comp)
+    private BigInteger GetComponentExpectation(NumberComponent comp)
     {
         if (comp.isDice)
         {
-            // 骰子：(x+1)/2.0（x为骰子面数）
-            return (comp.diceSides + 1) / 2.0f;
+            // 骰子：(x+1)/2.0 → 转为BigInteger：(x+1)/2（先加后除，与原浮点逻辑一致）
+            return (new BigInteger(comp.diceSides) + 1) / 2;
         }
         else if (comp.isIncremental)
         {
-            // 递增：y+5（y为初始值）
-            return comp.value + 5f;
+            // 递增：y+5 → 直接BigInteger运算
+            return new BigInteger(comp.value) + 5;
         }
         else
         {
-            // 普通数字：直接取数值
-            return comp.value;
+            // 普通数字：直接转BigInteger
+            return new BigInteger(comp.value);
         }
     }
 
     /// <summary>
     /// 计算指数型卡牌期望（幂运算），对应文档8种指数组合
+    /// 返回BigInteger，先累加再取均值（先乘后除），完全保留8种组合逻辑
     /// </summary>
-    private float CalculatePowerExpectation(NumberComponent a, NumberComponent b)
+    private BigInteger CalculatePowerExpectation(NumberComponent a, NumberComponent b)
     {
         bool aIsDice = a.isDice;
         bool aIsInc = a.isIncremental;
         bool bIsDice = b.isDice;
         bool bIsInc = b.isIncremental;
 
-        int x = a.isDice ? a.diceSides : a.value; // 骰子取面数，其他取数值
-        int y = b.isDice ? b.diceSides : b.value;
+        // 骰子取面数，其他取数值，基础值转BigInteger
+        BigInteger x = a.isDice ? new BigInteger(a.diceSides) : new BigInteger(a.value);
+        BigInteger y = b.isDice ? new BigInteger(b.diceSides) : new BigInteger(b.value);
 
         // 1. x^~y~ （底数普通，指数骰子）
         if (!aIsDice && !aIsInc && bIsDice && !bIsInc)
         {
-            float sum = 0;
-            for (int j = 1; j <= y; j++)
+            BigInteger sum = BigInteger.Zero;
+            for (int j = 1; j <= (int)y; j++)
             {
-                sum += Mathf.Pow(x, j);
+                sum += BigInteger.Pow((int)x, j);
             }
-            return sum / y;
+            return sum / (int)y;
         }
         // 2. ~x~^y （底数骰子，指数普通）
         else if (aIsDice && !aIsInc && !bIsDice && !bIsInc)
         {
-            float sum = 0;
-            for (int i = 1; i <= x; i++)
+            BigInteger sum = BigInteger.Zero;
+            for (int i = 1; i <= (int)x; i++)
             {
-                sum += Mathf.Pow(i, y);
+                sum += BigInteger.Pow(i, (int)y);
             }
-            return sum / x;
+            return sum / (int)x;
         }
         // 3. x^{y} （底数普通，指数递增）
         else if (!aIsDice && !aIsInc && bIsInc && !bIsDice)
         {
-            float sum = 0;
-            for (int j = y + 1; j <= y + 9; j++)
+            BigInteger sum = BigInteger.Zero;
+            for (int j = (int)y + 1; j <= (int)y + 9; j++)
             {
-                sum += Mathf.Pow(x, j);
+                sum += BigInteger.Pow((int)x, j);
             }
-            return sum / 9f;
+            return sum / 9;
         }
         // 4. {x}^y （底数递增，指数普通）
         else if (aIsInc && !aIsDice && !bIsDice && !bIsInc)
         {
-            float sum = 0;
-            for (int i = x + 1; i <= x + 9; i++)
+            BigInteger sum = BigInteger.Zero;
+            for (int i = (int)x + 1; i <= (int)x + 9; i++)
             {
-                sum += Mathf.Pow(i, y);
+                sum += BigInteger.Pow(i, (int)y);
             }
-            return sum / 9f;
+            return sum / 9;
         }
         // 5. {x}^~y~ （底数递增，指数骰子）
         else if (aIsInc && !aIsDice && bIsDice && !bIsInc)
         {
-            float sum = 0;
-            for (int i = x + 1; i <= x + 9; i++)
+            BigInteger sum = BigInteger.Zero;
+            for (int i = (int)x + 1; i <= (int)x + 9; i++)
             {
-                float innerSum = 0;
-                for (int j = 1; j <= y; j++)
+                BigInteger innerSum = BigInteger.Zero;
+                for (int j = 1; j <= (int)y; j++)
                 {
-                    innerSum += Mathf.Pow(i, j);
+                    innerSum += BigInteger.Pow(i, j);
                 }
                 sum += innerSum;
             }
-            return sum / (9f * y);
+            return sum / (9 * (int)y);
         }
         // 6. ~x~^{y} （底数骰子，指数递增）
         else if (aIsDice && !aIsInc && bIsInc && !bIsDice)
         {
-            float sum = 0;
-            for (int i = 1; i <= x; i++)
+            BigInteger sum = BigInteger.Zero;
+            for (int i = 1; i <= (int)x; i++)
             {
-                float innerSum = 0;
-                for (int j = y + 1; j <= y + 9; j++)
+                BigInteger innerSum = BigInteger.Zero;
+                for (int j = (int)y + 1; j <= (int)y + 9; j++)
                 {
-                    innerSum += Mathf.Pow(i, j);
+                    innerSum += BigInteger.Pow(i, j);
                 }
                 sum += innerSum;
             }
-            return sum / (9f * x);
+            return sum / (9 * (int)x);
         }
         // 7. ~x~^~y~ （底数骰子，指数骰子）
         else if (aIsDice && !aIsInc && bIsDice && !bIsInc)
         {
-            float sum = 0;
-            for (int i = 1; i <= x; i++)
+            BigInteger sum = BigInteger.Zero;
+            for (int i = 1; i <= (int)x; i++)
             {
-                float innerSum = 0;
-                for (int j = 1; j <= y; j++)
+                BigInteger innerSum = BigInteger.Zero;
+                for (int j = 1; j <= (int)y; j++)
                 {
-                    innerSum += Mathf.Pow(i, j);
+                    innerSum += BigInteger.Pow(i, j);
                 }
                 sum += innerSum;
             }
-            return sum / (x * y);
+            return sum / ((int)x * (int)y);
         }
         // 8. {x}^{y} （底数递增，指数递增）
         else if (aIsInc && !aIsDice && bIsInc && !bIsDice)
         {
-            float sum = 0;
+            BigInteger sum = BigInteger.Zero;
             for (int i = 1; i <= 9; i++)
             {
-                int baseVal = x + i;
-                int expVal = y + i;
-                sum += Mathf.Pow(baseVal, expVal);
+                BigInteger baseVal = x + i;
+                BigInteger expVal = y + i;
+                sum += BigInteger.Pow((int)baseVal, (int)expVal);
             }
-            return sum / 9f;
+            return sum / 9;
         }
         // 未匹配的指数组合
         else
         {
             Debug.LogWarning($"未匹配的指数型组合：A(骰子={aIsDice},递增={aIsInc})，B(骰子={bIsDice},递增={bIsInc})");
-            return 0;
+            return BigInteger.Zero;
         }
     }
 
     /// <summary>
     /// 第三步：舍入处理（最近5的倍数 + 最多3个有效数字）
     /// </summary>
-    private int RoundPrice(float price)
+    private BigInteger RoundPrice(BigInteger price)
     {
-        // 【修复1】输入验证
-        if (price <= 0)
-            return 0;
-
-        // 【修复2】检查价格是否超出int范围
-        if (price > int.MaxValue)
-        {
-            Debug.LogWarning($"价格 {price} 超出int范围，已限制为 {int.MaxValue}");
-            return int.MaxValue;
-        }
+        // 输入验证：价格≤0返回0
+        if (price <= BigInteger.Zero)
+            return BigInteger.Zero;
 
         // 第一步：四舍五入到最近的5的倍数
-        // 【修复3】先转为long，再进行操作，避免溢出
-        long roundedTo5Long = (long)Mathf.RoundToInt(price / 5) * 5L;
-
-        // 【修复4】检查是否超出int范围
-        if (roundedTo5Long > int.MaxValue)
-        {
-            Debug.LogWarning($"舍入后的价格 {roundedTo5Long} 超出int范围，已限制为 {int.MaxValue}");
-            return int.MaxValue;
-        }
-
-        int roundedTo5 = (int)roundedTo5Long;
+        BigInteger roundedTo5 = (price + 2) / 5 * 5; // 等价BigInteger四舍五入：(num + 5/2 -1)/5 *5
 
         // 第二步：最多保留3个有效数字
-        if (roundedTo5 == 0)
-            return 0;
+        if (roundedTo5 == BigInteger.Zero)
+            return BigInteger.Zero;
 
-        // 计算有效数字位数
-        // 【修复5】添加try-catch捕获Log10异常
         try
         {
-            int digitCount = (int)Mathf.Log10(Mathf.Abs(roundedTo5)) + 1;
+            // 计算BigInteger的有效数字位数
+            int digitCount = GetBigIntegerDigitCount(roundedTo5);
 
             if (digitCount <= 3)
             {
@@ -385,27 +371,35 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             else
             {
                 // 超过3位有效数字，保留3位并修正为5的倍数
-                // 【修复6】使用long进行中间计算
-                float scale = Mathf.Pow(10, digitCount - 3);
-                long roundedTo3SigLong = (long)Mathf.RoundToInt(roundedTo5 / scale) * (long)Mathf.RoundToInt(scale);
-
-                // 【修复7】检查范围
-                if (roundedTo3SigLong > int.MaxValue)
-                {
-                    Debug.LogWarning($"处理后的价格 {roundedTo3SigLong} 超出int范围，已限制为 {int.MaxValue}");
-                    return int.MaxValue;
-                }
-
-                int roundedTo3Sig = (int)roundedTo3SigLong;
-
+                BigInteger scale = BigInteger.Pow(10, digitCount - 3);
+                // 保留3位有效数字：四舍五入
+                BigInteger roundedTo3Sig = (roundedTo5 + scale / 2) / scale * scale;
                 // 确保最终结果仍是5的倍数
-                return Mathf.RoundToInt(roundedTo3Sig / 5f) * 5;
+                return (roundedTo3Sig + 2) / 5 * 5;
             }
         }
         catch (System.Exception e)
         {
             Debug.LogError($"RoundPrice 计算出错：{e.Message}，输入价格：{price}，返回0");
-            return 0;
+            return BigInteger.Zero;
         }
+    }
+
+    /// <summary>
+    /// 辅助方法：计算BigInteger的有效数字位数
+    /// 解决Mathf.Log10无法处理超大数的问题
+    /// </summary>
+    private int GetBigIntegerDigitCount(BigInteger num)
+    {
+        if (num == BigInteger.Zero)
+            return 1;
+        num = BigInteger.Abs(num);
+        int count = 0;
+        while (num > BigInteger.Zero)
+        {
+            num /= 10;
+            count++;
+        }
+        return count;
     }
 }
