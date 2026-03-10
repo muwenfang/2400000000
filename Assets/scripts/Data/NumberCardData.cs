@@ -98,45 +98,44 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     /// 返回BigInteger，入参不变
     /// </summary>
     public BigInteger GetNumberCardPrice(NumberCardData card)
+{
+    if (card == null)
     {
-        if (card == null)
-        {
-            Debug.LogError("卡牌数据为空，无法计算价格！");
-            return BigInteger.Zero;
-        }
-
-        NumberComponent a = card.partA;
-        NumberComponent b = card.partB;
-        NumberCardData.LogicalType logic = card.logicalType;
-
-        if (a == null)
-        {
-            Debug.LogError("卡牌PartA不能为空！");
-            return BigInteger.Zero;
-        }
-
-        // 第一步：计算数学期望（改造为BigInteger，无浮点误差）
-        BigInteger expectation = CalculateExpectation(a, b, logic);
-
-        // 第二步：倍率修正（文档中所有倍率均为1.0，保留扩展接口，倍率仍为float不影响）
-        float rate = 1.0f;
-        if (a.isIncremental || (b != null && b.isIncremental))
-            rate *= 1.0f;
-        if (a.isDice || (b != null && b.isDice))
-            rate *= 1.0f;
-        if (logic == NumberCardData.LogicalType.Power)
-            rate *= 1.0f;
-
-        // 倍率修正：BigInteger乘浮点后取整，保留原有逻辑
-        BigInteger priceAfterRate = BigInteger.Round(expectation * (decimal)rate);
-
-        // 第三步：舍入（改造为BigInteger版，保留原规则）
-        BigInteger finalPrice = RoundPrice(priceAfterRate);
-
-        // 日志保留浮点展示，贴合原有输出习惯
-        Debug.Log($"价格计算过程：期望={expectation} → 倍率修正后={priceAfterRate} → 最终价格={finalPrice}");
-        return finalPrice;
+        Debug.LogError("卡牌数据为空，无法计算价格！");
+        return BigInteger.Zero;
     }
+
+    NumberComponent a = card.partA;
+    NumberComponent b = card.partB;
+    NumberCardData.LogicalType logic = card.logicalType;
+
+    if (a == null)
+    {
+        Debug.LogError("卡牌PartA不能为空！");
+        return BigInteger.Zero;
+    }
+
+    // 第一步：计算数学期望
+    BigInteger expectation = CalculateExpectation(a, b, logic);
+
+    // 第二步：倍率修正（修复：不用 decimal，改用整数运算避免类型错误）
+    float rate = 1.0f;
+    if (a.isIncremental || (b != null && b.isIncremental))
+        rate *= 1.0f;
+    if (a.isDice || (b != null && b.isDice))
+        rate *= 1.0f;
+    if (logic == NumberCardData.LogicalType.Power)
+        rate *= 1.0f;
+
+    // 用整数运算替代 decimal，兼容 BigInteger
+    BigInteger priceAfterRate = expectation * (int)(rate * 100) / 100;
+
+    // 第三步：舍入
+    BigInteger finalPrice = RoundPrice(priceAfterRate);
+
+    Debug.Log($"价格计算过程：期望={expectation} → 倍率修正后={priceAfterRate} → 最终价格={finalPrice}");
+    return finalPrice;
+}
 
     /// <summary>
     /// 第一步：根据卡牌类型计算数学期望
