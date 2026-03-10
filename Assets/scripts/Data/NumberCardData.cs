@@ -343,30 +343,69 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     /// </summary>
     private int RoundPrice(float price)
     {
+        // 【修复1】输入验证
         if (price <= 0)
             return 0;
 
+        // 【修复2】检查价格是否超出int范围
+        if (price > int.MaxValue)
+        {
+            Debug.LogWarning($"价格 {price} 超出int范围，已限制为 {int.MaxValue}");
+            return int.MaxValue;
+        }
+
         // 第一步：四舍五入到最近的5的倍数
-        int roundedTo5 = Mathf.RoundToInt(price / 5) * 5;
+        // 【修复3】先转为long，再进行操作，避免溢出
+        long roundedTo5Long = (long)Mathf.RoundToInt(price / 5) * 5L;
+
+        // 【修复4】检查是否超出int范围
+        if (roundedTo5Long > int.MaxValue)
+        {
+            Debug.LogWarning($"舍入后的价格 {roundedTo5Long} 超出int范围，已限制为 {int.MaxValue}");
+            return int.MaxValue;
+        }
+
+        int roundedTo5 = (int)roundedTo5Long;
 
         // 第二步：最多保留3个有效数字
         if (roundedTo5 == 0)
             return 0;
 
         // 计算有效数字位数
-        int digitCount = (int)Mathf.Log10(Mathf.Abs(roundedTo5)) + 1;
-        if (digitCount <= 3)
+        // 【修复5】添加try-catch捕获Log10异常
+        try
         {
-            // 不足3位有效数字，直接返回5的倍数结果
-            return roundedTo5;
+            int digitCount = (int)Mathf.Log10(Mathf.Abs(roundedTo5)) + 1;
+
+            if (digitCount <= 3)
+            {
+                // 不足3位有效数字，直接返回5的倍数结果
+                return roundedTo5;
+            }
+            else
+            {
+                // 超过3位有效数字，保留3位并修正为5的倍数
+                // 【修复6】使用long进行中间计算
+                float scale = Mathf.Pow(10, digitCount - 3);
+                long roundedTo3SigLong = (long)Mathf.RoundToInt(roundedTo5 / scale) * (long)Mathf.RoundToInt(scale);
+
+                // 【修复7】检查范围
+                if (roundedTo3SigLong > int.MaxValue)
+                {
+                    Debug.LogWarning($"处理后的价格 {roundedTo3SigLong} 超出int范围，已限制为 {int.MaxValue}");
+                    return int.MaxValue;
+                }
+
+                int roundedTo3Sig = (int)roundedTo3SigLong;
+
+                // 确保最终结果仍是5的倍数
+                return Mathf.RoundToInt(roundedTo3Sig / 5f) * 5;
+            }
         }
-        else
+        catch (System.Exception e)
         {
-            // 超过3位有效数字，保留3位并修正为5的倍数
-            float scale = Mathf.Pow(10, digitCount - 3);
-            int roundedTo3Sig = Mathf.RoundToInt(roundedTo5 / scale) * (int)scale;
-            // 确保最终结果仍是5的倍数
-            return Mathf.RoundToInt(roundedTo3Sig / 5) * 5;
+            Debug.LogError($"RoundPrice 计算出错：{e.Message}，输入价格：{price}，返回0");
+            return 0;
         }
     }
 }
