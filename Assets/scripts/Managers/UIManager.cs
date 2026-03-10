@@ -305,12 +305,48 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 格式化大数字显示（例如：1,234,567 或 1.23M）
+    /// 格式化大数字显示（例如：1,234,567）
     /// </summary>
     string FormatBigNumber(System.Numerics.BigInteger number)
     {
-            return $"{number}";
-        
+        // 如果数字在 long 范围内，直接用内置格式化
+        if (number <= long.MaxValue && number >= long.MinValue)
+        {
+            return ((long)number).ToString("N0");  // N0 格式自动添加千位分隔符
+        }
+
+        // 如果超过 long 范围，手动添加逗号
+        string numberStr = number.ToString();
+
+        // 处理负号
+        bool isNegative = number < 0;
+        if (isNegative)
+        {
+            numberStr = numberStr.Substring(1);  // 移除负号
+        }
+
+        // 从右往左插入逗号（每3位）
+        var result = new System.Text.StringBuilder();
+        int digitCount = numberStr.Length;
+
+        for (int i = 0; i < digitCount; i++)
+        {
+            // 从右往左数，每3位插入一个逗号
+            if (i > 0 && (digitCount - i) % 3 == 0)
+            {
+                result.Append(',');
+            }
+            result.Append(numberStr[i]);
+        }
+
+        // 添加负号（如果有）
+        if (isNegative)
+        {
+            return "-" + result.ToString();
+        }
+
+        return result.ToString();
+
     }
     #endregion #region 结算按钮控制
 

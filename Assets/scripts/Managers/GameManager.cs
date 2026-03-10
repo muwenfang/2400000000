@@ -60,10 +60,15 @@ public class GameManager : MonoBehaviour
     public void InitializeGame()
     {   
         Debug.Log("初始化游戏");
-        currentPoints = 99999990;
+        currentPoints = 0;
         currentRound = 1;
         // 确保调用了 ChangeState，这样上面的 UI 逻辑才会跑起来
         ChangeState(GameState.PlayerTurn);
+        // 【新增】清空祝福系统
+        if (blessingManager != null)
+        {
+            blessingManager.ClearAllBlessings();
+        }
 
         // 初始化UI显示
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
@@ -116,20 +121,17 @@ public class GameManager : MonoBehaviour
         Debug.Log("baseMultiplier: " + baseMultiplier);
 
         // 计算倍率（从祝福管理器获取）
-        float multiplier = GetCurrentMultiplier();
-
-        //更新ui
-        UIManager.Instance.multiplierText.text  = "×" + baseMultiplier.ToString(); // 更新倍率显示
+        float blessingBonusMultiplier = GetCurrentMultiplier();
+        float totalMultiplier = baseMultiplier + blessingBonusMultiplier; // 公式卡数量 + 祝福倍率加成
+        
+        // 更新UI
+        UIManager.Instance.multiplierText.text = "×" + totalMultiplier.ToString();
 
         // 计算最终得分
-        BigInteger finalScore = (BigInteger)((decimal)baseScore * (decimal)multiplier * (decimal)baseMultiplier);
-
-        // 计算祝福加成
-        //[to do]
+        BigInteger finalScore = (BigInteger)((decimal)baseScore * (decimal)totalMultiplier);
 
         // 启动分步显示协程
-        StartCoroutine(ShowScoreStepByStep(baseScore, multiplier, finalScore));
-
+        StartCoroutine(ShowScoreStepByStep(baseScore, totalMultiplier, finalScore));
     }
     /// <summary>
     /// 分步显示得分的协程
@@ -192,21 +194,44 @@ public class GameManager : MonoBehaviour
     /// </summary>
     float GetCurrentMultiplier()
     {
-        // TODO: 从祝福管理器获取实际倍率
-        // 目前返回默认值
+        float multiplier = 1.0f;
+
+        // 从祝福管理器获取倍率加成
         if (blessingManager != null)
         {
-            // return blessingManager.GetTotalMultiplier();
+            float blessingMultiplier = blessingManager.GetTotalMultiplierBonus();
+            multiplier += blessingMultiplier;
+            Debug.Log($"祝福倍率加成: {blessingMultiplier}，总倍率: {multiplier}");
         }
 
-        return 1.0f; // 默认倍率
+        return multiplier;
     }
     public void AddPoints(BigInteger points)
     {
+        // 如果是扣除点数，直接扣除
+        if (points < BigInteger.Zero)
+        {
+            currentPoints += points;
+            UIManager.Instance.UpdatePointsDisplay(currentPoints);
+            Debug.Log($"扣除点数：{-points}，当前总分：{currentPoints}");
+            return;
+        }
+
+        // 获取加成前的点数
+        BigInteger pointsBefore = currentPoints;
+
+        // 添加基础点数
         currentPoints += points;
+
+        // 【新增】应用祝福效果
+        if (blessingManager != null)
+        {
+            BigInteger financialBonus = blessingManager.CalculateFinancialMasterBonus(pointsBefore);
+            currentPoints += financialBonus;
+        }
+
         // 立即更新UI显示
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
-
         Debug.Log($"总分更新: {currentPoints}");
     }
 

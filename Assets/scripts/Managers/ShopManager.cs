@@ -60,16 +60,21 @@ public class ShopManager : MonoBehaviour
     [Header("卡牌库引用")]
     public NumberCardLibrary numberCardLibrary; // 数字卡库的引用
 
+    [Header("祝福系统")]
+    [Tooltip("祝福卡库 - 拖入 BlessingLibrary 资源")]
+    public BlessingLibrary blessingLibrary;
+
     [Header("本次商店商品")]
     public List<ShopItem<NumberCardInstance>> shopNumberCards = new();
     public List<ShopItem<FormulaCardData>> shopFormulaCards = new();
+    public List<ShopItem<BlessingData>> shopBlessings = new();
 
 
     public void OpenShop()
     {
         GenerateNumberCards();
         GenerateFormulaCards();
-
+        GenerateBlessings();
         // ---通知 UI 刷新 ---
         UIManager.Instance.RefreshShopUI();
     }
@@ -87,6 +92,10 @@ public class ShopManager : MonoBehaviour
             Debug.LogError("NumberCardLibrary 未设置或为空！");
             return;
         }
+
+        float priceMultiplier = BlessingManager.Instance != null
+         ? BlessingManager.Instance.GetCurrentPriceMultiplier()
+         : 1.0f;
 
         // 生成所有槽位（包括锁定的）
         for (int i = 0; i < MaxnumberCardCount; i++)
@@ -146,6 +155,11 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
+        // 【新增】获取价格乘数
+        float priceMultiplier = BlessingManager.Instance != null
+            ? BlessingManager.Instance.GetCurrentPriceMultiplier()
+            : 1.0f;
+
         // 创建临时池，避免重复抽取
         List<FormulaCardData> tempPool = new List<FormulaCardData>(formulaCardLibrary.allCards);
 
@@ -160,6 +174,35 @@ public class ShopManager : MonoBehaviour
                 shopFormulaCards.Add(new ShopItem<FormulaCardData>(randomCard, randomCard.CardPrice));
                 Debug.Log($"槽位{i}：{randomCard.Name}，价格 {randomCard.CardPrice}");
             
+        }
+    }
+
+    /// <summary>
+    /// 生成祝福商品
+    /// </summary>
+    void GenerateBlessings()
+    {
+        shopBlessings.Clear();
+
+        if (blessingLibrary == null || blessingLibrary.GetAllBlessings().Count == 0)
+        {
+            Debug.LogError("BlessingLibrary 未设置或为空！");
+            return;
+        }
+
+        // 获取祝福库中的所有祝福
+        List<BlessingData> allBlessings = blessingLibrary.GetAllBlessings();
+
+        // 对每个祝福生成一个商品项
+        foreach (var blessingData in allBlessings)
+        {
+            // 计算当前价格（考虑已购买次数和价格乘数）
+            int currentCount = BlessingManager.Instance.GetBlessingCount(blessingData.blessingId);
+            float priceMultiplier = BlessingManager.Instance.GetCurrentPriceMultiplier();
+            int price = blessingData.CalculatePrice(currentCount, priceMultiplier);
+
+            shopBlessings.Add(new ShopItem<BlessingData>(blessingData, price));
+            Debug.Log($"祝福商品：{blessingData.blessingName}（已购买{currentCount}次），价格 {price}");
         }
     }
 
@@ -221,6 +264,36 @@ public class ShopManager : MonoBehaviour
         item.sold = true;
         return true;
     }
+    /// <summary>
+    /// 尝试购买祝福
+    /// </summary>
+    public bool TryBuyBlessing(ShopItem<BlessingData> item)
+    {
+        if (item == null || item.cardData == null)
+        {
+            Debug.LogWarning("祝福商品为空");
+            return false;
+        }
+
+        if (item.sold)
+        {
+            Debug.LogWarning("祝福已被购买（本回合）");
+            return false;
+        }
+
+        // 【关键】使用 BlessingManager 的购买逻辑
+        bool purchaseSuccess = BlessingManager.Instance.TryBuyBlessing(item.cardData);
+
+        if (purchaseSuccess)
+        {
+            item.sold = true;
+            // 刷新商店显示
+            OpenShop();
+            UIManager.Instance.RefreshShopUI();
+        }
+
+        return purchaseSuccess;
+    }
     //商店刷新
     public void RefreshShop()
     {
@@ -246,6 +319,12 @@ public class ShopManager : MonoBehaviour
         {
             UIManager.Instance.shopPanel.SetActive(false);
         }
+        //清空祝福已购买标记（下次商店刷新时重新生成）
+        foreach (var item in shopBlessings)
+        {
+            item.sold = false;
+        }
+
         //重置刷新次数
         refreshCount = 0;
     }

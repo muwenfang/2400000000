@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 /// <summary>
-/// 显示我的卡牌 - 最终修复版
+/// 显示我的卡牌 
 /// </summary>
 public class ShowMyCard : MonoBehaviour
 {
@@ -61,6 +62,44 @@ public class ShowMyCard : MonoBehaviour
         {
             scrollRect = GetComponentInParent<ScrollRect>();
         }
+        if (scrollRect == null)
+        {
+            // 尝试在父物体的父物体找
+            Transform parent = contentRoot.parent;
+            if (parent != null)
+            {
+                scrollRect = parent.GetComponent<ScrollRect>();
+            }
+        }
+
+        VerticalLayoutGroup vlg = contentRoot.GetComponent<VerticalLayoutGroup>();
+        if (vlg == null)
+        {
+            vlg = contentRoot.gameObject.AddComponent<VerticalLayoutGroup>();
+            vlg.childForceExpandHeight = false;  // 不强制展开高度
+            vlg.childForceExpandWidth = true;   //强制展开宽度
+            vlg.spacing = 10;
+            vlg.childControlHeight = false;     // 关键：不控制高度，让卡牌自己决定
+            vlg.childControlWidth = true;       // 控制宽度
+            Debug.Log("[ShowMyCard] 自动添加了 VerticalLayoutGroup");
+        }
+
+        // 确保 contentRoot 有 LayoutElement
+        LayoutElement le = contentRoot.GetComponent<LayoutElement>();
+        if (le == null)
+        {
+            le = contentRoot.gameObject.AddComponent<LayoutElement>();
+        }
+        le.preferredWidth = -1;      // 不设置宽度约束
+        le.preferredHeight = -1;     // 不设置高度约束（由内容决定）
+        le.flexibleHeight = 1;       // 允许灵活高度
+
+        // 找到或创建 ScrollRect
+        if (scrollRect == null)
+        {
+            // 尝试在当前物体找
+            scrollRect = GetComponent<ScrollRect>();
+        }
 
         // 如果没找到，自动创建
         if (scrollRect == null && contentRoot != null)
@@ -74,11 +113,11 @@ public class ShowMyCard : MonoBehaviour
                 {
                     scrollRect = scrollParent.gameObject.AddComponent<ScrollRect>();
                     scrollRect.content = (RectTransform)contentRoot;
-                    scrollRect.horizontal = false;
-                    scrollRect.vertical = true;
+                    scrollRect.horizontal = false;      // 禁用水平滚动
+                    scrollRect.vertical = true;         // 启用垂直滚动
                     scrollRect.movementType = ScrollRect.MovementType.Elastic;
                     scrollRect.elasticity = 0.1f;
-                    scrollRect.scrollSensitivity = 1;
+                    scrollRect.scrollSensitivity = 5;   // 调整滚动灵敏度
 
                     Image image = scrollParent.GetComponent<Image>();
                     if (image == null)
@@ -92,20 +131,19 @@ public class ShowMyCard : MonoBehaviour
             }
         }
 
-        // 配置 contentRoot 的 LayoutElement
-        if (contentRoot != null)
+        //确保 contentRoot 父物体的 RectTransform 配置正确
+        RectTransform scrollRectTransform = scrollRect.GetComponent<RectTransform>();
+        if (scrollRectTransform != null)
         {
-            LayoutElement le = contentRoot.GetComponent<LayoutElement>();
-            if (le == null)
+            // 设置 ScrollRect 的大小约束
+            LayoutElement scrollLE = scrollRect.GetComponent<LayoutElement>();
+            if (scrollLE == null)
             {
-                le = contentRoot.gameObject.AddComponent<LayoutElement>();
+                scrollLE = scrollRect.gameObject.AddComponent<LayoutElement>();
             }
-
-            le.preferredWidth = -1;
-            le.flexibleHeight = 0;
-
-            Debug.Log("[ShowMyCard] 配置了 LayoutElement");
+            scrollLE.preferredHeight = 600;  // ✅ 设置滚动区域的高度（可根据需要调整）
         }
+
     }
     public void RefreshAllCards()
     {
@@ -124,6 +162,12 @@ public class ShowMyCard : MonoBehaviour
         {
             GenerateFormulaCards();
         }
+        // 3. 强制重建布局
+        if (contentRoot != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);
+        }
+
         if (scrollRect != null)
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.GetComponent<RectTransform>());
@@ -150,6 +194,28 @@ public class ShowMyCard : MonoBehaviour
 
             go.transform.localScale = UnityEngine.Vector3.one * cardScale;
             go.SetActive(true); // 确保显示
+
+            //禁用 PlayerController 脚本
+            PlayerController playerController = go.GetComponent<PlayerController>();
+            if (playerController != null)
+            {
+                playerController.enabled = false;  // ✅ 禁用拖动功能
+                Debug.Log("[ShowMyCard] 禁用了卡牌的拖动功能");
+            }
+
+            //禁用 IBeginDragHandler, IDragHandler, IEndDragHandler
+            IBeginDragHandler beginDragHandler = go.GetComponent<IBeginDragHandler>();
+            IDragHandler dragHandler = go.GetComponent<IDragHandler>();
+            IEndDragHandler endDragHandler = go.GetComponent<IEndDragHandler>();
+
+            // 移除这些事件监听（通过禁用脚本）
+            foreach (var component in go.GetComponents<MonoBehaviour>())
+            {
+                if (component is PlayerController)
+                {
+                    component.enabled = false;
+                }
+            }
 
             // 判断是哪种视图组件，分别赋值
             // 尝试获取单数字视图

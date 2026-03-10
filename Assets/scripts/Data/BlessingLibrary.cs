@@ -69,8 +69,8 @@ public class BlessingLibrary : ScriptableObject
         blessing.blessingType = type;
         blessing.basePrice = basePrice;
         blessing.isStackable = isStackable;
-        blessing.effectValue = effectValue;
-        blessing.bonusPoints = bonusPoints;
+        blessing.effectValue = effectValue;     //点数加成
+        blessing.bonusPoints = bonusPoints;     //倍率加成
         return blessing;
     }
 
