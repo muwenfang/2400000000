@@ -119,13 +119,13 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     BigInteger expectation = CalculateExpectation(a, b, logic);
 
     // 第二步：倍率修正（修复：不用 decimal，改用整数运算避免类型错误）
-    float rate = 1.0f;
+    float rate = 2.0f;
     if (a.isIncremental || (b != null && b.isIncremental))
         rate *= 1.0f;
     if (a.isDice || (b != null && b.isDice))
         rate *= 1.0f;
     if (logic == NumberCardData.LogicalType.Power)
-        rate *= 1.0f;
+        rate *= 2.0f;
 
     // 用整数运算替代 decimal，兼容 BigInteger
     BigInteger priceAfterRate = expectation * (int)(rate * 100) / 100;
