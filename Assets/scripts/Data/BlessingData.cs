@@ -21,9 +21,38 @@ public class BlessingData : ScriptableObject
 
     public enum BlessingType
     {
-        FinancialMaster,    // 理财大师
-        MoreMoreBetter,     // 多多益善
-        DialecticalViewpoint // 辩证主义
+        Jackpot7,             // 逢七过
+        PureVessel,           // 纯粹容器
+        DoubleDown,           // 倍投
+        Raise,                // 加注
+        QuitGambling,         // 戒赌
+        LuckTurns,            // 转运
+        WishingCoin,          // 许愿币
+        SmallCardPack,        // 小卡牌包
+        AllGodsInPlace,       // 众神归位
+        RapidActivation,      // 高效催化
+        FinancialMaster,      // 理财大师
+        BigCardPack,          // 大卡牌包
+        CardCheat,            // 老千
+        GamblingGearUpgraded, // 赌具升级
+        MoreMoreBetter,       // 多多益善
+        Dyed,                 // 染色
+        DoubleLuck,           // 好事成双
+        CardMaster,           // 卡牌大师
+        CompulsiveGambler,    // 狂赌之渊
+        GambletoWin,          // 赌为赢
+        EnergySpread,         // 能量扩散
+        MagicLamp,            // 神灯
+        FriendDiscount,       // 友情折扣
+        Bless,                // 眷顾
+        RichTreasury,         // 丰盈宝库
+        Idealism,             // 唯心主义
+        Materialism,          // 唯物主义
+        Nihilism,             // 虚无主义
+        DialecticalViewpoint, // 辩证主义
+        Empiricism,           // 经验主义  
+        Utopianism,           // 空想主义
+        Pragmatism            // 实用主义
     }
 
     /// <summary>
