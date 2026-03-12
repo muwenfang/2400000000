@@ -2297,7 +2297,6 @@ GameObject:
   - component: {fileID: 896898555}
   - component: {fileID: 896898554}
   - component: {fileID: 896898553}
-  - component: {fileID: 896898552}
   m_Layer: 5
   m_Name: MyBless
   m_TagString: Untagged
@@ -2305,29 +2304,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 0
---- !u!114 &896898552
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 896898551}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e54e8b76eb3a8664eb9fe31116bae849, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  showNumberCards: 0
-  showFormulaCards: 0
-  contentRoot: {fileID: 869926021}
-  scrollRect: {fileID: 1348500147}
-  deleteCostText: {fileID: 152407951}
-  cardScale: 1
-  incrementalColor: {r: 0, g: 1, b: 0, a: 1}
-  diceColor: {r: 1, g: 0, b: 0, a: 1}
-  normalColor: {r: 0, g: 0, b: 0, a: 1}
-  deleteButtonPrefab: {fileID: 5508115172736919030, guid: 4ea257627ca306249bc33edc127af3ca, type: 3}
-  deleteConfirmPanelPrefab: {fileID: 1349119964460934882, guid: 4ec46f1dbbe97104194b3b4b911b567f, type: 3}
 --- !u!114 &896898553
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3404,7 +3380,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3200897846057908240, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3296693888847372070, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
@@ -3780,7 +3756,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7279941055438634606, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7290562765458756537, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -4737,7 +4713,7 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 896898552}
+      - m_Target: {fileID: 0}
         m_TargetAssemblyTypeName: ShowMyCard, Assembly-CSharp
         m_MethodName: ExitDeleteMode
         m_Mode: 1
