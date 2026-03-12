@@ -38,9 +38,11 @@ public class ShopManager : MonoBehaviour
     // 最大能购买的数量
     public int MaxnumberCardCount = 6;
     public int MaxformulaCardCount = 2;
+    public int MaxBlessingCardCount = 4;
     // 当前能购买的数量
     public int numberCardCount = 2;
     public int formulaCardCount = 1;
+    public int blessingCardCount = 2;
 
     //刷新次数
     public int refreshCount = 0;
@@ -51,9 +53,11 @@ public class ShopManager : MonoBehaviour
     [Header("槽位解锁配置")]
     public int baseNumberSlotUnlockCost = 10; // 数字卡槽位基础解锁消耗
     public int baseFormulaSlotUnlockCost = 20; // 公式卡槽位基础解锁消耗
+    public int baseBlessingSlotUnlockCost = 2000;
     public int numberSlotUnlockTimes = 0; // 数字卡已解锁次数
     public int formulaSlotUnlockTimes = 0; // 公式卡已解锁次数
-    
+    public int blessingSlotUnlockTimes = 0;
+
     [Tooltip("公式卡库 - 拖入 FormulaCardLibrary 资源")]
     public FormulaCardLibrary formulaCardLibrary;
 
@@ -190,19 +194,43 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
-        // 获取祝福库中的所有祝福
-        List<BlessingData> allBlessings = blessingLibrary.GetAllBlessings();
+        float priceMultiplier = BlessingManager.Instance != null
+        ? BlessingManager.Instance.GetCurrentPriceMultiplier()
+        : 1.0f;
 
-        // 对每个祝福生成一个商品项
-        foreach (var blessingData in allBlessings)
+        // 创建临时池，避免重复抽取
+        List<BlessingData> tempPool = new List<BlessingData>(blessingLibrary.GetAllBlessings());
+
+        // 生成4个槽位（包括锁定的）
+        for (int i = 0; i < MaxBlessingCardCount; i++)
         {
-            // 计算当前价格（考虑已购买次数和价格乘数）
-            int currentCount = BlessingManager.Instance.GetBlessingCount(blessingData.blessingId);
-            float priceMultiplier = BlessingManager.Instance.GetCurrentPriceMultiplier();
-            int price = blessingData.CalculatePrice(currentCount, priceMultiplier);
+            // 如果是解锁的槽位
+            if (i < blessingCardCount)
+            {
+                // 随机抽取一张祝福
+                if (tempPool.Count == 0)
+                {
+                    // 如果池子空了，重新填充
+                    tempPool = new List<BlessingData>(blessingLibrary.GetAllBlessings());
+                }
 
-            shopBlessings.Add(new ShopItem<BlessingData>(blessingData, price));
-            Debug.Log($"祝福商品：{blessingData.blessingName}（已购买{currentCount}次），价格 {price}");
+                int randomIndex = Random.Range(0, tempPool.Count);
+                BlessingData randomBlessing = tempPool[randomIndex];
+                tempPool.RemoveAt(randomIndex); // 避免重复
+
+                // 计算价格
+                int currentCount = BlessingManager.Instance.GetBlessingCount(randomBlessing.blessingId);
+                int price = randomBlessing.CalculatePrice(currentCount, priceMultiplier);
+
+                shopBlessings.Add(new ShopItem<BlessingData>(randomBlessing, price));
+                Debug.Log($"祝福槽位{i}：{randomBlessing.blessingName}，价格 {price}");
+            }
+            else
+            {
+                // 锁定槽位：添加占位符（null）
+                shopBlessings.Add(new ShopItem<BlessingData>(null, 0));
+                Debug.Log($"祝福槽位{i}：【已锁定】");
+            }
         }
     }
 
@@ -382,8 +410,7 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     public long CalculateNumberSlotUnlockCost()
     {
-        // 指数增长：基础消耗 * 2^已解锁次数（和 删除/刷新逻辑数值体系 一样？）
-        long powerOfTwo = (long)Mathf.Pow(2, numberSlotUnlockTimes);
+        long powerOfTwo = 25 * numberSlotUnlockTimes;
         return baseNumberSlotUnlockCost * powerOfTwo;
     }
 
@@ -450,7 +477,14 @@ public class ShopManager : MonoBehaviour
 
         return true;
     }
-
+    /// <summary>
+    /// 计算祝福卡槽位解锁消耗
+    /// </summary>
+    public long CalculateBlessingSlotUnlockCost()
+    {
+        long powerOfTwo = (long)Mathf.Pow(2, blessingSlotUnlockTimes);
+        return baseBlessingSlotUnlockCost * powerOfTwo;
+    }
     /// <summary>
     /// 尝试解锁公式卡槽位
     /// </summary>
@@ -488,9 +522,46 @@ public class ShopManager : MonoBehaviour
 
         return true;
     }
+    /// <summary>
+    /// 尝试解锁祝福卡槽位
+    /// </summary>
+    public bool TryUnlockBlessingSlot()
+    {
+        // 判定1：是否已达到最大槽位
+        if (blessingCardCount >= MaxBlessingCardCount)
+        {
+            Debug.LogWarning("祝福卡槽位已解锁至最大值，无法继续解锁");
+            return false;
+        }
+
+        // 判定2：计算消耗并校验点数
+        long unlockCost = CalculateBlessingSlotUnlockCost();
+        if (GameManager.Instance.currentPoints < unlockCost)
+        {
+            Debug.LogWarning($"祝福卡槽位解锁失败：点数不足，需要{unlockCost}，当前{GameManager.Instance.currentPoints}");
+            return false;
+        }
+
+        // 执行解锁：扣除点数、更新解锁次数、增加可购买槽位数量
+        GameManager.Instance.AddPoints(-unlockCost);
+        blessingSlotUnlockTimes++;
+
+        int newSlotIndex = blessingCardCount;  // 记录新槽位的索引
+        blessingCardCount++;
+
+        Debug.Log($"祝福卡槽位解锁成功！当前可购买数量：{blessingCardCount}，累计解锁次数：{blessingSlotUnlockTimes}");
+
+        // 只生成新槽位的祝福，不改变现有祝福
+        GenerateNewBlessingSlot(newSlotIndex);
+
+        // 刷新 UI
+        UIManager.Instance.RefreshShopUI();
+
+        return true;
+    }
     #endregion
     /// <summary>
-    ///【新增方法】只生成一个新的公式卡槽位（用于解锁时调用）
+    ///只生成一个新的公式卡槽位（用于解锁时调用）
     /// 不改变现有的卡牌数值
     /// </summary>
     void GenerateNewFormulaCardSlot(int slotIndex)
@@ -518,7 +589,7 @@ public class ShopManager : MonoBehaviour
         Debug.Log($"槽位{slotIndex}：{randomCard.Name}，价格 {randomCard.CardPrice}");
     }
     /// <summary>
-    /// 【新增方法】只生成一个新的数字卡槽位（用于解锁时调用）
+    ///只生成一个新的数字卡槽位（用于解锁时调用）
     /// 不改变现有的卡牌数值
     /// </summary>
     void GenerateNewNumberCardSlot(int slotIndex)
@@ -552,5 +623,41 @@ public class ShopManager : MonoBehaviour
         }
 
         Debug.Log($"槽位{slotIndex}：{randomCard.cardName}，价格 {price}");
+    }
+    /// <summary>
+    /// 只生成一个新的祝福槽位（用于解锁时调用）
+    /// 不改变现有的祝福数值
+    /// </summary>
+    void GenerateNewBlessingSlot(int slotIndex)
+    {
+        // 验证库是否存在
+        if (blessingLibrary == null || blessingLibrary.GetAllBlessings().Count == 0)
+        {
+            Debug.LogError("BlessingLibrary 未设置或为空！");
+            return;
+        }
+
+        float priceMultiplier = BlessingManager.Instance != null
+            ? BlessingManager.Instance.GetCurrentPriceMultiplier()
+            : 1.0f;
+
+        // 随机获取一个祝福
+        BlessingData randomBlessing = blessingLibrary.GetRandomBlessing();
+
+        // 计算价格
+        int currentCount = BlessingManager.Instance.GetBlessingCount(randomBlessing.blessingId);
+        int price = randomBlessing.CalculatePrice(currentCount, priceMultiplier);
+
+        // 将新祝福添加到列表
+        if (slotIndex < shopBlessings.Count)
+        {
+            shopBlessings[slotIndex] = new ShopItem<BlessingData>(randomBlessing, price);
+        }
+        else
+        {
+            shopBlessings.Add(new ShopItem<BlessingData>(randomBlessing, price));
+        }
+
+        Debug.Log($"祝福槽位{slotIndex}：{randomBlessing.blessingName}，价格 {price}");
     }
 }

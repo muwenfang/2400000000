@@ -10,17 +10,18 @@ using UnityEngine.UI;
 public class BlessingUI : MonoBehaviour
 {
     [Header("UI 组件")]
-    public Text blessingNameText;      // 祝福名称
-    public Text blessingDescriptionText; // 祝福描述
-    public Image blessingIconImage;    // 祝福图标
-    public LayoutGroup layoutGroup;    // 用于自动排列
-    public Text count;                 // 祝福层数显示
+    public Text blessingNameText;           // 祝福名称
+    public Text blessingDescriptionText;    // 祝福描述
+    public Image blessingIconImage;         // 祝福图标
+    public Text stackCountText;             // 叠加数量显示
 
-    [Header("配置")]
-    [SerializeField] private bool autoResizeContainer = true; // 是否自动调整容器大小
-    [SerializeField] private float containerPadding = 10f;    // 容器内边距
+    [Header("颜色配置")]
+    [SerializeField] private Color stackableNameColor = Color.green;      // 可叠加祝福：绿色
+    [SerializeField] private Color unStackableNameColor = Color.black;    // 不可叠加祝福：白色
+    [SerializeField] private Color stackCountColor = new Color(1, 0.84f, 0); // 叠加数量：金色
 
     private BlessingData currentBlessingData;
+    private int currentStackCount = 1;
 
     private void OnEnable()
     {
@@ -30,7 +31,7 @@ public class BlessingUI : MonoBehaviour
     /// <summary>
     /// 设置要显示的祝福数据
     /// </summary>
-    public void SetBlessingData(BlessingData blessingData)
+    public void SetBlessingData(BlessingData blessingData, int stackCount = 1)
     {
         if (blessingData == null)
         {
@@ -39,6 +40,7 @@ public class BlessingUI : MonoBehaviour
         }
 
         currentBlessingData = blessingData;
+        currentStackCount = stackCount;
         RefreshUI();
     }
 
@@ -101,6 +103,16 @@ public class BlessingUI : MonoBehaviour
         if (blessingNameText != null)
         {
             blessingNameText.text = currentBlessingData.blessingName;
+
+            // 根据是否可叠加改变颜色
+            if (currentBlessingData.isStackable)
+            {
+                blessingNameText.color = stackableNameColor;  // 绿色 - 可叠加
+            }
+            else
+            {
+                blessingNameText.color = unStackableNameColor; //不可叠加
+            }
         }
 
         // 设置描述
@@ -109,7 +121,31 @@ public class BlessingUI : MonoBehaviour
             blessingDescriptionText.text = currentBlessingData.description;
         }
 
+        // 3. 设置叠加数量显示
+        UpdateStackCountDisplay();
+
         Debug.Log($"已加载祝福UI：{currentBlessingData.blessingName}");
+    }
+
+    /// <summary>
+    /// 更新叠加数量显示
+    /// </summary>
+    private void UpdateStackCountDisplay()
+    {
+        if (stackCountText == null)
+            return;
+
+        // 只有在数量大于1时才显示
+        if (currentStackCount > 1)
+        {
+            stackCountText.text = $"×{currentStackCount}";
+            stackCountText.color = stackCountColor;
+            stackCountText.gameObject.SetActive(true);
+        }
+        else
+        {
+            stackCountText.gameObject.SetActive(false);
+        }
     }
 
     /// <summary>
@@ -131,7 +167,7 @@ public class BlessingUI : MonoBehaviour
     /// </summary>
     public string GetBlessingName()
     {
-        return currentBlessingData != null ? currentBlessingData.blessingName : "";
+        return currentBlessingData != null ? currentBlessingData.blessingName : "error";
     }
 
     /// <summary>
@@ -139,7 +175,7 @@ public class BlessingUI : MonoBehaviour
     /// </summary>
     public string GetBlessingDescription()
     {
-        return currentBlessingData != null ? currentBlessingData.description : "";
+        return currentBlessingData != null ? currentBlessingData.description : "error";
     }
 
     /// <summary>
@@ -159,12 +195,19 @@ public class BlessingUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 设置UI是否可交互
+    /// 获取叠加数量
     /// </summary>
-    public void SetInteractable(bool interactable)
+    public int GetStackCount()
     {
-        // 可以添加更多交互控制逻辑
-        gameObject.SetActive(interactable);
+        return currentStackCount;
+    }
+
+    /// <summary>
+    /// 是否可叠加
+    /// </summary>
+    public bool IsStackable()
+    {
+        return currentBlessingData != null && currentBlessingData.isStackable;
     }
 
 }
