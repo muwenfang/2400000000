@@ -294,7 +294,7 @@ public class UIManager : MonoBehaviour
         // 找到当前回合对应的阶段要求
         for (int i = 0; i < stageRounds.Count; i++)
         {
-            if (currentRound <= stageRounds[i])
+            if (currentRound < stageRounds[i])
             {
                 return requirements[i];
             }

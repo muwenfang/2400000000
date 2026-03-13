@@ -12,7 +12,7 @@ public class BlessingUI : MonoBehaviour
     [Header("UI 组件")]
     public Text blessingNameText;           // 祝福名称
     public Text blessingDescriptionText;    // 祝福描述
-    public Image blessingIconImage;         // 祝福图标
+    public Image blessingImage;         // 祝福图标
     public Text stackCountText;             // 叠加数量显示
 
     [Header("颜色配置")]

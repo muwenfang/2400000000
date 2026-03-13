@@ -82,7 +82,13 @@ public class ShopManager : MonoBehaviour
         // ---通知 UI 刷新 ---
         UIManager.Instance.RefreshShopUI();
     }
-
+    public void InitializeShop()
+    {
+        numberSlotUnlockTimes = 0; // 数字卡已解锁次数
+        formulaSlotUnlockTimes = 0; // 公式卡已解锁次数
+        blessingSlotUnlockTimes = 0;
+        OpenShop();
+    }
     /// <summary>
     /// 生成数字卡商品
     /// </summary>

@@ -37,7 +37,7 @@ public class GameManager : MonoBehaviour
     //阶段点数数据
     public List<BigInteger> stagePointRequirements = new List<BigInteger>()
     {
-       24, 240,2400,24000,2400000,24000000,240000000,2400000000
+       24, 240,2400,24000,240000,2400000,24000000,240000000,2400000000
     };
 
     //阶段回合数
@@ -64,12 +64,12 @@ public class GameManager : MonoBehaviour
         currentRound = 1;
         // 确保调用了 ChangeState，这样上面的 UI 逻辑才会跑起来
         ChangeState(GameState.PlayerTurn);
-        // 【新增】清空祝福系统
+        // 清空祝福系统
         if (blessingManager != null)
         {
             blessingManager.ClearAllBlessings();
         }
-
+        ShopManager.Instance.InitializeShop(); // 重置商店状态
         // 初始化UI显示
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
         UIManager.Instance.UpdateRoundDisplay(currentRound);
@@ -96,6 +96,7 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.ResetRoundScore();
         // 更新目标回合显示
         int nextTarget = GetNextStageRound();
+
         UIManager.Instance.UpdateTargetRoundDisplay(nextTarget);
         // 抽填空计算卡和对应数量的数字卡
         cardManager.DrawCardsForTurn();
@@ -194,7 +195,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     float GetCurrentMultiplier()
     {
-        float multiplier = 1.0f;
+        float multiplier = 0.0f;
 
         // 从祝福管理器获取倍率加成
         if (blessingManager != null)
@@ -258,9 +259,6 @@ public class GameManager : MonoBehaviour
                 WinGame(true);
                 return; // 不进入商店，直接显示胜利界面
             }
-
-
-
             // 进行阶段检查
             if (!CheckStageRequirement())
             {
@@ -268,15 +266,11 @@ public class GameManager : MonoBehaviour
                // 检查失败，游戏结束
                return; // 不进入商店
             }
-                
             else   // 检查通过，扣除阶段要求的点数
-                { 
-                    currentPoints -= stageRequirement; 
-                }
-            
+            { 
+                currentPoints -= stageRequirement; 
+            }
 
-            
-           
         }
         currentState = GameState.Shop;
         shopManager.OpenShop();
@@ -297,7 +291,7 @@ public class GameManager : MonoBehaviour
         // 找到当前回合对应的阶段索引
         int stageIndex = stageRounds.IndexOf(currentRound);
 
-        if (stageIndex < 0 || stageIndex >= stagePointRequirements.Count)
+        if (stageIndex < 0 || stageIndex > stagePointRequirements.Count)
         {
             Debug.LogError($"无法找到回合 {currentRound} 对应的阶段要求！");
             return false;
@@ -325,7 +319,7 @@ public class GameManager : MonoBehaviour
         // 找到对应的阶段索引
         int stageIndex = stageRounds.IndexOf(round);
 
-        if (stageIndex >= 0 && stageIndex < stagePointRequirements.Count)
+        if (stageIndex >= 0 && stageIndex <= stagePointRequirements.Count)
         {
             return stagePointRequirements[stageIndex];
         }

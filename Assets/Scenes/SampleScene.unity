@@ -2297,6 +2297,7 @@ GameObject:
   - component: {fileID: 896898555}
   - component: {fileID: 896898554}
   - component: {fileID: 896898553}
+  - component: {fileID: 896898556}
   m_Layer: 5
   m_Name: MyBless
   m_TagString: Untagged
@@ -2363,6 +2364,23 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 23.391968}
   m_SizeDelta: {x: 0, y: -266.62}
   m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &896898556
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 896898551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3fcb5f687d17c9d4688a5da675520b89, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  contentRoot: {fileID: 869926021}
+  blessingUIPrefab: {fileID: 7116137863256887098, guid: 50c6e8a9b0dac1542baaa37189e68448, type: 3}
+  scrollRect: {fileID: 1348500147}
+  cardScale: 1
+  blessingLibrary: {fileID: 11400000, guid: 1ec143d897bd7bd46bc61e19ec7dd011, type: 2}
 --- !u!1 &911707643
 GameObject:
   m_ObjectHideFlags: 0
@@ -5001,15 +5019,19 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   MaxnumberCardCount: 6
   MaxformulaCardCount: 2
+  MaxBlessingCardCount: 4
   numberCardCount: 2
   formulaCardCount: 1
+  blessingCardCount: 2
   refreshCount: 0
   totalRemovedNumberCards: 0
   baseNumberCardRemoveCost: 5
   baseNumberSlotUnlockCost: 10
   baseFormulaSlotUnlockCost: 20
+  baseBlessingSlotUnlockCost: 2000
   numberSlotUnlockTimes: 0
   formulaSlotUnlockTimes: 0
+  blessingSlotUnlockTimes: 0
   formulaCardLibrary: {fileID: 11400000, guid: 09a6b658924651940965cd8a57c4eab9, type: 2}
   numberCardLibrary: {fileID: 11400000, guid: a2fa7726265124f4f82bcb330c2edc3c, type: 2}
   blessingLibrary: {fileID: 0}

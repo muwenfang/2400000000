@@ -17,7 +17,7 @@ public class BlessingInShop : MonoBehaviour
     public Text priceText;                  // 价格文本
     public Button purchaseButton;           // 购买按钮
     public Text purchaseButtonText;         // 购买按钮文本
-    public Image purchaseButtonImage;       // 购买按钮背景
+    //public Image purchaseButtonImage;       // 购买按钮背景
     public CanvasGroup canvasGroup;         // 用于控制整体透明度
 
     public GameObject lockedPanel;          // 锁定面板（显示未解锁状态）
@@ -235,10 +235,10 @@ public class BlessingInShop : MonoBehaviour
 
         purchaseButton.interactable = canPurchase;
 
-        if (purchaseButtonImage != null)
-        {
-            purchaseButtonImage.color = normalButtonColor;         
-        }
+        //if (purchaseButtonImage != null)
+        //{
+        //    purchaseButtonImage.color = normalButtonColor;         
+        //}
         if (isSoldOut)
         {
             purchaseButtonText.text = "已购买";

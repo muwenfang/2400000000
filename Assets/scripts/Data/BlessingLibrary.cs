@@ -22,7 +22,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 2,
             name: "逢七过",
-            description: "你的倍率+7，但你的计算结果若为7的倍数或含有数字7，你本回合的最终计算结果视为0",
+            description: "倍率+7，但计算结果若为7的倍数或含有数字7，本回合的最终计算结果视为0",
             type: BlessingData.BlessingType.Jackpot7,
             basePrice: 0,
             isStackable: false
@@ -74,7 +74,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 7,
             name: "转运",
-            description: "你的骰子投到1时，重投一次并将这次的结果作为该骰子的最终判定结果",
+            description: "骰子投到1时，重投一次并将这次的结果作为该骰子的最终判定结果",
             type: BlessingData.BlessingType.LuckTurns,
             basePrice: 1000,
             isStackable: false
@@ -85,7 +85,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 8,
             name: "许愿币",
-            description: "选择一个你已拥有且可叠加的祝福，下次商店刷新必定刷新出该祝福",
+            description: "选择一个已拥有且可叠加的祝福，下次商店刷新必定刷新出该祝福",
             type: BlessingData.BlessingType.WishingCoin,
             basePrice: 1000,
             isStackable: true
@@ -105,7 +105,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 10,
             name: "众神归位",
-            description: "你每拥有一个祝福，倍率+1",
+            description: "每拥有一个祝福，倍率+1",
             type: BlessingData.BlessingType.AllGodsInPlace,
             basePrice: 4000,
             isStackable: true
@@ -125,7 +125,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 12,
             name: "理财大师",
-            description: "每回合结束时额外获得已拥有点数1%的点数（向下取整）",
+            description: "每回合结束时额外获得已拥有点数1%的点数",
             type: BlessingData.BlessingType.FinancialMaster,
             basePrice: 3000,
             isStackable: true,
@@ -267,7 +267,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 25,
             name: "眷顾",
-            description: "你每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%",
+            description: "每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%",
             type: BlessingData.BlessingType.Bless,
             basePrice: 15000,
             isStackable: false
@@ -345,7 +345,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 32,
             name: "空想主义",
-            description: "你立即获得一张你未拥有的填空卡；如果你在获得此祝福时拥有了所有类型的填空卡，你立即获得2400000000点并失去所有的“空想主义”",
+            description: "你立即获得一张你未拥有的填空卡；如果在获得此祝福时拥有了所有类型的填空卡，立即获得2400000000点并失去所有的“空想主义”",
             type: BlessingData.BlessingType.Utopianism,
             basePrice: 240000,
             isStackable: true
@@ -356,7 +356,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 33,
             name: "实用主义",
-            description: "立即删除除价格最高的填空卡以外的所有填空卡；此后你无法购买比你拥有的填空卡价格更低的填空卡，如果你成功购买了一张填空卡，立即删除你之前拥有的那张填空卡",
+            description: "立即删除除价格最高的填空卡以外的所有填空卡；此后无法购买比已拥有的填空卡价格更低的填空卡，如果你成功购买了一张填空卡，立即删除你之前拥有的那张填空卡",
             type: BlessingData.BlessingType.Pragmatism,
             basePrice: 0,
             isStackable: false
@@ -380,8 +380,8 @@ public class BlessingLibrary : ScriptableObject
         blessing.blessingType = type;
         blessing.basePrice = basePrice;
         blessing.isStackable = isStackable;
-        blessing.effectValue = effectValue;     //点数加成
-        blessing.bonusPoints = bonusPoints;     //倍率加成
+        blessing.effectValue = effectValue;     //效果数值（如倍率、百分比等）
+        blessing.bonusPoints = bonusPoints;     //奖励点数
         return blessing;
     }
 
