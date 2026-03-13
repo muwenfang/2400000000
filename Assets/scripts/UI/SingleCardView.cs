@@ -61,7 +61,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
     {
         if (IsInShop)
         {
-            int price  = numberCardInstance.GetOutPutValue();
+            long price  = numberCardInstance.GetOutPutValue();
             priceText.text = price.ToString();
         }
     }
