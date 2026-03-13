@@ -127,7 +127,7 @@ public class ShopNumberCardSlot : MonoBehaviour
     /// <summary>
     /// 更新价格显示
     /// </summary>
-    void UpdatePriceDisplay(int price, bool sold)
+    void UpdatePriceDisplay(long price, bool sold)
     {
         if (priceText == null)
         {

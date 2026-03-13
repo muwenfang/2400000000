@@ -328,7 +328,7 @@ public class BlessingInShop : MonoBehaviour
     /// <summary>
     /// 获取商品价格
     /// </summary>
-    public int GetPrice()
+    public long GetPrice()
     {
         return shopItem != null ? shopItem.price : 0;
     }

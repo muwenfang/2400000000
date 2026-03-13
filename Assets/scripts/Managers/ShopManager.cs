@@ -14,10 +14,10 @@ using System.Numerics;
 public class ShopItem<T>
 {
     public T cardData;
-    public int price;
+    public long price;
     public bool sold;
 
-    public ShopItem(T data, int price)
+    public ShopItem(T data, long price)
     {
         this.cardData = data;
         this.price = price;
@@ -113,7 +113,7 @@ public class ShopManager : MonoBehaviour
 
             // 创建实例并计算价格
             NumberCardInstance instance = new NumberCardInstance(randomCard);
-            int price = instance.GetNumberCardPrice(randomCard);
+            long price = instance.GetNumberCardPrice(randomCard);
 
             shopNumberCards.Add(new ShopItem<NumberCardInstance>(instance, price));
             Debug.Log($"槽位{i}：{randomCard.cardName}，价格 {price}");
@@ -610,7 +610,7 @@ public class ShopManager : MonoBehaviour
 
         // 创建实例并计算价格
         NumberCardInstance instance = new NumberCardInstance(randomCard);
-        int price = instance.GetNumberCardPrice(randomCard);
+        long price = instance.GetNumberCardPrice(randomCard);
 
         // 将新卡牌添加到列表
         if (slotIndex < shopNumberCards.Count)
