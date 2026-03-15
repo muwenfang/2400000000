@@ -12,4 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 61b3f18e8ab095b4c9c16fc3d04f40ce, type: 3}
   m_Name: BlessingLibrary
   m_EditorClassIdentifier: 
-  allBlessings: []
+  allBlessings:
+  - {fileID: 11400000, guid: e954823ca781ff740981d7d90d217769, type: 2}
+  - {fileID: 11400000, guid: 8e0564e6aade0214cbc1a8cf7a1a8fec, type: 2}
+  - {fileID: 11400000, guid: 0e3ed333487224443bbe84a61244c0fc, type: 2}
+  - {fileID: 11400000, guid: 0118ccc88b0698f4aa048f91870fa3d8, type: 2}

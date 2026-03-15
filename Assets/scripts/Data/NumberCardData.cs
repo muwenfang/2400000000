@@ -121,13 +121,13 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             long expectation = CalculateExpectation(a, b, logic);
 
             // 第二步：倍率修正（文档中所有倍率均为1.0）
-            float rate = 1.0f;
+            float rate = 2.0f;
             if (a.isIncremental || (b != null && b.isIncremental))
                 rate *= 1.0f;
             if (a.isDice || (b != null && b.isDice))
                 rate *= 1.0f;
             if (logic == NumberCardData.LogicalType.Power)
-                rate *= 1.0f;
+                rate *= 2.0f;
 
             long priceAfterRate = (long)(expectation * rate);
 

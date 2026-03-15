@@ -52,10 +52,12 @@ public class UIManager : MonoBehaviour
     [Header("商店卡牌显示区域")]
     public Transform shopNumberArea;
     public Transform shopFormulaArea;
+    public Transform shopBlessArea;
 
     [Header("商店卡牌Prefab")]
     public GameObject shopNumberCardPrefab; // 数字卡商店槽位Prefab（带ShopNumberCardSlot组件）
     public GameObject shopFormulaCardPrefab; // 公式卡商店槽位Prefab（带ShopFormulaCardSlot组件）
+    public GameObject shopBlessingCardPrefab; // 祝福卡商店槽位Prefab（带ShopBlessCardSlot组件）
 
     void Awake()
     {
@@ -248,7 +250,7 @@ public class UIManager : MonoBehaviour
 
         if (multiplierText != null)
         {
-            multiplierText.text = "×1.0";
+            multiplierText.text = "×1";
             multiplierText.color = Color.black;
         }
     }
@@ -294,7 +296,7 @@ public class UIManager : MonoBehaviour
         // 找到当前回合对应的阶段要求
         for (int i = 0; i < stageRounds.Count; i++)
         {
-            if (currentRound < stageRounds[i])
+            if (currentRound <= stageRounds[i])
             {
                 return requirements[i];
             }
@@ -501,6 +503,7 @@ public class UIManager : MonoBehaviour
         // 1. 清理旧槽位
         ClearArea(shopNumberArea);
         ClearArea(shopFormulaArea);
+        ClearArea(shopBlessArea);
 
         // 2. 生成数字卡槽位
         var numItems = ShopManager.Instance.shopNumberCards;
@@ -565,7 +568,43 @@ public class UIManager : MonoBehaviour
                 Debug.LogError("shopFormulaCardPrefab 缺少 ShopFormulaCardSlot 组件！");
             }
         }
-        // 4. 强制刷新布局
+        // 4. 生成祝福卡槽位
+        var blessingItems = ShopManager.Instance.shopBlessings;
+
+        for (int i = 0; i < blessingItems.Count; i++)
+        {
+            GameObject slotGo = Instantiate(shopBlessingCardPrefab, shopBlessArea);
+
+            // 关键修复1：强制设置Transform
+            slotGo.transform.localScale = UnityEngine.Vector3.one;
+            slotGo.transform.localPosition = UnityEngine.Vector3.zero;
+            slotGo.transform.localRotation = UnityEngine.Quaternion.identity;
+
+            // 关键修复2：强制激活物体
+            slotGo.SetActive(true);
+
+            // 关键修复3：禁用LayoutGroup的自动调整
+            HorizontalLayoutGroup hlg = slotGo.GetComponent<HorizontalLayoutGroup>();
+            if (hlg != null) hlg.enabled = false;
+            VerticalLayoutGroup vlg = slotGo.GetComponent<VerticalLayoutGroup>();
+            if (vlg != null) vlg.enabled = false;
+
+            var slotUI = slotGo.GetComponent<BlessingInShop>();
+
+            if (slotUI != null)
+            {
+                // 绑定祝福卡数据
+                slotUI.BindBlessing(blessingItems[i], i);
+
+                Debug.Log($"【祝福卡】槽位{i}已绑定");
+            }
+            else
+            {
+                Debug.LogError("shopBlessingCardPrefab 缺少 BlessingInShop 组件！");
+            }
+        }
+
+        // 5. 强制刷新布局
         if (shopNumberArea != null)
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)shopNumberArea);
@@ -574,9 +613,14 @@ public class UIManager : MonoBehaviour
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)shopFormulaArea);
         }
+        if (shopBlessArea != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)shopBlessArea);
+        }
 
         Debug.Log($"商店UI刷新完成：数字卡{numItems.Count}个，公式卡{formulaItems.Count}个");
     }
+    
     #endregion
 
     #region 工具方法

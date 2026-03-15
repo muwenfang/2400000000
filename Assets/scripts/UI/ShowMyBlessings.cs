@@ -57,24 +57,26 @@ public class ShowMyBlessings : MonoBehaviour
         VerticalLayoutGroup vlg = contentRoot.GetComponent<VerticalLayoutGroup>();
         if (vlg == null)
         {
-            vlg = contentRoot.gameObject.AddComponent<VerticalLayoutGroup>();
-            vlg.childForceExpandHeight = false;
-            vlg.childForceExpandWidth = true;
-            vlg.spacing = 10;
-            vlg.childControlHeight = false;
-            vlg.childControlWidth = true;
+            vlg.childForceExpandHeight = false;    // 不强制扩展高度
+            vlg.childForceExpandWidth = true;      // 强制扩展宽度
+            vlg.spacing = 30;                      // 元素间距
+            vlg.childControlHeight = false;        // 不控制子元素高度
+            vlg.childControlWidth = true;          // 控制子元素宽度
+            vlg.childScaleHeight = false;          // 不缩放高度
+            vlg.childScaleWidth = false;           // 不缩放宽度
+            vlg.reverseArrangement = false;        // 不反向排列
             Debug.Log("[ShowMyBlessings] 自动添加了 VerticalLayoutGroup");
-        }
 
-        // 为 contentRoot 添加 LayoutElement
-        LayoutElement le = contentRoot.GetComponent<LayoutElement>();
-        if (le == null)
-        {
-            le = contentRoot.gameObject.AddComponent<LayoutElement>();
+            // 为 contentRoot 添加 LayoutElement
+            LayoutElement le = contentRoot.GetComponent<LayoutElement>();
+            if (le == null)
+            {
+                le = contentRoot.gameObject.AddComponent<LayoutElement>();
+            }
+            le.preferredWidth = -1;
+            le.preferredHeight = -1;
+            le.flexibleHeight = 1;
         }
-        le.preferredWidth = -1;
-        le.preferredHeight = -1;
-        le.flexibleHeight = 1;
 
         // 如果没有 ScrollRect，创建一个
         if (scrollRect == null && contentRoot != null)
@@ -132,6 +134,13 @@ public class ShowMyBlessings : MonoBehaviour
         if (ownedBlessings == null || ownedBlessings.Count == 0)
         {
             Debug.Log("[ShowMyBlessings] 玩家没有任何祝福");
+            return;
+        }
+
+        // 关键检查：Prefab 是否有效
+        if (blessingUIPrefab == null)
+        {
+            Debug.LogError("[ShowMyBlessings] blessingUIPrefab 未设置！无法显示祝福");
             return;
         }
 
@@ -193,7 +202,19 @@ public class ShowMyBlessings : MonoBehaviour
 
         // 实例化 BlessingUI 预制件
         GameObject go = Instantiate(blessingUIPrefab, contentRoot);
-        go.transform.localScale = Vector3.one * cardScale;
+        // 设置 RectTransform
+        RectTransform rectTransform = go.GetComponent<RectTransform>();
+        if (rectTransform != null)
+        {
+            rectTransform.localPosition = Vector3.zero;
+            rectTransform.localRotation = Quaternion.identity;
+            rectTransform.localScale = Vector3.one * cardScale;
+
+            // 设置锚点为顶部中心，避免布局问题
+            rectTransform.anchorMin = new Vector2(0.5f, 1);
+            rectTransform.anchorMax = new Vector2(0.5f, 1);
+            rectTransform.pivot = new Vector2(0.5f, 1);
+        }
         go.SetActive(true);
 
         // 获取 BlessingUI 脚本并设置数据

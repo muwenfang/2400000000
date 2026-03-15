@@ -99,7 +99,7 @@ RectTransform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 2785046048581477608}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
@@ -389,7 +389,19 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 7757085209597777304}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 0}
+        m_TargetAssemblyTypeName: 
+        m_MethodName: 
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: 
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!1 &7708007768973394739
 GameObject:
   m_ObjectHideFlags: 0
@@ -500,9 +512,9 @@ RectTransform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 122710358911602951}
   - {fileID: 2723038961114707925}
   - {fileID: 5106029528437482227}
+  - {fileID: 122710358911602951}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -560,16 +572,18 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 9f3dda97f9aa0804db147c30f6e18b00, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blessingUI: {fileID: 0}
+  cardContentRoot: {fileID: 122710358911602951}
   priceText: {fileID: 7335566986549779977}
   purchaseButton: {fileID: 5471758268017194238}
   purchaseButtonText: {fileID: 7335566986549779977}
-  canvasGroup: {fileID: 0}
   lockedPanel: {fileID: 1675032969304633735}
   lockedText: {fileID: 6558019726138962946}
-  unlockButton: {fileID: 9113210051009898154}
+  unlockButton: {fileID: 8573406408928585443}
   unlockCostText: {fileID: 1552134346970116617}
+  blessingUI: {fileID: 4896245810518586276, guid: 50c6e8a9b0dac1542baaa37189e68448, type: 3}
+  blessingUIPrefab: {fileID: 7116137863256887098, guid: 50c6e8a9b0dac1542baaa37189e68448, type: 3}
   normalButtonColor: {r: 1, g: 1, b: 1, a: 1}
+  disabledButtonColor: {r: 0.5, g: 0.5, b: 0.5, a: 1}
   soldOutAlpha: 0.5
 --- !u!1 &9113210051009898154
 GameObject:

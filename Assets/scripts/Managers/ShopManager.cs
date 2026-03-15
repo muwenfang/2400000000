@@ -87,6 +87,9 @@ public class ShopManager : MonoBehaviour
         numberSlotUnlockTimes = 0; // 数字卡已解锁次数
         formulaSlotUnlockTimes = 0; // 公式卡已解锁次数
         blessingSlotUnlockTimes = 0;
+        numberCardCount = 2;
+        formulaCardCount = 1;
+        blessingCardCount = 2;
         OpenShop();
     }
     /// <summary>
@@ -165,7 +168,7 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
-        // 【新增】获取价格乘数
+        // 获取价格乘数
         float priceMultiplier = BlessingManager.Instance != null
             ? BlessingManager.Instance.GetCurrentPriceMultiplier()
             : 1.0f;
@@ -416,7 +419,7 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     public long CalculateNumberSlotUnlockCost()
     {
-        long powerOfTwo = 25 * numberSlotUnlockTimes;
+        long powerOfTwo = (long)Mathf.Pow(2, numberSlotUnlockTimes);
         return baseNumberSlotUnlockCost * powerOfTwo;
     }
 
@@ -488,7 +491,7 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     public long CalculateBlessingSlotUnlockCost()
     {
-        long powerOfTwo = (long)Mathf.Pow(2, blessingSlotUnlockTimes);
+        long powerOfTwo = (long)Mathf.Pow(25, blessingSlotUnlockTimes);
         return baseBlessingSlotUnlockCost * powerOfTwo;
     }
     /// <summary>
