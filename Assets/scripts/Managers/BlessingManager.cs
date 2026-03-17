@@ -25,6 +25,7 @@ public class BlessingManager : MonoBehaviour
     [Header("祝福效果累积")]
     private float totalMultiplierBonus = 0f; // 倍率加成
     private int totalDialecticalCount = 0;   // 购买次数
+    private bool hasAllGodsInPlace = false;  //是否拥有祝福众神归位
 
     private void Awake()
     {
@@ -103,12 +104,34 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 获取已有祝福数量
+    /// </summary>
+    private int GetTotalBlessingCount()
+    {
+        int totalCount = 0;
+        foreach (var kvp in ownedBlessings)
+        {
+            if(kvp.Value > 0)
+            {
+                totalCount += kvp.Value;
+            }
+        }
+        return totalCount;
+    }
+    
+    /// <summary>
     /// 应用祝福效果
     /// </summary>
     private void ApplyBlessingEffect(BlessingData blessingData)
     {
         switch (blessingData.blessingType)
         {
+            case BlessingData.BlessingType.AllGodsInPlace:
+                // 众神归位 - 效果每回合可能要重新检测祝福数量
+                hasAllGodsInPlace = true;
+                Debug.Log("众神归位效果已激活");
+                break;
+            
             case BlessingData.BlessingType.FinancialMaster:
                 // 理财大师 - 效果在回合结束时应用（在 GameManager 中调用）
                 Debug.Log("理财大师效果已激活");
@@ -148,7 +171,19 @@ public class BlessingManager : MonoBehaviour
     {
         return blessingTypeCount.ContainsKey(type) ? blessingTypeCount[type] : 0;
     }
-
+    
+    
+    /// <summary>
+    /// 计算“众神归位”的倍率
+    /// </summary>
+    private float CalculateAllGodsInPlaceBonus()
+    {
+        if (!hasAllGodsInPlace) return 0f;
+        int totalBlessingCount = GetTotalBlessingCount();
+        float Godsbonus = totalBlessingCount;
+        return Godsbonus; 
+    }
+    
     /// <summary>
     /// 计算"理财大师"效果的额外点数
     /// </summary>
@@ -171,7 +206,12 @@ public class BlessingManager : MonoBehaviour
     /// </summary>
     public float GetTotalMultiplierBonus()
     {
-        // 辩证主义：每次购买倍率+1
+        float totalMultiplierBonus = 0f;
+        
+        ///众神归位的额外倍率
+        float AllGodsInPlaceBonus = CalculateAllGodsInPlaceBonus();
+        totalMultiplierBonus += AllGodsInPlaceBonus; 
+        
         return totalMultiplierBonus;
     }
 
