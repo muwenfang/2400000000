@@ -137,17 +137,44 @@ public class BlessingInShop : MonoBehaviour
             return;
         }
 
-        // 已有现成的blessingUI组件，直接使用
+        // 检查 blessingUIPrefab
+        if (blessingUIPrefab != null)
+        {
+            try
+            {
+                GameObject uiGo = Instantiate(blessingUIPrefab, cardContentRoot);
+                uiGo.name = $"BlessingUI_{blessingData.blessingId}";
+                uiGo.transform.localPosition = Vector3.zero;
+                uiGo.transform.localRotation = Quaternion.identity;
+                uiGo.transform.localScale = Vector3.one;
+                uiGo.SetActive(true);
+
+                BlessingUI newBlessingUI = uiGo.GetComponent<BlessingUI>();
+                if (newBlessingUI != null)
+                {
+                    blessingUI = newBlessingUI;
+                    blessingUI.SetBlessingData(blessingData, stackCount);
+                    Debug.Log($"【BlessingInShop】 槽位{slotIndex}：通过Prefab动态创建BlessingUI: {blessingData.blessingName}");
+                }
+                else
+                {
+                    Debug.LogError($"【BlessingInShop】 槽位{slotIndex}：Prefab缺少BlessingUI脚本！");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogError($"【BlessingInShop】 槽位{slotIndex}：创建BlessingUI失败：{e.Message}");
+            }
+        }
+        // 如果没有Prefab，使用现有的组件
         else if (blessingUI != null)
         {
-            GameObject uiGo = Instantiate(blessingUIPrefab, cardContentRoot);
-            blessingUI = uiGo.GetComponent<BlessingUI>();
             blessingUI.SetBlessingData(blessingData, stackCount);
             Debug.Log($"【BlessingInShop】 槽位{slotIndex}：使用已配置的BlessingUI组件: {blessingData.blessingName}");
         }
         else
         {
-            Debug.LogWarning($"【BlessingInShop】 槽位{slotIndex}：既没有设置blessingUIPrefab，也没有配置blessingUI组件！");
+            Debug.LogWarning($"【BlessingInShop】 槽位{slotIndex}：既没有设置blessingUIPrefab，也没有配置blessingUI组件！无法显示祝福");
         }
     }
 
@@ -164,6 +191,7 @@ public class BlessingInShop : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+        blessingUI = null;
     }
 
     /// <summary>
@@ -307,6 +335,8 @@ public class BlessingInShop : MonoBehaviour
         {
             // 购买成功，更新UI
             isSoldOut = true;
+            currentItem.sold = true;
+
             UpdatePriceDisplay(currentItem.price, true);
             SetupBuyButton(true);
 
@@ -359,6 +389,12 @@ public class BlessingInShop : MonoBehaviour
 
         UpdatePriceDisplay(currentItem.price, isSoldOut);
         SetupBuyButton(isSoldOut);
+
+        // 刷新BlessingUI显示
+        if (blessingUI != null && currentItem.cardData != null)
+        {
+            blessingUI.SetBlessingData(currentItem.cardData, currentPurchaseCount);
+        }
     }
 
     // ==================== Getter 方法 ====================

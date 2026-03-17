@@ -72,17 +72,17 @@ public class ShowMyCard : MonoBehaviour
             }
         }
 
-        VerticalLayoutGroup vlg = contentRoot.GetComponent<VerticalLayoutGroup>();
-        if (vlg == null)
-        {
-            vlg = contentRoot.gameObject.AddComponent<VerticalLayoutGroup>();
-            vlg.childForceExpandHeight = false;  // 不强制展开高度
-            vlg.childForceExpandWidth = true;   //强制展开宽度
-            vlg.spacing = 10;
-            vlg.childControlHeight = false;     // 关键：不控制高度，让卡牌自己决定
-            vlg.childControlWidth = true;       // 控制宽度
-            Debug.Log("[ShowMyCard] 自动添加了 VerticalLayoutGroup");
-        }
+        //VerticalLayoutGroup vlg = contentRoot.GetComponent<VerticalLayoutGroup>();
+        //if (vlg == null)
+        //{
+        //    vlg = contentRoot.gameObject.AddComponent<VerticalLayoutGroup>();
+        //    vlg.childForceExpandHeight = false;  // 不强制展开高度
+        //    vlg.childForceExpandWidth = true;   //强制展开宽度
+        //    vlg.spacing = 10;
+        //    vlg.childControlHeight = false;     // 关键：不控制高度，让卡牌自己决定
+        //    vlg.childControlWidth = true;       // 控制宽度
+        //    Debug.Log("[ShowMyCard] 自动添加了 VerticalLayoutGroup");
+        //}
 
         // 确保 contentRoot 有 LayoutElement
         LayoutElement le = contentRoot.GetComponent<LayoutElement>();

@@ -29,6 +29,7 @@ public class ShowMyBlessings : MonoBehaviour
 
     // 缓存已显示的祝福ID，避免重复显示
     private Dictionary<int, GameObject> displayedBlessings = new Dictionary<int, GameObject>();
+    private Dictionary<int, BlessingUI> blessingUICache = new Dictionary<int, BlessingUI>();
     // 祝福的购买次数映射
     private Dictionary<int, int> blessingStackCounts = new Dictionary<int, int>();
 
@@ -43,6 +44,12 @@ public class ShowMyBlessings : MonoBehaviour
     /// </summary>
     void InitializeScrollRect()
     {
+        if (contentRoot == null)
+        {
+            Debug.LogError("[ShowMyBlessings] contentRoot 未赋值，无法初始化滚动。请在 Inspector 中关联正确的 Transform");
+            return;
+        }
+
         if (scrollRect == null)
         {
             scrollRect = GetComponent<ScrollRect>();
@@ -53,30 +60,32 @@ public class ShowMyBlessings : MonoBehaviour
             scrollRect = GetComponentInParent<ScrollRect>();
         }
 
-        // 为 contentRoot 添加布局组件
-        VerticalLayoutGroup vlg = contentRoot.GetComponent<VerticalLayoutGroup>();
-        if (vlg == null)
-        {
-            vlg.childForceExpandHeight = false;    // 不强制扩展高度
-            vlg.childForceExpandWidth = true;      // 强制扩展宽度
-            vlg.spacing = 30;                      // 元素间距
-            vlg.childControlHeight = false;        // 不控制子元素高度
-            vlg.childControlWidth = true;          // 控制子元素宽度
-            vlg.childScaleHeight = false;          // 不缩放高度
-            vlg.childScaleWidth = false;           // 不缩放宽度
-            vlg.reverseArrangement = false;        // 不反向排列
-            Debug.Log("[ShowMyBlessings] 自动添加了 VerticalLayoutGroup");
+        //// 为 contentRoot 添加布局组件
+        //VerticalLayoutGroup vlg = contentRoot.GetComponent<VerticalLayoutGroup>();
+        //if (vlg == null)
+        //{
+        //    vlg = contentRoot.gameObject.AddComponent<VerticalLayoutGroup>();
 
-            // 为 contentRoot 添加 LayoutElement
-            LayoutElement le = contentRoot.GetComponent<LayoutElement>();
-            if (le == null)
-            {
-                le = contentRoot.gameObject.AddComponent<LayoutElement>();
-            }
-            le.preferredWidth = -1;
-            le.preferredHeight = -1;
-            le.flexibleHeight = 1;
-        }
+        //    vlg.childForceExpandHeight = false;    // 不强制扩展高度
+        //    vlg.childForceExpandWidth = true;      // 强制扩展宽度
+        //    vlg.spacing = 30;                      // 元素间距
+        //    vlg.childControlHeight = false;        // 不控制子元素高度
+        //    vlg.childControlWidth = true;          // 控制子元素宽度
+        //    vlg.childScaleHeight = false;          // 不缩放高度
+        //    vlg.childScaleWidth = false;           // 不缩放宽度
+        //    vlg.reverseArrangement = false;        // 不反向排列
+        //    Debug.Log("[ShowMyBlessings] 自动添加了 VerticalLayoutGroup");
+
+        //    // 为 contentRoot 添加 LayoutElement
+        //    LayoutElement le = contentRoot.GetComponent<LayoutElement>();
+        //    if (le == null)
+        //    {
+        //        le = contentRoot.gameObject.AddComponent<LayoutElement>();
+        //    }
+        //    le.preferredWidth = -1;
+        //    le.preferredHeight = -1;
+        //    le.flexibleHeight = 1;
+        //}
 
         // 如果没有 ScrollRect，创建一个
         if (scrollRect == null && contentRoot != null)
@@ -114,12 +123,19 @@ public class ShowMyBlessings : MonoBehaviour
     /// </summary>
     public void RefreshAllBlessings()
     {
+        if (contentRoot == null)
+        {
+            Debug.LogError("[ShowMyBlessings] contentRoot 为空，无法刷新祝福显示");
+            return;
+        }
+
         // 1. 清空旧显示
         foreach (Transform child in contentRoot)
         {
             Destroy(child.gameObject);
         }
         displayedBlessings.Clear();
+        blessingStackCounts.Clear();
         blessingStackCounts.Clear();
 
         // 2. 获取玩家已拥有的所有祝福
@@ -137,7 +153,7 @@ public class ShowMyBlessings : MonoBehaviour
             return;
         }
 
-        // 关键检查：Prefab 是否有效
+        // Prefab 是否有效
         if (blessingUIPrefab == null)
         {
             Debug.LogError("[ShowMyBlessings] blessingUIPrefab 未设置！无法显示祝福");
@@ -200,38 +216,54 @@ public class ShowMyBlessings : MonoBehaviour
             return;
         }
 
-        // 实例化 BlessingUI 预制件
-        GameObject go = Instantiate(blessingUIPrefab, contentRoot);
-        // 设置 RectTransform
-        RectTransform rectTransform = go.GetComponent<RectTransform>();
-        if (rectTransform != null)
+        if (contentRoot == null)
         {
-            rectTransform.localPosition = Vector3.zero;
-            rectTransform.localRotation = Quaternion.identity;
-            rectTransform.localScale = Vector3.one * cardScale;
-
-            // 设置锚点为顶部中心，避免布局问题
-            rectTransform.anchorMin = new Vector2(0.5f, 1);
-            rectTransform.anchorMax = new Vector2(0.5f, 1);
-            rectTransform.pivot = new Vector2(0.5f, 1);
+            Debug.LogError("[ShowMyBlessings] contentRoot 为空");
+            return;
         }
-        go.SetActive(true);
 
-        // 获取 BlessingUI 脚本并设置数据
-        BlessingUI blessingUI = go.GetComponent<BlessingUI>();
-        if (blessingUI != null)
+        try
         {
-            // 传入祝福数据和叠加数量
-            blessingUI.SetBlessingData(blessingData, stackCount);
+            // 实例化 BlessingUI 预制件
+            GameObject go = Instantiate(blessingUIPrefab, contentRoot);
+            go.name = $"BlessingCard_{blessingData.blessingId}_{blessingData.blessingName}";
 
-            // 记录映射关系
-            displayedBlessings[blessingData.blessingId] = go;
+            //正确设置 RectTransform
+            RectTransform rectTransform = go.GetComponent<RectTransform>();
+            if (rectTransform != null)
+            {
+                rectTransform.localPosition = Vector3.zero;
+                rectTransform.localRotation = Quaternion.identity;
+                rectTransform.localScale = Vector3.one * cardScale;
 
-            Debug.Log($"[ShowMyBlessings] 创建祝福卡：{blessingData.blessingName}，叠加数：{stackCount}");
+                //// 设置锚点为顶部中心，避免布局问题
+                //rectTransform.anchorMin = new Vector2(0.5f, 1);
+                //rectTransform.anchorMax = new Vector2(0.5f, 1);
+                //rectTransform.pivot = new Vector2(0.5f, 1);
+            }
+
+            go.SetActive(true);
+
+            // 获取 BlessingUI 脚本并设置数据
+            BlessingUI blessingUI = go.GetComponent<BlessingUI>();
+            if (blessingUI != null)
+            {
+                blessingUI.SetBlessingData(blessingData, stackCount);
+
+                // 记录映射关系
+                displayedBlessings[blessingData.blessingId] = go;
+                blessingUICache[blessingData.blessingId] = blessingUI;
+
+                Debug.Log($"[ShowMyBlessings] 创建祝福卡：{blessingData.blessingName}，叠加数：{stackCount}");
+            }
+            else
+            {
+                Debug.LogError($"[ShowMyBlessings] Prefab 缺少 BlessingUI 脚本！");
+            }
         }
-        else
+        catch (System.Exception e)
         {
-            Debug.LogError("[ShowMyBlessings] BlessingUI 预制件缺少 BlessingUI 脚本！");
+            Debug.LogError($"[ShowMyBlessings] 创建祝福卡失败：{e.Message}\n{e.StackTrace}");
         }
     }
 

@@ -2392,7 +2392,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   contentRoot: {fileID: 869926021}
-  blessingUIPrefab: {fileID: 7116137863256887098, guid: 50c6e8a9b0dac1542baaa37189e68448, type: 3}
+  blessingUIPrefab: {fileID: 1286960250995469681, guid: 50c6e8a9b0dac1542baaa37189e68448, type: 3}
   scrollRect: {fileID: 1348500147}
   cardScale: 1
   blessingLibrary: {fileID: 11400000, guid: 1ec143d897bd7bd46bc61e19ec7dd011, type: 2}
@@ -2694,7 +2694,7 @@ MonoBehaviour:
   shopBlessArea: {fileID: 2050035151}
   shopNumberCardPrefab: {fileID: 8140211545429105159, guid: d4fa25c676dec874d95919f6a05fd09e, type: 3}
   shopFormulaCardPrefab: {fileID: 5452021841074003548, guid: 971cf4072ee0b8148a48d6da4c07fbe7, type: 3}
-  shopBlessingCardPrefab: {fileID: 8788445850787174926, guid: 56711a3858479e1479614d4fd5de8ae9, type: 3}
+  shopBlessingCardPrefab: {fileID: 2677097329368890318, guid: 56711a3858479e1479614d4fd5de8ae9, type: 3}
 --- !u!4 &1050276293
 Transform:
   m_ObjectHideFlags: 0

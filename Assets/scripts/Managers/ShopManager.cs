@@ -325,7 +325,6 @@ public class ShopManager : MonoBehaviour
         {
             item.sold = true;
             // 刷新商店显示
-            OpenShop();
             UIManager.Instance.RefreshShopUI();
         }
 
