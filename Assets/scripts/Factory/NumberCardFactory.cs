@@ -66,27 +66,54 @@ public class NumberCardFactory
     public static class DiceHelper
     {
         private static readonly int[] DiceSides = { 4, 6, 8, 12, 20 };
-        //获取最大面数
+
+        // 获取最大面数
         public static int GetMaxSide()
         {
             int index = Random.Range(0, DiceSides.Length);//随机选择一个骰子面数
             return DiceSides[index];
         }
 
+        // 掷骰子（转运祝福：投出1时重投一次）
         public static int RollDice(int sides)
         {      
-            return Random.Range(1, sides + 1);
-            //掷骰子，返回1到max之间的随机数
-            //这个是暂定的，之后会改
+            // 1. 防御性检查：确保骰子面数合法（避免传入0/负数/非标准面数）
+            if (sides < 4)
+            {
+                Debug.LogWarning($"骰子面数{sides}不合法，默认使用4面骰子");
+                sides = 4;
+            }
+
+            // 2. 第一次掷骰子
+            int firstRoll = Random.Range(1, sides + 1);
+
+            // 3. 判断是否激活【LuckTurns转运】祝福
+            // 先检查BlessingManager是否存在，避免空指针
+            if (BlessingManager.Instance == null || !BlessingManager.Instance.IsLuckTurnsActive())
+            {
+                Debug.Log($"骰子掷出：{firstRoll}（未激活转运祝福）");
+                return firstRoll;
+            }
+
+            // 4. 激活转运祝福：仅首次掷出1时重投，重投结果为最终结果
+            if (firstRoll != 1)
+            {
+                Debug.Log($"骰子掷出：{firstRoll}（激活转运祝福，未投出1，无需重投）");
+                return firstRoll;
+            }
+            else
+            {
+                int reRoll = Random.Range(1, sides + 1);
+                Debug.Log($"骰子首次掷出：1（激活转运祝福，触发重投）→ 重投结果：{reRoll}（最终结果）");
+                return reRoll;
+            }
         }
 
-        //ui
+        // UI显示
         public static string GetDiceName(int sides)
         {
             return "D" + sides.ToString();
-
         }
-
     }
 
 }

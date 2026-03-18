@@ -26,6 +26,7 @@ public class BlessingManager : MonoBehaviour
     private float totalMultiplierBonus = 0f; // 倍率加成
     private int totalDialecticalCount = 0;   // 购买次数
     private float AllGodsCount = 0;          // 众神归位数量 
+    private int LuckTurnsCount = 0;           //是否激活，1是激活
 
     private void Awake()
     {
@@ -51,6 +52,7 @@ public class BlessingManager : MonoBehaviour
         totalMultiplierBonus = 0f;
         totalDialecticalCount = 0;
         AllGodsCount = 0;
+        LuckTurnsCount = 0;
         Debug.Log("祝福系统已初始化");
     }
 
@@ -154,7 +156,21 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log($"辩证主义效果已激活：倍率+{blessingData.effectValue}，" +
                     $"额外获得{blessingData.bonusPoints}点，价格上升1%");
                 break;
+
+            case BlessingData.BlessingType.LuckTurns:
+                // 无法叠加：只要购买≥1次，直接置1（激活），多次购买也不改变
+                LuckTurnsCount = 1;
+                Debug.Log("转运效果已激活（无法叠加）：骰子投出1时将重投一次！");
+                break;
         }
+    }
+
+    /// <summary>
+    /// 提供转运祝福的激活状态（是否拥有转运祝福）
+    /// </summary>
+    public bool IsLuckTurnsActive()
+    {
+        return LuckTurnsCount > 0;
     }
 
     /// <summary>
@@ -260,6 +276,7 @@ public class BlessingManager : MonoBehaviour
         blessingTypeCount.Clear();
         totalMultiplierBonus = 0f;
         totalDialecticalCount = 0;
+        LuckTurnsCount = 0;
         Debug.Log("所有祝福已清空");
     }
 
@@ -297,5 +314,6 @@ public class BlessingManager : MonoBehaviour
         }
         Debug.Log($"总倍率加成：{totalMultiplierBonus}");
         Debug.Log($"价格乘数：{GetCurrentPriceMultiplier()}");
+        Debug.Log($"转运祝福激活状态：{(IsLuckTurnsActive() ? "已激活" : "未激活")}");
     }
 }
