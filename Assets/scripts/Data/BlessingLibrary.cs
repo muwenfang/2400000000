@@ -53,7 +53,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 5,
             name: "加注",
-            description: "倍率+1，祝福“倍投”的价格+300",
+            description: "倍率+1，祝福“加注”的价格+300",
             type: BlessingData.BlessingType.Raise,
             basePrice: 300,
             isStackable: true
