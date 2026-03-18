@@ -25,7 +25,7 @@ public class BlessingManager : MonoBehaviour
     [Header("祝福效果累积")]
     private float totalMultiplierBonus = 0f; // 倍率加成
     private int totalDialecticalCount = 0;   // 购买次数
-    private bool hasAllGodsInPlace = false;  //是否拥有祝福众神归位
+    private float AllGodsCount = 0;          // 众神归位数量 
 
     private void Awake()
     {
@@ -50,6 +50,8 @@ public class BlessingManager : MonoBehaviour
         blessingTypeCount.Clear();
         totalMultiplierBonus = 0f;
         totalDialecticalCount = 0;
+        AllGodsCount = 0;
+        Debug.Log("祝福系统已初始化");
     }
 
     /// <summary>
@@ -126,7 +128,7 @@ public class BlessingManager : MonoBehaviour
         {
             case BlessingData.BlessingType.AllGodsInPlace:
                 // 众神归位 - 效果每回合可能要重新检测祝福数量
-                hasAllGodsInPlace = true;
+                AllGodsCount++;
                 Debug.Log("众神归位效果已激活");
                 break;
             
@@ -177,9 +179,8 @@ public class BlessingManager : MonoBehaviour
     /// </summary>
     private float CalculateAllGodsInPlaceBonus()
     {
-        if (!hasAllGodsInPlace) return 0f;
+        if (AllGodsCount <= 0) return 0f;
         int totalBlessingCount = GetTotalBlessingCount();
-        int AllGodsCount = GetBlessingTypeCount(BlessingData.BlessingType.AllGodsInPlace);
         float Godsbonus = totalBlessingCount * AllGodsCount;
         return Godsbonus; 
     }
