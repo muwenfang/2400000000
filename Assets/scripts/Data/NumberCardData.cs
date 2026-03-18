@@ -134,7 +134,6 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             // 第三步：舍入
             long finalPrice = RoundPrice(priceAfterRate);
 
-            Debug.Log($"价格计算过程：期望={expectation:F2} → 倝率修正后={priceAfterRate:F2} → 最终价格={finalPrice}");
             return finalPrice;
         }
         catch (System.Exception e)

@@ -27,7 +27,6 @@ public class FormulaCardUI : MonoBehaviour
             Debug.LogError("【错误】FormulaCardUI: 传入的 formula 数据为 null");
             return;
         }
-        Debug.Log($"绑定公式卡：{formula.Pattern}");
 
         // 确保 formulaArea 有 HorizontalLayoutGroup
         HorizontalLayoutGroup layoutGroup = formulaArea.GetComponent<HorizontalLayoutGroup>();

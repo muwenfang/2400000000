@@ -1706,7 +1706,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 289835837d01ca649bd30181cd064bdd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  blessingLibrary: {fileID: 0}
+  blessingLibrary: {fileID: 11400000, guid: 1ec143d897bd7bd46bc61e19ec7dd011, type: 2}
 --- !u!4 &679115385
 Transform:
   m_ObjectHideFlags: 0
@@ -2276,15 +2276,15 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Padding:
-    m_Left: 30
-    m_Right: 30
-    m_Top: 20
+    m_Left: 60
+    m_Right: 60
+    m_Top: 60
     m_Bottom: 0
   m_ChildAlignment: 0
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 100, y: 100}
-  m_Spacing: {x: 20, y: 30}
+  m_CellSize: {x: 200, y: 200}
+  m_Spacing: {x: 60, y: 80}
   m_Constraint: 0
   m_ConstraintCount: 2
 --- !u!114 &869926023
@@ -2669,6 +2669,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   numberCardLibrary: {fileID: 42251382}
   formulaCardPrefab: {fileID: 668247699028066706, guid: 6176010d6ec59924d8a0de00445230e6, type: 3}
+  blessingCardPrefab: {fileID: 1286960250995469681, guid: 50c6e8a9b0dac1542baaa37189e68448, type: 3}
   startMenuPanel: {fileID: 1453600651}
   gameUIPanel: {fileID: 303656478}
   gameOverPanel: {fileID: 1933999771}

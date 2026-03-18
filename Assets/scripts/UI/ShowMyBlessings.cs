@@ -33,12 +33,50 @@ public class ShowMyBlessings : MonoBehaviour
     // 祝福的购买次数映射
     private Dictionary<int, int> blessingStackCounts = new Dictionary<int, int>();
 
+    //初始化标志
+    private bool isInitialized = false;
+
     private void OnEnable()
     {
+        if (isInitialized)
+        {
+            InitializeScrollRect();
+            RefreshAllBlessings();
+        }
+    }
+    /// <summary>
+    /// 外部初始化方法，应在BlessingManager准备好后调用
+    /// 推荐从UIManager.OpenBlessCardDeck()中调用此方法
+    /// </summary>
+    public void Initialize()
+    {
+        if (isInitialized)
+        {
+            Debug.Log("[ShowMyBlessings] 已经初始化过，跳过重复初始化");
+            return;
+        }
+
+        Debug.Log("[ShowMyBlessings] 开始初始化");
+
+        // 验证基本组件
+        if (contentRoot == null)
+        {
+            Debug.LogError("[ShowMyBlessings] contentRoot 未赋值！无法初始化");
+            return;
+        }
+
+        if (blessingUIPrefab == null)
+        {
+            Debug.LogError("[ShowMyBlessings] blessingUIPrefab 未设置！无法显示祝福");
+            return;
+        }
+
         InitializeScrollRect();
         RefreshAllBlessings();
-    }
+        isInitialized = true;
 
+        Debug.Log("[ShowMyBlessings] 初始化完成");
+    }
     /// <summary>
     /// 初始化滚动支持
     /// </summary>
@@ -135,7 +173,6 @@ public class ShowMyBlessings : MonoBehaviour
             Destroy(child.gameObject);
         }
         displayedBlessings.Clear();
-        blessingStackCounts.Clear();
         blessingStackCounts.Clear();
 
         // 2. 获取玩家已拥有的所有祝福

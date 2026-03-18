@@ -50,7 +50,6 @@ public class BlessingManager : MonoBehaviour
         blessingTypeCount.Clear();
         totalMultiplierBonus = 0f;
         totalDialecticalCount = 0;
-        Debug.Log("祝福系统已初始化");
     }
 
     /// <summary>
@@ -99,7 +98,6 @@ public class BlessingManager : MonoBehaviour
         // 应用祝福效果
         ApplyBlessingEffect(blessingData);
 
-        Debug.Log($"购买成功：{blessingData.blessingName}（第{ownedBlessings[blessingData.blessingId]}次），价格：{finalPrice}");
         return true;
     }
 
@@ -139,6 +137,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.MoreMoreBetter:
                 // 多多益善 - 复制一张填空卡（需要玩家选择）
+                //[todo]
                 Debug.Log("多多益善效果已激活，等待玩家选择填空卡");
                 break;
 

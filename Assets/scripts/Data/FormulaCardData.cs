@@ -233,15 +233,6 @@ public static class FormulaCalculator
         // 1. 提取卡牌值
         var values = numbers.ConvertAll(n => n.GetOutPutValue());
 
-        if (enableDebugLog)
-        {
-            for (int i = 0; i < numbers.Count; i++)
-            {
-                var card = numbers[i];
-                Debug.Log($"  [{i}] {card.cardData.cardName} → 值: {values[i]}");
-            }
-        }
-
         // 2. 验证 Pattern 中 # 的数量
         int hashCount = CountHashes(formula.Pattern);
         if (hashCount != values.Count)

@@ -318,7 +318,7 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // 【关键】使用 BlessingManager 的购买逻辑
+        // 使用 BlessingManager 的购买逻辑
         bool purchaseSuccess = BlessingManager.Instance.TryBuyBlessing(item.cardData);
 
         if (purchaseSuccess)

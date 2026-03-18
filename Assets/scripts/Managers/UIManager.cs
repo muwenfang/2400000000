@@ -20,6 +20,8 @@ public class UIManager : MonoBehaviour
     public NumberCardUIFactory numberCardLibrary;
     [Header("填空卡预制体")]
     public GameObject formulaCardPrefab;
+    [Header("祝福卡牌预制体")] 
+    public GameObject blessingCardPrefab;
 
     [Header("UI 面板引用")]
     public GameObject startMenuPanel; // 在 Inspector 中拖入主菜单面板
@@ -159,8 +161,8 @@ public class UIManager : MonoBehaviour
             myCardButton.transform.SetAsLastSibling();
         }
 
-        var showScript = myBlessPanel.GetComponent<ShowMyCard>();
-        if (showScript != null) showScript.RefreshAllCards();
+        var showScript = myBlessPanel.GetComponent<ShowMyBlessings>();
+        if (showScript != null) showScript.RefreshAllBlessings();
     }
 
     // 关闭卡牌库（返回原来的界面）

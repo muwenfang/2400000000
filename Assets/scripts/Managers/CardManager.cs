@@ -115,7 +115,6 @@ public class CardManager : MonoBehaviour
 
         // 清空上一回合填入的卡牌
         selectedNumberCards.Clear();
-        Debug.Log("已清空上一回合的选择卡牌");
 
         foreach (Transform child in CardContent)
         {

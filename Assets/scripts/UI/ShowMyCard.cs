@@ -141,7 +141,7 @@ public class ShowMyCard : MonoBehaviour
             {
                 scrollLE = scrollRect.gameObject.AddComponent<LayoutElement>();
             }
-            scrollLE.preferredHeight = 600;  // ✅ 设置滚动区域的高度（可根据需要调整）
+            scrollLE.preferredHeight = 600;  //设置滚动区域的高度（可根据需要调整）
         }
 
     }
