@@ -180,7 +180,8 @@ public class BlessingManager : MonoBehaviour
     {
         if (!hasAllGodsInPlace) return 0f;
         int totalBlessingCount = GetTotalBlessingCount();
-        float Godsbonus = totalBlessingCount;
+        int AllGodsCount = GetBlessingTypeCount(BlessingData.BlessingType.AllGodsInPlace);
+        float Godsbonus = totalBlessingCount * AllGodsCount;
         return Godsbonus; 
     }
     
