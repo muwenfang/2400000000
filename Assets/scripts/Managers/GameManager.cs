@@ -131,6 +131,12 @@ public class GameManager : MonoBehaviour
         // 计算最终得分
         BigInteger finalScore = (BigInteger)((decimal)baseScore * (decimal)totalMultiplier);
 
+        // 逢七过效果
+        if (blessingManager != null && blessingManager.CheckJackpot7Effect(finalScore))
+        {
+            finalScore = BigInteger.Zero;
+        }
+        
         // 启动分步显示协程
         StartCoroutine(ShowScoreStepByStep(baseScore, totalMultiplier, finalScore));
     }
