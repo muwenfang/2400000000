@@ -71,6 +71,19 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     }
 
     // =========================
+    // 大小卡牌包祝福效果：添加随机n张数字卡
+    // =========================
+    public void AddRandomNumberCards(int count)
+    {
+        for (int i = 0; i < count; i++)
+        {
+            int randomIndex = Random.Range(0, NumberCardLibrary.allCard.Count);
+            NumberCardData randomCard = NumberCardLibrary.allCard[randomIndex];
+            AddNumberCard(randomCard);
+        }
+    }   
+
+    // =========================
     // 给抽卡系统使用
     // =========================
 

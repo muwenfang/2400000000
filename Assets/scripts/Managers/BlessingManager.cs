@@ -162,6 +162,54 @@ public class BlessingManager : MonoBehaviour
                 LuckTurnsCount = 1;
                 Debug.Log("转运效果已激活（无法叠加）：骰子投出1时将重投一次！");
                 break;
+
+            case BlessingData.BlessingType.DoubleDown:
+                // 倍投 - 倍率+1,价格翻倍
+                totalDialecticalCount++;
+                totalMultiplierBonus += blessingData.effectValue;
+                Debug.Log("倍投效果已激活");
+                break;
+
+            case BlessingData.BlessingType.Raise:
+                // 加注 - 倍率+1,价格+300
+                totalDialecticalCount++;
+                totalMultiplierBonus += blessingData.effectValue;
+                Debug.Log("加注效果已激活");
+                break;
+
+            case BlessingData.BlessingType.SmallCardPack:
+                // 小卡牌包 - 立即获得三张随机数字卡
+                PlayerCardInventory.Instance.AddRandomNumberCards(3);
+                Debug.Log("小卡牌包效果已激活：立即获得三张随机数字卡");
+                break;
+
+            case BlessingData.BlessingType.BigCardPack:
+                // 大卡牌包 - 立即获得五张随机数字卡
+                PlayerCardInventory.Instance.AddRandomNumberCards(5);
+                Debug.Log("大卡牌包效果已激活：立即获得五张随机数字卡");
+                break;
+
+            case BlessingData.BlessingType.FriendDiscount:
+                // 友情折扣 - 不可叠加：所有数字卡、填空卡与祝福的价格-10%
+                totalDialecticalCount++;
+                totalMultiplierBonus += blessingData.effectValue;
+                Debug.Log("友情折扣效果已激活");
+                break;
+
+            case BlessingData.BlessingType.Bless:
+                // 眷顾 - 不可叠加：你每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%
+                Debug.Log("眷顾效果已激活");
+                break;
+
+            case BlessingData.BlessingType.RichTreasury:
+                // 丰盈宝库 - 不可叠加：商店刷新永久免费
+                Debug.Log("丰盈宝库效果已激活");
+                break;
+
+            case BlessingData.BlessingType.Empiricism:
+                // 经验主义 - 不可叠加：每回合抽取数字卡时先抽取上一回合判定结果最大的数字卡
+                Debug.Log("经验主义效果已激活");
+                break;
         }
     }
 
