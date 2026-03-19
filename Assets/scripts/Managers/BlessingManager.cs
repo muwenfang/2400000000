@@ -27,6 +27,7 @@ public class BlessingManager : MonoBehaviour
     private int totalDialecticalCount = 0;   // 购买次数
     private float AllGodsCount = 0;          // 众神归位数量 
     private int LuckTurnsCount = 0;           //是否激活，1是激活
+    private bool hasJackpot7 = false;        //是否激活逢7过
 
     private void Awake()
     {
@@ -128,6 +129,12 @@ public class BlessingManager : MonoBehaviour
     {
         switch (blessingData.blessingType)
         {
+            case BlessingData.BlessingType.Jackpot7:
+                // 逢七过 - 
+                hasJackpot7 = true;
+                Debug.Log("逢七过效果已激活");
+                break;
+            
             case BlessingData.BlessingType.AllGodsInPlace:
                 // 众神归位 - 效果每回合可能要重新检测祝福数量
                 AllGodsCount++;
@@ -237,6 +244,14 @@ public class BlessingManager : MonoBehaviour
         return blessingTypeCount.ContainsKey(type) ? blessingTypeCount[type] : 0;
     }
     
+    /// <summary>
+    /// 计算“逢七过”的倍率
+    /// </summary>
+    private float CalculateJackpot7Bonus()
+    {
+        if (!hasJackpot7) return 0f;
+        return 7f; 
+    }
     
     /// <summary>
     /// 计算“众神归位”的倍率
@@ -273,6 +288,10 @@ public class BlessingManager : MonoBehaviour
     {
         float totalMultiplierBonus = 0f;
         
+        ///逢七过的额外倍率
+        float Jackpot7Bonus = CalculateJackpot7Bonus();
+        totalMultiplierBonus += Jackpot7Bonus;
+        
         ///众神归位的额外倍率
         float AllGodsInPlaceBonus = CalculateAllGodsInPlaceBonus();
         totalMultiplierBonus += AllGodsInPlaceBonus; 
@@ -291,6 +310,23 @@ public class BlessingManager : MonoBehaviour
         return multiplier;
     }
 
+    /// <summary>
+    /// 执行"逢七过"效果 - 判定结果是否符合触发条件
+    /// </summary>
+    public bool CheckJackpot7Effect(BigInteger score)
+    {
+        if (!hasJackpot7) return false;
+        bool isMultipleOf7 = score % 7 == 0;
+        bool ContainsDigit7 = score.ToString().Contains("7");
+        bool triggerJackpot7 = isMultipleOf7 || ContainsDigit7;
+
+        if (triggerJackpot7)
+        {
+            Debug.Log("逢七过触发，本回合得分归0");
+        } 
+        return triggerJackpot7;
+    }
+    
     /// <summary>
     /// 执行"多多益善"效果 - 复制指定的填空卡
     /// </summary>
