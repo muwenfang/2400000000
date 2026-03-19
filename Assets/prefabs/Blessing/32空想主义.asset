@@ -19,4 +19,4 @@ MonoBehaviour:
   isStackable: 1
   blessingType: 30
   effectValue: 0
-  bonusPoints: 0
+  bonusPoints: 2147483647

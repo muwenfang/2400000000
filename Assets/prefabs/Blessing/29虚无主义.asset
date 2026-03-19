@@ -18,5 +18,5 @@ MonoBehaviour:
   basePrice: 1
   isStackable: 1
   blessingType: 27
-  effectValue: 0
+  effectValue: 0.02
   bonusPoints: 0
