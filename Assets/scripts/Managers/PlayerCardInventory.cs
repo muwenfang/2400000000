@@ -2,9 +2,11 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+
 public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
 {
     public static PlayerCardInventory Instance;
+    public NumberCardLibrary numberCardLibrary;
 
     [Header("玩家拥有的数字卡")]
     public List<NumberCardInstance> numberCards = new();
@@ -77,8 +79,8 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     {
         for (int i = 0; i < count; i++)
         {
-            int randomIndex = Random.Range(0, NumberCardLibrary.allCard.Count);
-            NumberCardData randomCard = NumberCardLibrary.allCard[randomIndex];
+            int randomIndex = Random.Range(0, numberCardLibrary.allCards.Count);
+            NumberCardData randomCard = numberCardLibrary.allCards[randomIndex];
             AddNumberCard(randomCard);
         }
     }   

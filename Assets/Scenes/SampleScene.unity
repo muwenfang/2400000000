@@ -2224,6 +2224,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f1834a2689bf1e448a859cda9153e873, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  numberCardLibrary: {fileID: 11400000, guid: a2fa7726265124f4f82bcb330c2edc3c, type: 2}
   formulaCards:
   - {fileID: 11400000, guid: 9004f4a3287e2b347ae28eb2420845ea, type: 2}
 --- !u!1 &869926020
