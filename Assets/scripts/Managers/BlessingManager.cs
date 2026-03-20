@@ -18,6 +18,9 @@ public class BlessingManager : MonoBehaviour
     // 用字典存储：祝福ID -> 购买次数
     private Dictionary<int, int> ownedBlessings = new Dictionary<int, int>();
 
+    // 跟踪已永久购买过的祝福（用于NeverRefresh类型）
+    private HashSet<int> blessingsEverPurchased = new HashSet<int>();
+
     // 用于快速查询特定祝福的购买次数
     private Dictionary<BlessingData.BlessingType, int> blessingTypeCount =
         new Dictionary<BlessingData.BlessingType, int>();
@@ -54,7 +57,6 @@ public class BlessingManager : MonoBehaviour
         totalDialecticalCount = 0;
         AllGodsCount = 0;
         LuckTurnsCount = 0;
-        Debug.Log("祝福系统已初始化");
     }
 
     /// <summary>
@@ -93,6 +95,9 @@ public class BlessingManager : MonoBehaviour
             ownedBlessings[blessingData.blessingId] = 1;
         }
 
+        // 记录为已购买过（用于NeverRefresh判定）
+        blessingsEverPurchased.Add(blessingData.blessingId);
+
         // 更新类型计数
         if (!blessingTypeCount.ContainsKey(blessingData.blessingType))
         {
@@ -104,6 +109,13 @@ public class BlessingManager : MonoBehaviour
         ApplyBlessingEffect(blessingData);
 
         return true;
+    }
+    /// <summary>
+    /// 检查祝福是否已被购买过（用于NeverRefresh判定）
+    /// </summary>
+    public bool HasBlessingEverBeenPurchased(int blessingId)
+    {
+        return blessingsEverPurchased.Contains(blessingId);
     }
 
     /// <summary>
@@ -295,7 +307,8 @@ public class BlessingManager : MonoBehaviour
         ///众神归位的额外倍率
         float AllGodsInPlaceBonus = CalculateAllGodsInPlaceBonus();
         totalMultiplierBonus += AllGodsInPlaceBonus; 
-        
+        Debug.Log("众神归位+" + AllGodsInPlaceBonus);
+
         return totalMultiplierBonus;
     }
 
@@ -361,7 +374,6 @@ public class BlessingManager : MonoBehaviour
         totalMultiplierBonus = 0f;
         totalDialecticalCount = 0;
         LuckTurnsCount = 0;
-        Debug.Log("所有祝福已清空");
     }
 
     /// <summary>

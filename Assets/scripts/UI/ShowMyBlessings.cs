@@ -98,33 +98,6 @@ public class ShowMyBlessings : MonoBehaviour
             scrollRect = GetComponentInParent<ScrollRect>();
         }
 
-        //// 为 contentRoot 添加布局组件
-        //VerticalLayoutGroup vlg = contentRoot.GetComponent<VerticalLayoutGroup>();
-        //if (vlg == null)
-        //{
-        //    vlg = contentRoot.gameObject.AddComponent<VerticalLayoutGroup>();
-
-        //    vlg.childForceExpandHeight = false;    // 不强制扩展高度
-        //    vlg.childForceExpandWidth = true;      // 强制扩展宽度
-        //    vlg.spacing = 30;                      // 元素间距
-        //    vlg.childControlHeight = false;        // 不控制子元素高度
-        //    vlg.childControlWidth = true;          // 控制子元素宽度
-        //    vlg.childScaleHeight = false;          // 不缩放高度
-        //    vlg.childScaleWidth = false;           // 不缩放宽度
-        //    vlg.reverseArrangement = false;        // 不反向排列
-        //    Debug.Log("[ShowMyBlessings] 自动添加了 VerticalLayoutGroup");
-
-        //    // 为 contentRoot 添加 LayoutElement
-        //    LayoutElement le = contentRoot.GetComponent<LayoutElement>();
-        //    if (le == null)
-        //    {
-        //        le = contentRoot.gameObject.AddComponent<LayoutElement>();
-        //    }
-        //    le.preferredWidth = -1;
-        //    le.preferredHeight = -1;
-        //    le.flexibleHeight = 1;
-        //}
-
         // 如果没有 ScrollRect，创建一个
         if (scrollRect == null && contentRoot != null)
         {

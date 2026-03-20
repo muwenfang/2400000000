@@ -72,8 +72,6 @@ public class UIManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
-    #region 面板切换
     public void ShowPanel(GameObject panelToShow)
     {
         // 隐藏所有面板
@@ -110,8 +108,7 @@ public class UIManager : MonoBehaviour
 
         Debug.Log($"已激活并置顶面板: {panelToShow.name}");
     }
-    // --- 1. 卡牌库显示逻辑 (弹窗模式) ---
-
+    #region 展示卡牌库
     // 打开数字卡库
     public void OpenNumberCardDeck()
     {
@@ -352,7 +349,7 @@ public class UIManager : MonoBehaviour
         return result.ToString();
 
     }
-    #endregion #region 结算按钮控制
+    #endregion
 
     #region 手牌显示
     public void RefreshGameUI()
@@ -426,8 +423,6 @@ public class UIManager : MonoBehaviour
         // 重置本回合得分
         ResetRoundScore();
 
-        //// 禁用结算按钮
-        //SetCalculateButtonEnabled(false);
     }
 
     public void ShowHandCards(List<NumberCardInstance> handCards)
@@ -513,15 +508,15 @@ public class UIManager : MonoBehaviour
         {
             GameObject slotGo = Instantiate(shopNumberCardPrefab, shopNumberArea);
 
-            // 关键修复1：强制设置Transform
+            // 强制设置Transform
             slotGo.transform.localScale = UnityEngine.Vector3.one;
             slotGo.transform.localPosition = UnityEngine.Vector3.zero;
             slotGo.transform.localRotation = UnityEngine.Quaternion.identity;
 
-            // 关键修复2：强制激活物体
+            // 强制激活物体
             slotGo.SetActive(true);
 
-            // 关键修复3：禁用LayoutGroup的自动调整
+            //禁用LayoutGroup的自动调整
             HorizontalLayoutGroup hlg = slotGo.GetComponent<HorizontalLayoutGroup>();
             if (hlg != null) hlg.enabled = false;
             VerticalLayoutGroup vlg = slotGo.GetComponent<VerticalLayoutGroup>();
@@ -539,21 +534,21 @@ public class UIManager : MonoBehaviour
             }
         }
 
-        // 3. 生成公式卡槽位
+        // 生成公式卡槽位
         var formulaItems = ShopManager.Instance.shopFormulaCards;
         for (int i = 0; i < formulaItems.Count; i++)
         {
             GameObject slotGo = Instantiate(shopFormulaCardPrefab, shopFormulaArea);
 
-            // 关键修复1：强制设置Transform
+            // 强制设置Transform
             slotGo.transform.localScale = UnityEngine.Vector3.one;
             slotGo.transform.localPosition = UnityEngine.Vector3.zero;
             slotGo.transform.localRotation = UnityEngine.Quaternion.identity;
 
-            // 关键修复2：强制激活物体
+            // 强制激活物体
             slotGo.SetActive(true);
 
-            // 关键修复3：禁用LayoutGroup的自动调整
+            // 禁用LayoutGroup的自动调整
             HorizontalLayoutGroup hlg = slotGo.GetComponent<HorizontalLayoutGroup>();
             if (hlg != null) hlg.enabled = false;
             VerticalLayoutGroup vlg = slotGo.GetComponent<VerticalLayoutGroup>();
@@ -577,15 +572,15 @@ public class UIManager : MonoBehaviour
         {
             GameObject slotGo = Instantiate(shopBlessingCardPrefab, shopBlessArea);
 
-            // 关键修复1：强制设置Transform
+            //强制设置Transform
             slotGo.transform.localScale = UnityEngine.Vector3.one;
             slotGo.transform.localPosition = UnityEngine.Vector3.zero;
             slotGo.transform.localRotation = UnityEngine.Quaternion.identity;
 
-            // 关键修复2：强制激活物体
+            // 强制激活物体
             slotGo.SetActive(true);
 
-            // 关键修复3：禁用LayoutGroup的自动调整
+            // 禁用LayoutGroup的自动调整
             HorizontalLayoutGroup hlg = slotGo.GetComponent<HorizontalLayoutGroup>();
             if (hlg != null) hlg.enabled = false;
             VerticalLayoutGroup vlg = slotGo.GetComponent<VerticalLayoutGroup>();
@@ -598,7 +593,6 @@ public class UIManager : MonoBehaviour
                 // 绑定祝福卡数据
                 slotUI.BindBlessing(blessingItems[i], i);
 
-                Debug.Log($"【祝福卡】槽位{i}已绑定");
             }
             else
             {
@@ -622,9 +616,64 @@ public class UIManager : MonoBehaviour
 
         Debug.Log($"商店UI刷新完成：数字卡{numItems.Count}个，公式卡{formulaItems.Count}个");
     }
-    
+
     #endregion
 
+    /// <summary>
+    /// 刷新选中卡牌的UI显示（结算时投骰子后调用）
+    /// 用于显示投掷骰子和递增+1后的新值
+    /// </summary>
+    public void RefreshSelectedCardsDisplay(List<NumberCardInstance> selectedCards)
+    {
+        if (selectedCards == null || selectedCards.Count == 0)
+        {
+            Debug.LogWarning("[UIManager] 选中卡牌列表为空，无法刷新");
+            return;
+        }
+
+        //Debug.Log($"[UIManager] 开始刷新 {selectedCards.Count} 张选中卡牌的显示");
+
+        //// 刷新handArea中的NumberCardView
+        //if (handArea != null)
+        //{
+        //    var views = handArea.GetComponentsInChildren<NumberCardView>();
+
+        //    for (int i = 0; i < views.Length && i < selectedCards.Count; i++)
+        //    {
+        //        if (views[i] != null && selectedCards[i] != null)
+        //        {
+        //            views[i].Bind(selectedCards[i]);
+        //            Debug.Log($"[UIManager] 刷新手牌显示 {i}: {selectedCards[i].cardData.cardName}");
+        //        }
+        //    }
+        //}
+        var allSingleViews = FindObjectsOfType<SingleNumberView>(true);
+        var allCompositeViews = FindObjectsOfType<CompositeNumberView>(true);
+
+        // 刷新单数字卡
+        int singleRefreshCount = 0;
+        foreach (var view in allSingleViews)
+        {
+            if (view.boundInstance != null && selectedCards.Contains(view.boundInstance))
+            {
+                Debug.Log($"[UIManager] 刷新 SingleNumberView: {view.boundInstance.cardData.cardName} (currentA={view.boundInstance.currentA}, isPrepared={view.boundInstance.isPrepared})");
+                view.BindInstance(view.boundInstance);
+                singleRefreshCount++;
+            }
+        }
+        int compositeRefreshCount = 0;
+        // 刷新双数字卡 (加法、乘法、复合卡)
+        foreach (var view in allCompositeViews)
+        {
+            if (view.boundInstance != null && selectedCards.Contains(view.boundInstance))
+            {
+                Debug.Log($"[UIManager] 刷新 CompositeNumberView: {view.boundInstance.cardData.cardName} (currentA={view.boundInstance.currentA}, currentB={view.boundInstance.currentB}, isPrepared={view.boundInstance.isPrepared})");
+                view.BindInstance(view.boundInstance);
+                compositeRefreshCount++;
+            }
+        }
+        Debug.Log("[UIManager] 选中卡牌显示已刷新");
+    }
     #region 工具方法
     void ClearArea(Transform area)
     {

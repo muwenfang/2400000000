@@ -26,7 +26,6 @@ public class CardDeckCloseButton : MonoBehaviour
         if (closeButton != null)
         {
             closeButton.onClick.AddListener(OnCloseButtonClick);
-            Debug.Log("[CardDeckCloseButton] 卡牌库关闭按钮已初始化");
         }
         else
         {

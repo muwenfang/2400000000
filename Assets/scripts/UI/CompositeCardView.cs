@@ -15,6 +15,8 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
     public Color diceColor = Color.red;            // 骰子数字：红色
     public Color normalColor = Color.black;        // 普通数字：黑色
 
+    //缓存绑定的实例，用于精准刷新UI
+    public NumberCardInstance boundInstance;
     private void OnEnable()
     {
         //在启用时检查并修复缺失的组件
@@ -73,36 +75,46 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
     public void BindInstance(NumberCardInstance instance)
     {
         if (instance == null) return;
+        this.boundInstance = instance;
         // 确保组件存在
         EnsureComponentsExist();
 
         // 设置 Part A
-        SetPartDisplay(aText, instance.cardData.partA, instance.currentA);
+        SetPartDisplay(aText, instance.cardData.partA, instance.currentA, instance.isPrepared);
 
         // 设置 Part B
         if (instance.cardData.partB != null)
         {
-            SetPartDisplay(bText, instance.cardData.partB, instance.currentB);
+            SetPartDisplay(bText, instance.cardData.partB, instance.currentB, instance.isPrepared);
         }
     }
 
     /// <summary>
     /// 通用方法：设置单个部分的文本内容和颜色
     /// </summary>
-    private void SetPartDisplay(Text textComp, NumberComponent component, int currentValue)
+    private void SetPartDisplay(Text textComp, NumberComponent component, int currentValue, bool isPrepared)
     {
         if (textComp == null || component == null) return;
 
         if (component.isDice)
         {
             // 骰子显示：~面数~ (红色)
-            textComp.text = $"~{component.diceSides}~";
+            if (!isPrepared)
+            {
+                // 抽中/未结算时：显示最大面数
+                textComp.text = $"{component.diceSides}";
+            }
+            else
+            {
+                // 结算时：显示投出的具体数值
+                textComp.text = currentValue.ToString();
+            }
             textComp.color = diceColor;
         }
         else if (component.isIncremental)
         {
             // 递增显示：{当前值} (绿色)
-            textComp.text = $"{{{currentValue}}}";
+            textComp.text = $"{currentValue}";
             textComp.color = incrementalColor;
         }
         else
@@ -110,14 +122,6 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
             // 普通显示：数值 (黑色)
             textComp.text = currentValue.ToString();
             textComp.color = normalColor;
-        }
-    }
-    public void UpdatePrice(NumberCardInstance numberCardInstance)
-    {
-        if (IsInShop)
-        {
-            int price = numberCardInstance.GetOutPutValue();
-            priceText.text = price.ToString();
         }
     }
 

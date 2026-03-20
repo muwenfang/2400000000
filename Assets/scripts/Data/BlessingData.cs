@@ -19,6 +19,17 @@ public class BlessingData : ScriptableObject
     public float effectValue;        // 效果数值（如倍率、百分比等）
     public int bonusPoints;          // 奖励点数
 
+    /// <summary>
+    /// 祝福刷新行为
+    /// </summary>
+    public enum RefreshBehavior
+    {
+        AlwaysRefresh,      // 商店购买后会继续刷新（可以多次购买）
+        NeverRefresh,       // 不会继续刷新（只能购买一次，之后永不出现）
+        CurrentRoundOnly    // 本回合不再刷新（同一次商店开启中最多出现一个，下次刷新可能出现）
+    }
+    public RefreshBehavior refreshBehavior = 
+        RefreshBehavior.AlwaysRefresh; // 默认为总是刷新
     public enum BlessingType
     {
         Jackpot7,             // 逢七过

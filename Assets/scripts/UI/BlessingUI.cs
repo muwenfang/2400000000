@@ -124,7 +124,6 @@ public class BlessingUI : MonoBehaviour
         // 3. 设置叠加数量显示
         UpdateStackCountDisplay();
 
-        Debug.Log($"已加载祝福UI：{currentBlessingData.blessingName}");
     }
 
     /// <summary>

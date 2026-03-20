@@ -94,7 +94,7 @@ public class CardManager : MonoBehaviour
             return;
         }  
 
-        // 先执行抽卡！
+        // 先执行抽卡
         DrawFormulaCards();
 
         if (currentFormulaCard == null)
@@ -125,7 +125,7 @@ public class CardManager : MonoBehaviour
 
     void DrawNumberCards(int count)
     {
-        // 关键修复2：从库存中获取实例，而不是创建新实例
+        //从库存中获取实例
         var inventoryInstances = PlayerCardInventory.Instance.GetAllNumberCards();
 
         // 创建临时池（使用库存中的实例）
@@ -167,7 +167,17 @@ public class CardManager : MonoBehaviour
         Debug.Log("抽到公式卡：" + currentFormulaCard.Name);
 
     }
-    
+    public void PrepareCardsForCalculation()
+    {
+        if (selectedNumberCards == null) return;
+        for (int i = 0; i < selectedNumberCards.Count; i++)
+        {
+            if (selectedNumberCards[i] != null)
+            {
+                selectedNumberCards[i].PrepareForCalculation();
+            }
+        }
+    }
     public BigInteger CalculateResult()
     {
         if (currentFormulaCard == null)
@@ -183,40 +193,15 @@ public class CardManager : MonoBehaviour
         }
 
         Debug.Log($"公式：{currentFormulaCard.Pattern}");
-        for (int i = 0; i < selectedNumberCards.Count; i++)
-        {
-            var card = selectedNumberCards[i];
-        }
+        //for (int i = 0; i < selectedNumberCards.Count; i++)
+        //{
+        //    var card = selectedNumberCards[i];
+        //    card.PrepareForCalculation();
+        //}
 
         BigInteger result = FormulaCalculator.Calculate(currentFormulaCard, selectedNumberCards);
 
-        //结算后更新递增卡的值
-        UpdateIncrementalCards();
-
         return result;
-    }
-    /// <summary>
-    /// 更新递增卡的值（结算后调用）
-    /// </summary>
-    void UpdateIncrementalCards()
-    {
-        foreach (var card in selectedNumberCards)
-        {
-            // 更新 Part A 的递增值
-            if (card.cardData.partA.isIncremental)
-            {
-                card.currentA++;
-                Debug.Log($"递增卡更新：{card.cardData.cardName} Part A: {card.currentA - 1} → {card.currentA}");
-            }
-
-            // 更新 Part B 的递增值
-            if (card.cardData.partB != null && card.cardData.partB.isIncremental)
-            {
-                card.currentB++;
-                Debug.Log($"递增卡更新：{card.cardData.cardName} Part B: {card.currentB - 1} → {card.currentB}");
-            }
-
-        }
     }
     // 按槽位索引插入（保证顺序）
     public void AddNumberCardToFormula(NumberCardInstance card, int index)
@@ -274,7 +259,7 @@ public class CardManager : MonoBehaviour
         if (!found)
             Debug.LogWarning($"尝试移除不存在的卡牌: {card.cardData.cardName}");
     }
-    // 新增：按索引移除（FormulaSlot 点击或 ClearSlot 使用）
+    // 按索引移除（FormulaSlot 点击或 ClearSlot 使用）
     public void RemoveNumberCardFromFormulaAtIndex(int index)
     {
         if (selectedNumberCards == null) return;

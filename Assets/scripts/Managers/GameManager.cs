@@ -114,17 +114,28 @@ public class GameManager : MonoBehaviour
         }
 
         currentState = GameState.Calculation;
-        // 计算填空卡结果
+        StartCoroutine(CalculateProcessSequence(formula));
+
+    }
+    IEnumerator CalculateProcessSequence(CardManager formula)
+    {
+        // 1. 投骰子和递增数据
+        formula.PrepareCardsForCalculation();
+
+        // 2. 刷新UI显示投掷和递增后的结果
+        UIManager.Instance.RefreshSelectedCardsDisplay(formula.selectedNumberCards);
+
+        // 3. 停留0.3秒
+        yield return new WaitForSeconds(0.3f);
+
+        // 4. 计算结果
         BigInteger baseScore = formula.CalculateResult();
 
         // 计算基础倍率（根据公式卡数量）
         float baseMultiplier = PlayerCardInventory.Instance.GetFormulaCardCount();
-        Debug.Log("baseMultiplier: " + baseMultiplier);
-
-        // 计算倍率（从祝福管理器获取）
         float blessingBonusMultiplier = GetCurrentMultiplier();
-        float totalMultiplier = baseMultiplier + blessingBonusMultiplier; // 公式卡数量 + 祝福倍率加成
-        
+        float totalMultiplier = baseMultiplier + blessingBonusMultiplier;
+
         // 更新UI
         UIManager.Instance.multiplierText.text = "×" + totalMultiplier.ToString();
 
@@ -136,7 +147,7 @@ public class GameManager : MonoBehaviour
         {
             finalScore = BigInteger.Zero;
         }
-        
+
         // 启动分步显示协程
         StartCoroutine(ShowScoreStepByStep(baseScore, totalMultiplier, finalScore));
     }
@@ -201,7 +212,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     float GetCurrentMultiplier()
     {
-        float multiplier = 0.0f;
+        float multiplier = 1.0f;
 
         // 从祝福管理器获取倍率加成
         if (blessingManager != null)

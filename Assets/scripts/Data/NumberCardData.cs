@@ -43,7 +43,8 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     //当前数值保留int（基础值，运算时转BigInteger）
     public int currentA = 0;
     public int currentB = 0;
-
+    // 标记该卡牌本回合是否已经投过骰子/递增过
+    public bool isPrepared = false;
     public NumberCardInstance(NumberCardData cardData)//构造函数，初始化当前数值
     {
         this.cardData = cardData;
@@ -55,25 +56,72 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     }
 
     /// <summary>
-    /// 抽中时调用，只处理骰子，不处理递增
-    /// 递增在结算后由 UpdateIncrementalCards 处理
+    /// 只处理骰子，不处理递增
     /// </summary>
     public void OnDrawn()
     {
-        // 只处理骰子，递增值保持不变
+        // 【关键修复】对于骰子卡，应该使用 diceSides 而不是 value
+        if (cardData.partA.isDice)
+        {
+            currentA = cardData.partA.diceSides;  // 骰子：用面数初始化
+        }
+        else
+        {
+            currentA = cardData.partA.value;      // 其他：用value初始化
+        }
+
+        if (cardData.partB != null)
+        {
+            if (cardData.partB.isDice)
+            {
+                currentB = cardData.partB.diceSides;  // 骰子：用面数初始化
+            }
+            else
+            {
+                currentB = cardData.partB.value;      // 其他：用value初始化
+            }
+        }
+
+        // 标记为未投掷/未递增状态
+        isPrepared = false;
+    }
+
+    /// <summary>
+    /// 结算前调用：投骰子并更新递增值
+    /// </summary>
+    public void PrepareForCalculation()
+    {
+        // 投掷骰子（如果是骰子）
         if (cardData.partA.isDice)
         {
             currentA = DiceHelper.RollDice(cardData.partA.diceSides);
+            Debug.Log($"投掷骰子 {cardData.cardName} Part A: {currentA}");
         }
 
         if (cardData.partB != null && cardData.partB.isDice)
         {
             currentB = DiceHelper.RollDice(cardData.partB.diceSides);
+            Debug.Log($"投掷骰子 {cardData.cardName} Part B: {currentB}");
         }
-    }
 
+        // 更新递增值（+1）
+        if (cardData.partA.isIncremental)
+        {
+            currentA++;
+            //Debug.Log($"递增卡更新：{cardData.cardName} Part A: {currentA - 1} → {currentA}");
+        }
+
+        if (cardData.partB != null && cardData.partB.isIncremental)
+        {
+            currentB++;
+            //Debug.Log($"递增卡更新：{cardData.cardName} Part B: {currentB - 1} → {currentB}");
+        }
+
+        // 标记为已结算
+        isPrepared = true;
+    }
     /// <summary>
-    /// 返回BigInteger解决溢出
+    /// 获得当前卡牌的输出值（根据逻辑类型计算）
     /// </summary>
     public int GetOutPutValue()
     {

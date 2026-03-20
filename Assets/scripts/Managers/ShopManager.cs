@@ -73,6 +73,11 @@ public class ShopManager : MonoBehaviour
     public List<ShopItem<FormulaCardData>> shopFormulaCards = new();
     public List<ShopItem<BlessingData>> shopBlessings = new();
 
+    /// <summary>
+    /// 本回合已在当前商店刷新中显示过的祝福ID（用于CurrentRoundOnly类型）
+    /// </summary>
+    private HashSet<int> currentRoundDisplayedBlessings = new HashSet<int>();
+
 
     public void OpenShop()
     {
@@ -207,40 +212,139 @@ public class ShopManager : MonoBehaviour
         ? BlessingManager.Instance.GetCurrentPriceMultiplier()
         : 1.0f;
 
-        // 创建临时池，避免重复抽取
-        List<BlessingData> tempPool = new List<BlessingData>(blessingLibrary.GetAllBlessings());
+        //// 创建临时池，避免重复抽取
+        //List<BlessingData> tempPool = new List<BlessingData>(blessingLibrary.GetAllBlessings());
+        //// 生成4个槽位（包括锁定的）
+        //for (int i = 0; i < MaxBlessingCardCount; i++)
+        //{
+        //    // 如果是解锁的槽位
+        //    if (i < blessingCardCount)
+        //    {
+        //        // 随机抽取一张祝福
+        //        if (tempPool.Count == 0)
+        //        {
+        //            // 如果池子空了，重新填充
+        //            tempPool = new List<BlessingData>(blessingLibrary.GetAllBlessings());
+        //        }
 
+        //        int randomIndex = Random.Range(0, tempPool.Count);
+        //        BlessingData randomBlessing = tempPool[randomIndex];
+        //        tempPool.RemoveAt(randomIndex); // 避免重复
+
+        //        // 计算价格
+        //        int currentCount = BlessingManager.Instance.GetBlessingCount(randomBlessing.blessingId);
+        //        int price = randomBlessing.CalculatePrice(currentCount, priceMultiplier);
+
+        //        shopBlessings.Add(new ShopItem<BlessingData>(randomBlessing, price));
+        //        Debug.Log($"祝福槽位{i}：{randomBlessing.blessingName}，价格 {price}");
+        //    }
+        //    else
+        //    {
+        //        // 锁定槽位：添加占位符（null）
+        //        shopBlessings.Add(new ShopItem<BlessingData>(null, 0));
+        //    }
+        //}
+
+        // 构建可用祝福池（根据刷新行为过滤）
+        List<BlessingData> availableBlessings = BuildAvailableBlessingPool();
         // 生成4个槽位（包括锁定的）
         for (int i = 0; i < MaxBlessingCardCount; i++)
         {
             // 如果是解锁的槽位
             if (i < blessingCardCount)
             {
-                // 随机抽取一张祝福
-                if (tempPool.Count == 0)
+                BlessingData selectedBlessing = null;
+
+                // 从可用池中选择祝福
+                if (availableBlessings.Count > 0)
                 {
-                    // 如果池子空了，重新填充
-                    tempPool = new List<BlessingData>(blessingLibrary.GetAllBlessings());
+                    int randomIndex = Random.Range(0, availableBlessings.Count);
+                    selectedBlessing = availableBlessings[randomIndex];
+
+                    // 移除已选中的祝福（除非是 AlwaysRefresh 类型）
+                    // CurrentRoundOnly 和 NeverRefresh 类型在本次刷新中只能出现一次
+                    if (selectedBlessing.refreshBehavior != BlessingData.RefreshBehavior.AlwaysRefresh)
+                    {
+                        availableBlessings.RemoveAt(randomIndex);
+                        currentRoundDisplayedBlessings.Add(selectedBlessing.blessingId);
+                        Debug.Log($"[ShopManager] 祝福 '{selectedBlessing.blessingName}' 已在本次刷新中显示，标记为已显示");
+                    }
+
+                    // 计算价格
+                    int currentCount = BlessingManager.Instance.GetBlessingCount(selectedBlessing.blessingId);
+                    int price = selectedBlessing.CalculatePrice(currentCount, priceMultiplier);
+
+                    shopBlessings.Add(new ShopItem<BlessingData>(selectedBlessing, price));
+                    Debug.Log($"祝福槽位{i}：{selectedBlessing.blessingName}（{selectedBlessing.refreshBehavior}），价格 {price}");
                 }
-
-                int randomIndex = Random.Range(0, tempPool.Count);
-                BlessingData randomBlessing = tempPool[randomIndex];
-                tempPool.RemoveAt(randomIndex); // 避免重复
-
-                // 计算价格
-                int currentCount = BlessingManager.Instance.GetBlessingCount(randomBlessing.blessingId);
-                int price = randomBlessing.CalculatePrice(currentCount, priceMultiplier);
-
-                shopBlessings.Add(new ShopItem<BlessingData>(randomBlessing, price));
-                Debug.Log($"祝福槽位{i}：{randomBlessing.blessingName}，价格 {price}");
+                else
+                {
+                    // 可用祝福不足，添加空槽位
+                    shopBlessings.Add(new ShopItem<BlessingData>(null, 0));
+                    Debug.LogWarning($"[ShopManager] 可用祝福不足！槽位{i}无法填充");
+                }
             }
             else
             {
                 // 锁定槽位：添加占位符（null）
                 shopBlessings.Add(new ShopItem<BlessingData>(null, 0));
-                Debug.Log($"祝福槽位{i}：【已锁定】");
             }
         }
+    }
+
+    /// <summary>
+    /// 构建可用祝福池 - 根据刷新行为和购买历史过滤
+    /// </summary>
+    private List<BlessingData> BuildAvailableBlessingPool()
+    {
+        List<BlessingData> availableBlessings = new List<BlessingData>();
+        List<BlessingData> allBlessings = blessingLibrary.GetAllBlessings();
+
+        foreach (var blessing in allBlessings)
+        {
+            if (blessing == null) continue;
+
+            bool isAvailable = false;
+
+            switch (blessing.refreshBehavior)
+            {
+                case BlessingData.RefreshBehavior.AlwaysRefresh:
+                    // 总是可用
+                    isAvailable = true;
+                    break;
+
+                case BlessingData.RefreshBehavior.NeverRefresh:
+                    // 仅当未曾购买时可用
+                    isAvailable = !BlessingManager.Instance.HasBlessingEverBeenPurchased(blessing.blessingId);
+                    break;
+
+                case BlessingData.RefreshBehavior.CurrentRoundOnly:
+                    // 仅当本次刷新中未显示过时可用
+                    isAvailable = !currentRoundDisplayedBlessings.Contains(blessing.blessingId);
+                    break;
+            }
+
+            if (isAvailable)
+            {
+                availableBlessings.Add(blessing);
+                Debug.Log($"[ShopManager] 祝福 '{blessing.blessingName}' 可用（{blessing.refreshBehavior}）");
+            }
+            else
+            {
+                Debug.Log($"[ShopManager] 祝福 '{blessing.blessingName}' 不可用（{blessing.refreshBehavior}）");
+            }
+        }
+
+        return availableBlessings;
+    }
+
+    /// <summary>
+    /// 重置本回合显示过的祝福
+    /// </summary>
+    private void ResetCurrentRoundBlessings()
+    {
+        currentRoundDisplayedBlessings.Clear();
+        Debug.Log("[ShopManager] 本回合已显示的祝福记录已清空");
     }
 
     public bool TryBuyNumberCard(ShopItem<NumberCardInstance> item)

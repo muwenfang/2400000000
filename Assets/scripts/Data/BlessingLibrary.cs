@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
+using static BlessingData;
 
 /// <summary>
 /// 祝福卡库 - 存储所有祝福卡数据
@@ -371,7 +372,8 @@ public class BlessingLibrary : ScriptableObject
     /// </summary>
     private BlessingData CreateBlessing(int id, string name, string description,
         BlessingData.BlessingType type, int basePrice, bool isStackable,
-        float effectValue = 0f, int bonusPoints = 0)
+        float effectValue = 0f, int bonusPoints = 0, BlessingData.
+        RefreshBehavior refreshBehavior = BlessingData.RefreshBehavior.AlwaysRefresh)
     {
         BlessingData blessing = ScriptableObject.CreateInstance<BlessingData>();
         blessing.blessingId = id;
@@ -382,6 +384,7 @@ public class BlessingLibrary : ScriptableObject
         blessing.isStackable = isStackable;
         blessing.effectValue = effectValue;     //效果数值（如倍率、百分比等）
         blessing.bonusPoints = bonusPoints;     //奖励点数
+        blessing.refreshBehavior = refreshBehavior;
         return blessing;
     }
 

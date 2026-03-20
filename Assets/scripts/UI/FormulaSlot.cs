@@ -98,6 +98,28 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler
         draggedCard.isPlacedInSlot = true;
         draggedCard.currentSlot = this;
 
+        // 【修复1】立即调用 OnDrawn() 重置卡牌状态（重置为初始值）
+        if (draggedCard.BoundCard != null)
+        {
+            draggedCard.BoundCard.OnDrawn();
+           // Debug.Log($"[FormulaSlot] 卡牌放入槽位 {slotIndex}: {draggedCard.BoundCard.cardData.cardName}，已调用 OnDrawn()");
+        }
+
+        // 【修复2】获取卡牌的 UI 组件并更新绑定（关键：这样 boundInstance 才会被设置）
+        NumberCardLayoutView cardView = draggedCard.GetComponent<NumberCardLayoutView>();
+        if (cardView != null && draggedCard.BoundCard != null)
+        {
+            cardView.BindInstance(draggedCard.BoundCard);
+            //Debug.Log($"[FormulaSlot] UI 已绑定卡牌实例: {draggedCard.BoundCard.cardData.cardName}");
+        }
+        else
+        {
+            if (cardView == null)
+                Debug.LogWarning($"[FormulaSlot] 无法获取 NumberCardLayoutView 组件");
+            if (draggedCard.BoundCard == null)
+                Debug.LogWarning($"[FormulaSlot] 卡牌实例为空");
+        }
+
         // 通知父级 UI（告知槽位索引）
         if (parentUI != null)
             parentUI.OnSlotFilled(slotIndex, draggedCard.BoundCard);

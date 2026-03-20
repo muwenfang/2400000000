@@ -30,7 +30,7 @@ public class BlessingInShop : MonoBehaviour
     [Header("视觉反馈")]
     [SerializeField] private Color normalButtonColor = Color.white;      // 正常按钮颜色
     [SerializeField] private Color disabledButtonColor = Color.gray;     // 禁用按钮颜色
-    [SerializeField] private float soldOutAlpha = 0.5f;                  // 已售出时的透明度
+    //[SerializeField] private float soldOutAlpha = 0.5f;                  // 已售出时的透明度
 
     // 私有数据
     private ShopItem<BlessingData> currentItem;
@@ -116,8 +116,6 @@ public class BlessingInShop : MonoBehaviour
 
         // 设置购买按钮
         SetupBuyButton(item.sold);
-
-        Debug.Log($"【BlessingInShop】 槽位{index}：已绑定 {item.cardData.blessingName}，价格：{item.price}");
     }
 
     /// <summary>
@@ -154,7 +152,6 @@ public class BlessingInShop : MonoBehaviour
                 {
                     blessingUI = newBlessingUI;
                     blessingUI.SetBlessingData(blessingData, stackCount);
-                    Debug.Log($"【BlessingInShop】 槽位{slotIndex}：通过Prefab动态创建BlessingUI: {blessingData.blessingName}");
                 }
                 else
                 {
