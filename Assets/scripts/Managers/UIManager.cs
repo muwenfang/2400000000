@@ -656,7 +656,6 @@ public class UIManager : MonoBehaviour
         {
             if (view.boundInstance != null && selectedCards.Contains(view.boundInstance))
             {
-                Debug.Log($"[UIManager] 刷新 SingleNumberView: {view.boundInstance.cardData.cardName} (currentA={view.boundInstance.currentA}, isPrepared={view.boundInstance.isPrepared})");
                 view.BindInstance(view.boundInstance);
                 singleRefreshCount++;
             }
@@ -667,7 +666,6 @@ public class UIManager : MonoBehaviour
         {
             if (view.boundInstance != null && selectedCards.Contains(view.boundInstance))
             {
-                Debug.Log($"[UIManager] 刷新 CompositeNumberView: {view.boundInstance.cardData.cardName} (currentA={view.boundInstance.currentA}, currentB={view.boundInstance.currentB}, isPrepared={view.boundInstance.isPrepared})");
                 view.BindInstance(view.boundInstance);
                 compositeRefreshCount++;
             }

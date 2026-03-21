@@ -212,7 +212,7 @@ public class GameManager : MonoBehaviour
     /// </summary>
     float GetCurrentMultiplier()
     {
-        float multiplier = 1.0f;
+        float multiplier = 0f;
 
         // 从祝福管理器获取倍率加成
         if (blessingManager != null)

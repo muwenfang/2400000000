@@ -27,11 +27,12 @@ public class BlessingManager : MonoBehaviour
 
     [Header("祝福效果累积")]
     private float totalMultiplierBonus = 0f; // 倍率加成
-    private int totalDialecticalCount = 0;   // 购买次数
+    private int totalDialecticalCount = 0;   // '辩证主义'购买次数
     private float AllGodsCount = 0;          // 众神归位数量 
     private int LuckTurnsCount = 0;           //是否激活，1是激活
     private bool hasJackpot7 = false;        //是否激活逢7过
-
+    private int CardMasterCount = 0;       //是否激活卡牌大师 
+   
     private void Awake()
     {
         if (Instance == null)
@@ -57,6 +58,8 @@ public class BlessingManager : MonoBehaviour
         totalDialecticalCount = 0;
         AllGodsCount = 0;
         LuckTurnsCount = 0;
+        CardMasterCount = 0;
+        hasJackpot7 = false;
     }
 
     /// <summary>
@@ -184,7 +187,14 @@ public class BlessingManager : MonoBehaviour
                 //[todo]
                 Debug.Log("多多益善效果已激活，等待玩家选择填空卡");
                 break;
+            
+            case BlessingData.BlessingType.CardMaster:
+                // 卡牌大师 - 每张数字卡额外提供1倍率
+                CardMasterCount++;
+                Debug.Log("卡牌大师效果已激活，提供额外倍率");
+                break;
 
+            
             case BlessingData.BlessingType.DialecticalViewpoint:
                 // 辩证主义 - 立即应用倍率和点数
                 totalDialecticalCount++;
@@ -315,11 +325,22 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 获取卡牌大师的额外倍率
+    /// </summary>
+    private float CalculateCardMasterBonus()
+    {
+        if (CardMasterCount <= 0) return 0f;
+        int numberCardCount = PlayerCardInventory.Instance.GetAllNumberCards().Count;
+        float cardMasterBonus = CardMasterCount * numberCardCount;
+        return cardMasterBonus;
+    }
+
+    /// <summary>
     /// 获取当前总倍率加成（来自所有祝福）
     /// </summary>
     public float GetTotalMultiplierBonus()
     {
-        float totalMultiplierBonus = 0f;
+        
         
         ///逢七过的额外倍率
         float Jackpot7Bonus = CalculateJackpot7Bonus();
@@ -330,6 +351,11 @@ public class BlessingManager : MonoBehaviour
         totalMultiplierBonus += AllGodsInPlaceBonus; 
         Debug.Log("众神归位+" + AllGodsInPlaceBonus);
 
+        ///卡牌大师的额外倍率
+        float cardMasterBonus = CalculateCardMasterBonus();
+        totalMultiplierBonus += cardMasterBonus;
+        Debug.Log($"卡牌大师倍率加成：{cardMasterBonus}");
+        
         return totalMultiplierBonus;
     }
 
@@ -394,7 +420,10 @@ public class BlessingManager : MonoBehaviour
         blessingTypeCount.Clear();
         totalMultiplierBonus = 0f;
         totalDialecticalCount = 0;
+        AllGodsCount = 0;
         LuckTurnsCount = 0;
+        CardMasterCount = 0;
+        hasJackpot7 = false;
     }
 
     /// <summary>
