@@ -27,12 +27,12 @@ public class BlessingManager : MonoBehaviour
 
     [Header("祝福效果累积")]
     private float totalMultiplierBonus = 0f; // 倍率加成
-    private int totalDialecticalCount = 0;   // 购买次数
+    private int totalDialecticalCount = 0;   // '辩证主义'购买次数
     private float AllGodsCount = 0;          // 众神归位数量 
     private int LuckTurnsCount = 0;           //是否激活，1是激活
     private bool hasJackpot7 = false;        //是否激活逢7过
     private int CardMasterCount = 0;       //是否激活卡牌大师 
-
+   
     private void Awake()
     {
         if (Instance == null)
@@ -319,7 +319,7 @@ public class BlessingManager : MonoBehaviour
     /// </summary>
     public float GetTotalMultiplierBonus()
     {
-        float totalMultiplierBonus = 0f;
+        
         
         ///逢七过的额外倍率
         float Jackpot7Bonus = CalculateJackpot7Bonus();
