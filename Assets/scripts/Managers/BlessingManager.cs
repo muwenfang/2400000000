@@ -260,6 +260,12 @@ public class BlessingManager : MonoBehaviour
                 // 经验主义 - 不可叠加：每回合抽取数字卡时先抽取上一回合判定结果最大的数字卡
                 Debug.Log("经验主义效果已激活");
                 break;
+
+            case BlessingData.BlessingType.Materialism:
+                // 唯物主义 - 不可叠加：立即获得等同于当前已拥有祝福数量2倍的永久倍率，然后失去所有祝福
+                Debug.Log("唯物主义效果已激活");
+                break;
+
         }
     }
 
