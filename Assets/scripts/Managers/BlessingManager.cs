@@ -74,9 +74,7 @@ public class BlessingManager : MonoBehaviour
         }
 
         // 计算当前祝福的价格（考虑已购买次数）
-        int currentCount = GetBlessingCount(blessingData.blessingId);
-        float priceMultiplier = GetCurrentPriceMultiplier();
-        int finalPrice = blessingData.CalculatePrice(currentCount, priceMultiplier);
+        int finalPrice = CalculateBlessingPrice(blessingData);
 
         // 检查点数是否足够
         if (GameManager.Instance.currentPoints < finalPrice)
@@ -137,7 +135,7 @@ public class BlessingManager : MonoBehaviour
         return totalCount;
     }
 
-    public int CalculatePrice(BlessingData data)
+    public int CalculateBlessingPrice(BlessingData data)
 
     {
         int purchaseCount = GetBlessingCount(data.blessingId);
@@ -215,14 +213,12 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.DoubleDown:
                 // 倍投 - 倍率+1,价格翻倍
-                totalDialecticalCount++;
                 totalMultiplierBonus += blessingData.effectValue;
                 Debug.Log("倍投效果已激活");
                 break;
 
             case BlessingData.BlessingType.Raise:
                 // 加注 - 倍率+1,价格+300
-                totalDialecticalCount++;
                 totalMultiplierBonus += blessingData.effectValue;
                 Debug.Log("加注效果已激活");
                 break;
@@ -241,7 +237,6 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.FriendDiscount:
                 // 友情折扣 - 不可叠加：所有数字卡、填空卡与祝福的价格-10%
-                totalDialecticalCount++;
                 totalMultiplierBonus += blessingData.effectValue;
                 Debug.Log("友情折扣效果已激活");
                 break;
