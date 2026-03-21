@@ -237,7 +237,7 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.RichTreasury:
-                // 丰盈宝库 - 不可叠加：商店刷新永久免费
+                // 丰盈宝库 - 不可叠加：商店刷新永久免费（在 ShopManager 里调用）
                 Debug.Log("丰盈宝库效果已激活");
                 break;
 
