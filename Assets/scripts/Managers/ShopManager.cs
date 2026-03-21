@@ -412,6 +412,13 @@ public class ShopManager : MonoBehaviour
         long roundSquare = (long)Mathf.Pow(currentRound, 2);
         long powerOfTwo = (long)Mathf.Pow(2, refreshCount);
         long refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
+
+        // 如果拥有丰盈宝库祝福，刷新费用为0
+        if (BlessingManager.ownedBlessings[26] == 1)
+        {
+            refreshCost = 0;
+        }
+
         if (GameManager.Instance.currentPoints < refreshCost)
         {
             Debug.Log("点数不足，无法刷新");
