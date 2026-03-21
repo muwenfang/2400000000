@@ -86,7 +86,6 @@ public class ShopFormulaCardSlot : MonoBehaviour
             formulaNameText.text = formulaData.Pattern;
             formulaNameText.fontSize = 80;
             formulaNameText.color = Color.black;
-            Debug.Log($"[ShopFormulaCardSlot] 槽位 {slotIndex}: 显示公式 = {formulaData.Pattern}");
             return;
         }
         else

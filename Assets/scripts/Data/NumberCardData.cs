@@ -60,15 +60,15 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     /// </summary>
     public void OnDrawn()
     {
-        // 【关键修复】对于骰子卡，应该使用 diceSides 而不是 value
+        //对于骰子卡，应该使用 diceSides 而不是 value
         if (cardData.partA.isDice)
         {
             currentA = cardData.partA.diceSides;  // 骰子：用面数初始化
         }
-        else
-        {
-            currentA = cardData.partA.value;      // 其他：用value初始化
-        }
+        //else
+        //{
+        //    currentA = cardData.partA.value;      // 其他：用value初始化
+        //}
 
         if (cardData.partB != null)
         {
@@ -76,10 +76,10 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             {
                 currentB = cardData.partB.diceSides;  // 骰子：用面数初始化
             }
-            else
-            {
-                currentB = cardData.partB.value;      // 其他：用value初始化
-            }
+            //else
+            //{
+            //    currentB = cardData.partB.value;      // 其他：用value初始化
+            //}
         }
 
         // 标记为未投掷/未递增状态

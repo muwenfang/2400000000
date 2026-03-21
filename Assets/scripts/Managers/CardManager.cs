@@ -150,7 +150,6 @@ public class CardManager : MonoBehaviour
 
             Debug.Log($"抽到卡牌: {selectedInstance.cardData.cardName}, 当前值: A={selectedInstance.currentA}, B={selectedInstance.currentB}");
         }
-        Debug.Log("数字卡牌抽取完成");
     }
     public void DrawFormulaCards()
     {   
@@ -193,11 +192,6 @@ public class CardManager : MonoBehaviour
         }
 
         Debug.Log($"公式：{currentFormulaCard.Pattern}");
-        //for (int i = 0; i < selectedNumberCards.Count; i++)
-        //{
-        //    var card = selectedNumberCards[i];
-        //    card.PrepareForCalculation();
-        //}
 
         BigInteger result = FormulaCalculator.Calculate(currentFormulaCard, selectedNumberCards);
 
@@ -231,12 +225,10 @@ public class CardManager : MonoBehaviour
             if (selectedNumberCards[i] == card)
             {
                 selectedNumberCards[i] = null;
-                Debug.Log($"卡牌 {card.cardData.cardName} 从位置 {i} 移除以重新放置到 {index}");
             }
         }
 
         selectedNumberCards[index] = card;
-        Debug.Log($"加入数字卡（索引 {index}）：{card.GetOutPutValue()}");
     }
 
     /// <summary>
