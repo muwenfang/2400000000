@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using UnityEditor.Timeline;
 using UnityEngine;
 using static BlessingData;
 
@@ -26,8 +27,9 @@ public class BlessingLibrary : ScriptableObject
             description: "倍率+7，但计算结果若为7的倍数或含有数字7，本回合的最终计算结果视为0",
             type: BlessingData.BlessingType.Jackpot7,
             basePrice: 0,
-            isStackable: false
-            
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+
         ));
 
         //纯粹容器
@@ -78,8 +80,9 @@ public class BlessingLibrary : ScriptableObject
             description: "骰子投到1时，重投一次并将这次的结果作为该骰子的最终判定结果",
             type: BlessingData.BlessingType.LuckTurns,
             basePrice: 1000,
-            isStackable: false
-            
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+
         ));
 
         // 许愿币
@@ -216,8 +219,9 @@ public class BlessingLibrary : ScriptableObject
             description: "立即将所有绿色数字变为~20~",
             type: BlessingData.BlessingType.CompulsiveGambler,
             basePrice: 2000000,
-            isStackable: false
-            
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.CurrentRoundOnly
+
         ));
 
         //  赌为赢
@@ -227,8 +231,9 @@ public class BlessingLibrary : ScriptableObject
             description: "当你的数字卡总共拥有20个骰子（及以上）时，你的骰子每判定为一次20，你获得2400000000",
             type: BlessingData.BlessingType.GambletoWin,
             basePrice: 240000,
-            isStackable: false
-            
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+
         ));
 
         //  能量扩散
@@ -238,8 +243,9 @@ public class BlessingLibrary : ScriptableObject
             description: "不参与计算的绿色数字每回合也会+1",
             type: BlessingData.BlessingType.EnergySpread,
             basePrice: 1000000,
-            isStackable: false
-            
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+
         ));
 
         //  神灯
@@ -260,8 +266,9 @@ public class BlessingLibrary : ScriptableObject
             description: "所有数字卡、填空卡与祝福的价格-10%",
             type: BlessingData.BlessingType.FriendDiscount,
             basePrice: 250000,
-            isStackable: false
-            
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+
         ));
 
         //  眷顾
@@ -271,8 +278,9 @@ public class BlessingLibrary : ScriptableObject
             description: "每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%",
             type: BlessingData.BlessingType.Bless,
             basePrice: 15000,
-            isStackable: false
-            
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+
         ));
 
         //  丰盈宝库
@@ -282,8 +290,9 @@ public class BlessingLibrary : ScriptableObject
             description: "商店刷新永久免费",
             type: BlessingData.BlessingType.RichTreasury,
             basePrice: 20000,
-            isStackable: false
-            
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+
         ));
 
         //  唯心主义
@@ -293,8 +302,9 @@ public class BlessingLibrary : ScriptableObject
             description: "所有同等级的骰子参与运算时的判定结果总是相同的",
             type: BlessingData.BlessingType.Idealism,
             basePrice: 2400,
-            isStackable: false
-            
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+
         ));
 
         //  唯物主义
@@ -304,8 +314,9 @@ public class BlessingLibrary : ScriptableObject
             description: "立即获得等同于当前已拥有祝福数量2倍的永久倍率，然后失去所有祝福",
             type: BlessingData.BlessingType.Materialism,
             basePrice: 240000,
-            isStackable: false
-            
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.CurrentRoundOnly
+
         ));
 
         //  虚无主义
@@ -338,8 +349,9 @@ public class BlessingLibrary : ScriptableObject
             description: "每回合抽取数字卡时先抽取上一回合判定结果最大的数字卡",
             type: BlessingData.BlessingType.Empiricism,
             basePrice: 240000,
-            isStackable: false
-            
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+
         ));
         
         //  空想主义
@@ -360,7 +372,8 @@ public class BlessingLibrary : ScriptableObject
             description: "立即删除除价格最高的填空卡以外的所有填空卡；此后无法购买比已拥有的填空卡价格更低的填空卡，如果你成功购买了一张填空卡，立即删除你之前拥有的那张填空卡",
             type: BlessingData.BlessingType.Pragmatism,
             basePrice: 0,
-            isStackable: false
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
         ));
 
@@ -426,4 +439,14 @@ public class BlessingLibrary : ScriptableObject
     {
         return new List<BlessingData>(allBlessings);
     }
+
+    /// <summary>
+    /// 获取所有可叠加的祝福
+    /// </summary>
+    public List<BlessingData> GetAllStackableBlessing()
+    {
+        List<BlessingData> stackableBlessings = allBlessings.FindAll(b => b.isStackable);
+        return stackableBlessings;
+    }
+
 }

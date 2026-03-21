@@ -27,12 +27,12 @@ public class BlessingManager : MonoBehaviour
 
     [Header("祝福效果累积")]
     private float totalMultiplierBonus = 0f; // 倍率加成
-    private int totalDialecticalCount = 0;   // '辩证主义'购买次数
+    private int totalDialecticalCount = 0;   // 购买次数
     private float AllGodsCount = 0;          // 众神归位数量 
-    private int LuckTurnsCount = 0;           //是否激活，1是激活
+    private int LuckTurnsCount = 0;           //是否激活转运，1是激活
     private bool hasJackpot7 = false;        //是否激活逢7过
     private int CardMasterCount = 0;       //是否激活卡牌大师 
-   
+
     private void Awake()
     {
         if (Instance == null)
@@ -187,7 +187,7 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.LuckTurns:
-                // 无法叠加：只要购买≥1次，直接置1（激活），多次购买也不改变
+                // 转运 - 无法叠加：你的骰子投到1时，重投一次并将这次的结果作为该骰子的最终判定结果
                 LuckTurnsCount = 1;
                 Debug.Log("转运效果已激活（无法叠加）：骰子投出1时将重投一次！");
                 break;
@@ -218,6 +218,12 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log("大卡牌包效果已激活：立即获得五张随机数字卡");
                 break;
 
+            case BlessingData.BlessingType.MagicLamp:
+                 //神灯 - 获取三个随机可叠加祝福
+                AddStackableBlessingsToOwned(3);
+                Debug.Log("神灯效果已激活");
+                break;
+
             case BlessingData.BlessingType.FriendDiscount:
                 // 友情折扣 - 不可叠加：所有数字卡、填空卡与祝福的价格-10%
                 totalDialecticalCount++;
@@ -239,9 +245,199 @@ public class BlessingManager : MonoBehaviour
                 // 经验主义 - 不可叠加：每回合抽取数字卡时先抽取上一回合判定结果最大的数字卡
                 Debug.Log("经验主义效果已激活");
                 break;
+
+            case BlessingData.BlessingType.CardCheat:
+                // 老千祝福 - 激活卡牌选择
+                Debug.Log("[BlessingManager] 老千祝福已激活，等待玩家选择数字卡");
+                ActivateCardCheatSelection();
+                break;
+
+            case BlessingData.BlessingType.QuitGambling:
+                // 戒赌 - 可叠加：将数字卡中的一个骰子变为{0}
+                Debug.Log("戒赌效果已激活");
+                break;
+
+            case BlessingData.BlessingType.RapidActivation:
+                // 高效催化 - 可叠加：选择一个数字卡中的绿色数字使其立即+1，祝福“高效催化”的价格翻倍
+                Debug.Log("高效催化效果已激活");
+                break;
+
+            case BlessingData.BlessingType.CardCheat:
+                // 老千 - 可叠加：选择一张数字卡，将其替换为一张随机的数字卡
+                Debug.Log("老千效果已激活");
+                break;
+
+            case BlessingData.BlessingType.GamblingGearUpgraded:
+                // 赌具升级 - 可叠加：选择一个骰子使其立即升一级，祝福“赌具升级”的价格翻倍
+                Debug.Log("赌具升级效果已激活");
+                break;
+
+            case BlessingData.BlessingType.Dyed:
+                // 染色 - 可叠加：立即将数字卡的一个普通数字染为绿色，祝福“染色”的价格变为10倍
+                Debug.Log("染色效果已激活");
+                break;
+
+            case BlessingData.BlessingType.CompulsiveGambler:
+                // 狂赌之渊 - 不可叠加，本回合商店不刷新：立即将所有绿色数字变为~20~
+                Debug.Log("狂赌之渊效果已激活");
+                break;
+
+            case BlessingData.BlessingType.EnergySpread:
+                // 能量扩散 - 不可叠加：不参与计算的绿色数字每回合也会+1
+                Debug.Log("能量扩散效果已激活");
+                break;
+
+            case BlessingData.BlessingType.Utopianism:
+                // 空想主义 - 可叠加：立即获得一张未拥有的填空卡；如果获得此祝福时拥有了全部种类的填空卡，你立即获得2400000000点并失去所有“空想主义”
+                Debug.Log("空想主义效果已激活");
+                break;
+
+            case BlessingData.BlessingType.Pragmatism:
+                // 实用主义 - 不可叠加：任意时刻你仅保留价值最高的填空卡并自动删除其它填空卡
+                Debug.Log("实用主义效果已激活");
+                break;
+
+            case BlessingData.BlessingType.QuitGambling:
+                // 戒赌 - 可叠加：将数字卡中的一个骰子变为{0}
+                Debug.Log("戒赌效果已激活");
+                break;
+
+            case BlessingData.BlessingType.RapidActivation:
+                // 高效催化 - 可叠加：选择一个数字卡中的绿色数字使其立即+1，祝福“高效催化”的价格翻倍
+                Debug.Log("高效催化效果已激活");
+                break;
+
+            case BlessingData.BlessingType.CardCheat:
+                // 老千 - 可叠加：选择一张数字卡，将其替换为一张随机的数字卡
+                Debug.Log("老千效果已激活");
+                break;
+
+            case BlessingData.BlessingType.GamblingGearUpgraded:
+                // 赌具升级 - 可叠加：选择一个骰子使其立即升一级，祝福“赌具升级”的价格翻倍
+                Debug.Log("赌具升级效果已激活");
+                break;
+
+            case BlessingData.BlessingType.Dyed:
+                // 染色 - 可叠加：立即将数字卡的一个普通数字染为绿色，祝福“染色”的价格变为10倍
+                Debug.Log("染色效果已激活");
+                break;
+
+            case BlessingData.BlessingType.CompulsiveGambler:
+                // 狂赌之渊 - 不可叠加，本回合商店不刷新：立即将所有绿色数字变为~20~
+                Debug.Log("狂赌之渊效果已激活");
+                break;
+
+            case BlessingData.BlessingType.EnergySpread:
+                // 能量扩散 - 不可叠加：不参与计算的绿色数字每回合也会+1
+                Debug.Log("能量扩散效果已激活");
+                break;
+
+            case BlessingData.BlessingType.Utopianism:
+                // 空想主义 - 可叠加：立即获得一张未拥有的填空卡；如果获得此祝福时拥有了全部种类的填空卡，你立即获得2400000000点并失去所有“空想主义”
+                Debug.Log("空想主义效果已激活");
+                break;
+
+            case BlessingData.BlessingType.Pragmatism:
+                // 实用主义 - 不可叠加：任意时刻你仅保留价值最高的填空卡并自动删除其它填空卡
+                Debug.Log("实用主义效果已激活");
+                break;
+
         }
     }
+    /// <summary>
+    /// ✨ 激活老千祝福的卡牌选择
+    /// </summary>
+    private void ActivateCardCheatSelection()
+    {
+        if (CardSelectionManager.Instance == null)
+        {
+            Debug.LogError("[BlessingManager] CardSelectionManager 未初始化");
+            return;
+        }
 
+        // 开启卡牌选择模式
+        CardSelectionManager.Instance.StartCardSelection(
+            CardSelectionManager.SelectionMode.CardCheat,
+            OnCardCheatCardSelected
+        );
+    }
+
+    /// <summary>
+    /// ✨ 老千祝福的卡牌选择回调
+    /// </summary>
+    private void OnCardCheatCardSelected(object selectedObject)
+    {
+        // 检查是否是数字卡（应该是）
+        if (!(selectedObject is NumberCardInstance selectedCard))
+        {
+            Debug.LogError("[BlessingManager] 老千祝福：选择的不是数字卡！");
+            return;
+        }
+
+        if (selectedCard == null)
+        {
+            Debug.LogError("[BlessingManager] 选择的卡牌为空");
+            return;
+        }
+
+        Debug.Log($"[BlessingManager] 老千祝福选中数字卡：{selectedCard.cardData.cardName}");
+
+        // 执行老千逻辑
+        ApplyCardCheatEffect(selectedCard);
+    }
+
+    /// <summary>
+    /// 执行老千祝福效果
+    /// </summary>
+    private void ApplyCardCheatEffect(NumberCardInstance cardToReplace)
+    {
+        var playerInventory = PlayerCardInventory.Instance;
+        if (playerInventory == null)
+        {
+            Debug.LogError("[BlessingManager] PlayerCardInventory 为空");
+            return;
+        }
+
+        // 检查卡牌是否在库存中
+        if (!playerInventory.numberCards.Contains(cardToReplace))
+        {
+            Debug.LogWarning("[BlessingManager] 选择的卡牌不在库存中");
+            return;
+        }
+
+        // 获取卡牌库
+        if (playerInventory.numberCardLibrary == null ||
+            playerInventory.numberCardLibrary.allCards == null ||
+            playerInventory.numberCardLibrary.allCards.Count == 0)
+        {
+            Debug.LogError("[BlessingManager] 卡牌库为空");
+            return;
+        }
+
+        // 随机选择新卡牌
+        int randomIndex = UnityEngine.Random.Range(0, playerInventory.numberCardLibrary.allCards.Count);
+        NumberCardData randomCard = playerInventory.numberCardLibrary.allCards[randomIndex];
+
+        // 替换卡牌
+        int oldCardIndex = playerInventory.numberCards.IndexOf(cardToReplace);
+        if (oldCardIndex >= 0)
+        {
+            NumberCardInstance newCardInstance = new NumberCardInstance(randomCard);
+            playerInventory.numberCards[oldCardIndex] = newCardInstance;
+
+            Debug.Log($"[BlessingManager] 老千祝福：'{cardToReplace.cardData.cardName}' → '{randomCard.cardName}'");
+
+            // 刷新UI
+            if (UIManager.Instance != null)
+            {
+                UIManager.Instance.RefreshGameUI();
+            }
+            else
+            {
+                Debug.LogWarning("[BlessingManager] UIManager 为空，无法刷新UI");
+            }
+        }
+    }
     /// <summary>
     /// 提供转运祝福的激活状态（是否拥有转运祝福）
     /// </summary>
@@ -319,7 +515,7 @@ public class BlessingManager : MonoBehaviour
     /// </summary>
     public float GetTotalMultiplierBonus()
     {
-        
+        float totalMultiplierBonus = 0f;
         
         ///逢七过的额外倍率
         float Jackpot7Bonus = CalculateJackpot7Bonus();
@@ -438,7 +634,36 @@ public class BlessingManager : MonoBehaviour
             }
         }
         Debug.Log($"总倍率加成：{totalMultiplierBonus}");
-        Debug.Log($"价格乘数：{GetCurrentPriceMultiplier()}");
-        Debug.Log($"转运祝福激活状态：{(IsLuckTurnsActive() ? "已激活" : "未激活")}");
     }
+    
+    /// <summary>
+    /// 神灯核心逻辑：直接添加3个随机可叠加祝福到 ownedBlessings（支持重复，跳过购买流程）
+    /// </summary>
+    private void AddStackableBlessingsToOwned(int count)
+    {
+        // 1. 获取祝福库中所有可叠加祝福
+        List<BlessingData> allStackable = blessingLibrary.GetAllStackableBlessing();
+        System.Random rnd = new System.Random();
+        // 2. 随机选择 count 个祝福（支持重复）
+        for (int i = 0; i < count; i++)
+        {
+            int randomIdx = rnd.Next(allStackable.Count);
+            BlessingData selected = allStackable[randomIdx];
+            if (selected == null) continue;
+
+        // 3. 直接添加到 ownedBlessings
+            if (ownedBlessings.ContainsKey(selected.blessingId)) ownedBlessings[selected.blessingId]++;
+            else ownedBlessings[selected.blessingId] = 1;
+
+        // 4. 同步关联数据（你原代码里的结构）
+            blessingsEverPurchased.Add(selected.blessingId);
+            if (!blessingTypeCount.ContainsKey(selected.blessingType)) blessingTypeCount[selected.blessingType] = 0;
+            blessingTypeCount[selected.blessingType]++;
+
+        // 5. 触发该祝福的效果
+            ApplyBlessingEffect(selected);
+            Debug.Log($"神灯获得：{selected.blessingName}（当前次数：{ownedBlessings[selected.blessingId]}）");
+        }
+    }   
+
 }
