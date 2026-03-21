@@ -44,7 +44,7 @@ public class FormulaCardLibrary : ScriptableObject
         allCards.Add(CreateCard("(#+#)*#*#*#*#", 6, 19, 200000));
         allCards.Add(CreateCard("#*#*#*#*#*#", 6, 20, 1000000));
 
-        Debug.Log($"✅ 成功初始化 {allCards.Count} 张公式卡！");
+        Debug.Log($"成功初始化 {allCards.Count} 张公式卡！");
     }
 
     /// <summary>
