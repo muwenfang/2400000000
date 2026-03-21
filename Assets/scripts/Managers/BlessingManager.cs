@@ -143,16 +143,16 @@ public class BlessingManager : MonoBehaviour
         int purchaseCount = GetBlessingCount(data.blessingId);
         float calculatedPrice;
         int currentPrice = data.basePrice;
-        float priceMultiplier = data.effectValue+1;
+        float priceMultiplier = Mathf.Pow(data.effectValue + 1, purchaseCount) * GetCurrentPriceMultiplier();
         switch (data.blessingType)
         {
             case BlessingData.BlessingType.Raise:
                 currentPrice += purchaseCount * 300;
-                calculatedPrice = currentPrice * Mathf.Pow(priceMultiplier, purchaseCount);
+                calculatedPrice = currentPrice * priceMultiplier;
                 return Mathf.RoundToInt(calculatedPrice);
 
             default:
-                calculatedPrice = currentPrice * Mathf.Pow(priceMultiplier, purchaseCount);
+                calculatedPrice = currentPrice * priceMultiplier;
                 return Mathf.RoundToInt(calculatedPrice);
         }
     }
@@ -342,7 +342,7 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 获取当前总倍率加成（来自所有祝福）
+    /// 获取当前总倍率加成
     /// </summary>
     public float GetTotalMultiplierBonus()
     {
