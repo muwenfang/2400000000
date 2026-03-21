@@ -16,13 +16,13 @@ public class BlessingManager : MonoBehaviour
 
     [Header("玩家已拥有的祝福")]
     // 用字典存储：祝福ID -> 购买次数
-    private Dictionary<int, int> ownedBlessings = new Dictionary<int, int>();
+    public Dictionary<int, int> ownedBlessings = new Dictionary<int, int>();
 
     // 跟踪已永久购买过的祝福（用于NeverRefresh类型）
-    private HashSet<int> blessingsEverPurchased = new HashSet<int>();
+    public HashSet<int> blessingsEverPurchased = new HashSet<int>();
 
     // 用于快速查询特定祝福的购买次数
-    private Dictionary<BlessingData.BlessingType, int> blessingTypeCount =
+    public Dictionary<BlessingData.BlessingType, int> blessingTypeCount =
         new Dictionary<BlessingData.BlessingType, int>();
 
     [Header("祝福效果累积")]
@@ -133,7 +133,28 @@ public class BlessingManager : MonoBehaviour
         }
         return totalCount;
     }
-    
+
+    public int CalculatePrice(BlessingData data)
+
+    {
+        int purchaseCount = GetBlessingCount(data.blessingId);
+        float calculatedPrice;
+        int currentPrice = data.basePrice;
+        float priceMultiplier = data.effectValue+1;
+        switch (data.blessingType)
+        {
+            case BlessingData.BlessingType.Raise:
+                currentPrice += purchaseCount * 300;
+                calculatedPrice = currentPrice * Mathf.Pow(priceMultiplier, purchaseCount);
+                return Mathf.RoundToInt(calculatedPrice);
+
+            default:
+                calculatedPrice = currentPrice * Mathf.Pow(priceMultiplier, purchaseCount);
+                return Mathf.RoundToInt(calculatedPrice);
+        }
+    }
+
+
     /// <summary>
     /// 应用祝福效果
     /// </summary>
@@ -241,7 +262,7 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 获取特定祝福的购买次数
+    /// 根据id获取特定类型祝福的购买次数
     /// </summary>
     public int GetBlessingCount(int blessingId)
     {
@@ -249,7 +270,7 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 获取特定类型祝福的购买次数
+    /// 根据blessingtype获取特定类型祝福的购买次数
     /// </summary>
     public int GetBlessingTypeCount(BlessingData.BlessingType type)
     {
