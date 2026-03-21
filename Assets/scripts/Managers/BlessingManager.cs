@@ -31,7 +31,7 @@ public class BlessingManager : MonoBehaviour
     private float AllGodsCount = 0;          // 众神归位数量 
     private int LuckTurnsCount = 0;           //是否激活，1是激活
     private bool hasJackpot7 = false;        //是否激活逢7过
-    private float CardMasterCount = 0;       //是否激活卡牌大师 
+    private int CardMasterCount = 0;       //是否激活卡牌大师 
 
     private void Awake()
     {
@@ -399,7 +399,10 @@ public class BlessingManager : MonoBehaviour
         blessingTypeCount.Clear();
         totalMultiplierBonus = 0f;
         totalDialecticalCount = 0;
+        AllGodsCount = 0;
         LuckTurnsCount = 0;
+        CardMasterCount = 0;
+        hasJackpot7 = false;
     }
 
     /// <summary>
