@@ -4,36 +4,24 @@ using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
-/// 卡牌选择管理器 - 改进版本
-/// 
-/// 功能：
-/// 1. 支持三个卡牌界面（祝福卡、公式卡、数字卡）
-/// 2. 两种选择模式（老千、删卡）
-/// 3. 根据模式选择性激活卡牌
-/// 4. 集成 UIManager 管理界面显示
-/// 
-/// 使用流程：
-/// - 老千模式：只显示和激活数字卡界面
-/// - 删卡模式：显示和激活所有三个界面的卡牌
+/// 卡牌选择管理器 
+/// 根据模式选择性激活卡牌
 /// </summary>
 public class CardSelectionManager : MonoBehaviour
 {
     public static CardSelectionManager Instance;
 
-    [Header("三个卡牌界面")]
-    [Tooltip("数字卡界面 - 由 NumberCardView 管理")]
+    [Header("两个卡牌界面")]
+    [Tooltip("数字卡界面 - 由 ShowMyCard 管理")]
     public RectTransform numberCardPanel;
 
-    [Tooltip("公式卡界面 - 由 FormulaView 管理")]
+    [Tooltip("公式卡界面 - 由 ShowMyCard 管理")]
     public RectTransform formulaCardPanel;
-
-    [Tooltip("祝福卡界面 - 由 BlessingUI 管理")]
-    public RectTransform blessingCardPanel;
 
     public enum SelectionMode
     {
         CardCheat,      // 老千祝福：只能选择数字卡
-        RemoveCard      // 删除卡牌：可以选择任意卡牌
+        RemoveCard      // 删除卡牌：可以选择数字卡和公式卡
     }
 
     private SelectionMode currentMode;
@@ -80,8 +68,8 @@ public class CardSelectionManager : MonoBehaviour
                 break;
 
             case SelectionMode.RemoveCard:
-                // 删卡模式：显示所有界面
-                ShowAllCardPanels();
+                // 删卡模式：显示数字卡和公式卡
+                ShowNumberAndFormulaCardPanels();
                 break;
         }
 
@@ -96,11 +84,9 @@ public class CardSelectionManager : MonoBehaviour
     {
         Debug.Log("[CardSelectionManager] 老千模式：只显示数字卡界面");
 
-        // 隐藏其他界面
+        // 隐藏公式卡界面
         if (formulaCardPanel != null)
             formulaCardPanel.gameObject.SetActive(false);
-        if (blessingCardPanel != null)
-            blessingCardPanel.gameObject.SetActive(false);
 
         // 显示数字卡界面
         if (numberCardPanel != null)
@@ -112,23 +98,33 @@ public class CardSelectionManager : MonoBehaviour
             Debug.LogError("[CardSelectionManager] numberCardPanel 未赋值");
         }
 
-        // 通过 UIManager 显示数字卡界面
-        if (UIManager.Instance != null)
+        // 通过 UIManager 显示卡牌界面
+        if (UIManager.Instance != null && UIManager.Instance.myNumberCardPanel != null)
         {
-            UIManager.Instance.ShowPanel(UIManager.Instance.myNumberCardPanel ?? numberCardPanel.gameObject);
-            Debug.Log("[CardSelectionManager] 通过 UIManager 显示数字卡界面");
+            UIManager.Instance.ShowPanel(UIManager.Instance.myNumberCardPanel);
+            Debug.Log("[CardSelectionManager] 通过 UIManager 显示卡牌界面");
         }
     }
 
     /// <summary>
-    /// 删卡模式：显示所有卡牌界面
+    /// 删卡模式：显示数字卡和公式卡界面
     /// </summary>
-    private void ShowAllCardPanels()
+    private void ShowNumberAndFormulaCardPanels()
     {
-        Debug.Log("[CardSelectionManager] 删卡模式：显示所有卡牌界面");
+        Debug.Log("[CardSelectionManager] 删卡模式：显示数字卡和公式卡界面");
 
+        // 显示数字卡和公式卡
         if (numberCardPanel != null)
             numberCardPanel.gameObject.SetActive(true);
+        if (formulaCardPanel != null)
+            formulaCardPanel.gameObject.SetActive(true);
+
+        // 通过 UIManager 显示卡牌界面
+        if (UIManager.Instance != null && UIManager.Instance.myNumberCardPanel != null)
+        {
+            UIManager.Instance.ShowPanel(UIManager.Instance.myNumberCardPanel);
+            Debug.Log("[CardSelectionManager] 通过 UIManager 显示卡牌界面");
+        }
     }
 
     /// <summary>
@@ -148,15 +144,12 @@ public class CardSelectionManager : MonoBehaviour
                     panelsToCheck.Add(numberCardPanel);
                 break;
 
-
             case SelectionMode.RemoveCard:
-                // 删卡模式：检查所有面板
+                // 删卡模式：检查数字卡和公式卡面板
                 if (numberCardPanel != null && numberCardPanel.gameObject.activeSelf)
                     panelsToCheck.Add(numberCardPanel);
                 if (formulaCardPanel != null && formulaCardPanel.gameObject.activeSelf)
                     panelsToCheck.Add(formulaCardPanel);
-                if (blessingCardPanel != null && blessingCardPanel.gameObject.activeSelf)
-                    panelsToCheck.Add(blessingCardPanel);
                 break;
         }
 
@@ -215,52 +208,36 @@ public class CardSelectionManager : MonoBehaviour
             }
         }
 
-        // 获取面板中所有的 FormulaView（公式卡）
-        FormulaView[] formulaViews = panel.GetComponentsInChildren<FormulaView>();
+        // 获取面板中所有的 FormulaCardUI（公式卡 prefab）
+        FormulaCardUI[] formulaCardUIs = panel.GetComponentsInChildren<FormulaCardUI>();
 
-        foreach (FormulaView formulaView in formulaViews)
+        foreach (FormulaCardUI formulaUI in formulaCardUIs)
         {
-            if (formulaView == null) continue;
+            if (formulaUI == null) continue;
 
-            Button formulaBtn = formulaView.GetComponent<Button>();
+            // 获取或添加 Button 组件
+            Button formulaBtn = formulaUI.GetComponent<Button>();
             if (formulaBtn == null)
             {
-                Transform btnTransform = formulaView.transform.Find("selectedButton");
-                if (btnTransform != null)
-                {
-                    formulaBtn = btnTransform.GetComponent<Button>();
-                }
+                formulaBtn = formulaUI.gameObject.AddComponent<Button>();
+                Debug.Log($"[CardSelectionManager] 为公式卡 prefab 添加了 Button 组件");
             }
 
             if (formulaBtn != null)
             {
-                FormulaCardData formulaData = formulaView.GetComponent<FormulaView>()?.GetFormulaData();
+                // 从 FormulaCardUI 获取数据
+                FormulaCardData formulaData = formulaUI.GetFormulaCardData();
                 if (formulaData != null)
                 {
                     formulaBtn.onClick.AddListener(() => OnFormulaCardSelected(formulaData));
                     activeSelectionButtons.Add(formulaBtn);
                     Debug.Log($"[CardSelectionManager] 已激活公式卡选择按钮：{formulaData.Name}");
                 }
-            }
-        }
-
-        // 获取面板中所有的 BlessingUI（祝福卡）
-        BlessingUI[] blessingUIs = panel.GetComponentsInChildren<BlessingUI>();
-
-        foreach (BlessingUI blessingUI in blessingUIs)
-        {
-            if (blessingUI == null) continue;
-
-            Button blessingBtn = blessingUI.GetComponent<Button>();
-            if (blessingBtn == null)
-            {
-                Transform btnTransform = blessingUI.transform.Find("selectedButton");
-                if (btnTransform != null)
+                else
                 {
-                    blessingBtn = btnTransform.GetComponent<Button>();
+                    Debug.LogWarning($"[CardSelectionManager] 无法从 FormulaCardUI 获取数据");
                 }
             }
-
         }
     }
 
@@ -275,6 +252,7 @@ public class CardSelectionManager : MonoBehaviour
             return;
         }
 
+        Debug.Log($"[CardSelectionManager] 用户选择数字卡：{selectedCard.cardData.cardName}");
         selectionCallback?.Invoke(selectedCard);
         EndCardSelection();
     }
@@ -290,22 +268,8 @@ public class CardSelectionManager : MonoBehaviour
             return;
         }
 
+        Debug.Log($"[CardSelectionManager] 用户选择公式卡：{selectedFormula.Name}");
         selectionCallback?.Invoke(selectedFormula);
-        EndCardSelection();
-    }
-
-    /// <summary>
-    /// 处理祝福卡被选中
-    /// </summary>
-    private void OnBlessingCardSelected(BlessingData selectedBlessing)
-    {
-        if (selectedBlessing == null)
-        {
-            Debug.LogError("[CardSelectionManager] 选择的祝福卡为空");
-            return;
-        }
-
-        selectionCallback?.Invoke(selectedBlessing);
         EndCardSelection();
     }
 
@@ -329,8 +293,13 @@ public class CardSelectionManager : MonoBehaviour
             numberCardPanel.gameObject.SetActive(false);
         if (formulaCardPanel != null)
             formulaCardPanel.gameObject.SetActive(false);
-        if (blessingCardPanel != null)
-            blessingCardPanel.gameObject.SetActive(false);
+
+        // 通过 UIManager 隐藏卡牌界面
+        if (UIManager.Instance != null && UIManager.Instance.myNumberCardPanel != null)
+        {
+            UIManager.Instance.myNumberCardPanel.SetActive(false);
+            Debug.Log("[CardSelectionManager] 通过 UIManager 隐藏卡牌界面");
+        }
 
         Debug.Log("[CardSelectionManager] 关闭卡牌选择模式");
 
@@ -361,7 +330,6 @@ public class CardSelectionManager : MonoBehaviour
     public bool IsSelecting()
     {
         return (numberCardPanel != null && numberCardPanel.gameObject.activeSelf) ||
-               (formulaCardPanel != null && formulaCardPanel.gameObject.activeSelf) ||
-               (blessingCardPanel != null && blessingCardPanel.gameObject.activeSelf);
+               (formulaCardPanel != null && formulaCardPanel.gameObject.activeSelf);
     }
 }

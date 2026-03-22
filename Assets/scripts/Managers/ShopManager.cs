@@ -508,7 +508,7 @@ public class ShopManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 卡牌删除选择的回调（支持三种卡牌）
+    /// 卡牌删除选择的回调
     /// </summary>
     private void OnCardSelectedForDeletion(object selectedObject)
     {
@@ -527,10 +527,6 @@ public class ShopManager : MonoBehaviour
         {
             HandleFormulaCardDeletion(formulaCard);
         }
-        //else if (selectedObject is BlessingData blessingCard)
-        //{
-        //    HandleBlessingCardDeletion(blessingCard);
-        //}
         else
         {
             Debug.LogError($"[ShopManager] 未知的卡牌类型：{selectedObject.GetType().Name}");

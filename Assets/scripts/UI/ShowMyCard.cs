@@ -22,7 +22,9 @@ public class ShowMyCard : MonoBehaviour
 
     [Header("删除模式")]
     public Text deleteCostText; // 显示删除所需点数的文本
-
+    public GameObject deleteCardSlotPrefab; [Header("删除模式Prefabs")]
+    public GameObject deleteNumberCardSlotPrefab;  // 数字卡删除槽位
+    public GameObject deleteFormulaCardSlotPrefab; // 公式卡删除槽位
     [Header("显示设置")]
     public float cardScale = 1.0f;
 
@@ -34,10 +36,6 @@ public class ShowMyCard : MonoBehaviour
     public Color incrementalColor = Color.green;   // 递增数字：绿色
     public Color diceColor = Color.red; // 骰子数字：红色
     public Color normalColor = Color.black;        // 普通数字：黑色
-
-    [Header("删除功能配置")]
-    public GameObject deleteButtonPrefab;           // 删除按钮预制体
-    public GameObject deleteConfirmPanelPrefab;    // 确认对话框预制体
 
     private void OnEnable()
     {
@@ -72,18 +70,6 @@ public class ShowMyCard : MonoBehaviour
             }
         }
 
-        //VerticalLayoutGroup vlg = contentRoot.GetComponent<VerticalLayoutGroup>();
-        //if (vlg == null)
-        //{
-        //    vlg = contentRoot.gameObject.AddComponent<VerticalLayoutGroup>();
-        //    vlg.childForceExpandHeight = false;  // 不强制展开高度
-        //    vlg.childForceExpandWidth = true;   //强制展开宽度
-        //    vlg.spacing = 10;
-        //    vlg.childControlHeight = false;     // 关键：不控制高度，让卡牌自己决定
-        //    vlg.childControlWidth = true;       // 控制宽度
-        //    Debug.Log("[ShowMyCard] 自动添加了 VerticalLayoutGroup");
-        //}
-
         // 确保 contentRoot 有 LayoutElement
         LayoutElement le = contentRoot.GetComponent<LayoutElement>();
         if (le == null)
@@ -117,7 +103,7 @@ public class ShowMyCard : MonoBehaviour
                     scrollRect.vertical = true;         // 启用垂直滚动
                     scrollRect.movementType = ScrollRect.MovementType.Elastic;
                     scrollRect.elasticity = 0.1f;
-                    scrollRect.scrollSensitivity = 5;   // 调整滚动灵敏度
+                    scrollRect.scrollSensitivity = 15;   // 调整滚动灵敏度
 
                     Image image = scrollParent.GetComponent<Image>();
                     if (image == null)
@@ -154,13 +140,21 @@ public class ShowMyCard : MonoBehaviour
         }
 
         // 2. 根据类型生成
-        if (showNumberCards)
+        if (isDeleteMode)
         {
-            GenerateNumberCards();
+            // 删除模式：显示数字卡和公式卡
+            if (showNumberCards)
+                GenerateNumberCardsForDeletion();
+            if (showFormulaCards)
+                GenerateFormulaCardsForDeletion();
         }
-        if (showFormulaCards)
+        else
         {
-            GenerateFormulaCards();
+            // 正常模式
+            if (showNumberCards)
+                GenerateNumberCards();
+            if (showFormulaCards)
+                GenerateFormulaCards();
         }
         // 3. 强制重建布局
         if (contentRoot != null)
@@ -173,7 +167,93 @@ public class ShowMyCard : MonoBehaviour
             LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.GetComponent<RectTransform>());
         }
     }
-   
+    /// <summary>
+    ///  删除模式：生成数字卡槽位
+    /// </summary>
+    void GenerateNumberCardsForDeletion()
+    {
+        if (deleteNumberCardSlotPrefab == null)
+        {
+            Debug.LogError("[ShowMyCard] deleteNumberCardSlotPrefab 未设置");
+            return;
+        }
+
+        var instances = PlayerCardInventory.Instance.GetAllNumberCards();
+        if (instances == null) return;
+
+        foreach (var instance in instances)
+        {
+            if (instance == null || instance.cardData == null) continue;
+
+            // 实例化 DeleteCardSlot
+            GameObject slotGo = Instantiate(deleteNumberCardSlotPrefab, contentRoot);
+            slotGo.transform.localScale = UnityEngine.Vector3.one * cardScale;
+            slotGo.SetActive(true);
+
+            // 绑定数字卡
+            DeleteCardSlot slot = slotGo.GetComponent<DeleteCardSlot>();
+            if (slot != null)
+            {
+                // 注意：DeleteCardSlot 使用 Action<object> 回调，统一以 object 传递，ShowMyCard 统一处理类型
+                slot.BindNumberCardForDeletion(instance, (obj) =>
+                {
+                    OnCardDeleteClick(obj);
+                });
+
+                Debug.Log($"[ShowMyCard] 为删除模式创建数字卡槽位：{instance.cardData.cardName}");
+            }
+            else
+            {
+                Debug.LogError("[ShowMyCard] deleteNumberCardSlotPrefab 缺少 DeleteCardSlot 组件");
+            }
+
+            cardGameObjects[instance] = slotGo;
+        }
+    }
+
+    /// <summary>
+    ///  删除模式：生成公式卡槽位
+    /// </summary>
+    void GenerateFormulaCardsForDeletion()
+    {
+        // 确定使用哪个prefab
+        GameObject slotPrefab = deleteFormulaCardSlotPrefab ?? deleteNumberCardSlotPrefab;
+
+        if (slotPrefab == null)
+        {
+            Debug.LogError("[ShowMyCard] deleteFormulaCardSlotPrefab 未设置");
+            return;
+        }
+
+        var deck = CardManager.Instance.formulaCardDeck;
+        if (deck == null) return;
+
+        foreach (var formulaData in deck)
+        {
+            if (formulaData == null) continue;
+
+            // 实例化 DeleteCardSlot
+            GameObject slotGo = Instantiate(slotPrefab, contentRoot);
+            slotGo.transform.localScale = UnityEngine.Vector3.one * cardScale;
+            slotGo.SetActive(true);
+
+            // 绑定公式卡
+            DeleteCardSlot slot = slotGo.GetComponent<DeleteCardSlot>();
+            if (slot != null)
+            {
+                slot.BindFormulaCardForDeletion(formulaData, (obj) =>
+                {
+                    OnCardDeleteClick(obj);
+                });
+
+                Debug.Log($"[ShowMyCard] 为删除模式创建公式卡槽位：{formulaData.Name}");
+            }
+            else
+            {
+                Debug.LogError("[ShowMyCard] 公式卡槽位prefab 缺少 DeleteCardSlot 组件");
+            }
+        }
+    }
     void GenerateNumberCards()
     {
         // 获取玩家库存中的所有实例（包含 currentA, currentB 的实时数据）
@@ -199,7 +279,7 @@ public class ShowMyCard : MonoBehaviour
             PlayerController playerController = go.GetComponent<PlayerController>();
             if (playerController != null)
             {
-                playerController.enabled = false;  // ✅ 禁用拖动功能
+                playerController.enabled = false;  // 禁用拖动功能
                 Debug.Log("[ShowMyCard] 禁用了卡牌的拖动功能");
             }
 
@@ -248,7 +328,8 @@ public class ShowMyCard : MonoBehaviour
                 if (deleteButton != null)
                 {
                     deleteButton.onClick.RemoveAllListeners();
-                    deleteButton.onClick.AddListener(() => OnCardDeleteClick(instance, go));
+                    // 传递 object，统一由 OnCardDeleteClick(object) 处理类型
+                    deleteButton.onClick.AddListener(() => OnCardDeleteClick((object)instance));
                 }
             }
 
@@ -256,9 +337,9 @@ public class ShowMyCard : MonoBehaviour
         }
     }
     /// <summary>
-    /// 卡牌删除按钮点击事件
+    /// 卡牌删除按钮点击事件（统一接收 object，内部按类型分发）
     /// </summary>
-    void OnCardDeleteClick(NumberCardInstance card, GameObject cardGo)
+    void OnCardDeleteClick(object cardObj)
     {
         if (!isDeleteMode)
         {
@@ -266,102 +347,148 @@ public class ShowMyCard : MonoBehaviour
             return;
         }
 
-        if (card == null)
+        if (cardObj == null)
         {
             Debug.LogWarning("[ShowMyCard] 卡牌为空");
             return;
         }
-
-        // 显示确认对话框
-        ShowDeleteConfirmation(card, cardGo);
+        // 判断卡牌类型并分发
+        if (cardObj is NumberCardInstance numberCard)
+        {
+            Debug.Log($"[ShowMyCard] 用户选择删除数字卡：{numberCard.cardData.cardName}");
+            ShowDeleteConfirmation_Number(numberCard);
+        }
+        else if (cardObj is FormulaCardData formulaCard)
+        {
+            Debug.Log($"[ShowMyCard] 用户选择删除公式卡：{formulaCard.Name}");
+            ShowDeleteConfirmation_Formula(formulaCard);
+        }
+        else
+        {
+            Debug.LogWarning("[ShowMyCard] 未知的卡牌类型，无法删除");
+        }
     }
 
     /// <summary>
-    /// 显示删除确认对话框（使用现有的confirmationPanel）
+    /// 显示数字卡删除确认
     /// </summary>
-    void ShowDeleteConfirmation(NumberCardInstance card, GameObject cardGo)
+    void ShowDeleteConfirmation_Number(NumberCardInstance card)
     {
-        // 计算删除成本
         BigInteger cost = ShopManager.Instance.CalculateNumberRemoveCost();
-
         string message = $"确认删除 [{card.cardData.cardName}] 吗？\n消耗点数: {cost}";
 
-        // 使用现有的确认面板
         if (UIManager.Instance.confirmationPanel != null)
         {
             UIManager.Instance.confirmationPanel.SetActive(true);
 
-            // 找到面板上的文本和按钮
             Text confirmText = UIManager.Instance.confirmationPanel.GetComponentInChildren<Text>();
             if (confirmText != null)
-            {
                 confirmText.text = message;
-            }
 
             Button[] buttons = UIManager.Instance.confirmationPanel.GetComponentsInChildren<Button>();
             if (buttons.Length >= 2)
             {
-                // 清除旧监听器
                 buttons[0].onClick.RemoveAllListeners();
                 buttons[1].onClick.RemoveAllListeners();
 
-                // 确认按钮
-                buttons[0].onClick.AddListener(() => ExecuteRemoveCard(card, cost, cardGo));
-
-                // 取消按钮
+                buttons[0].onClick.AddListener(() => ExecuteRemoveNumberCard(card, cost));
                 buttons[1].onClick.AddListener(() => UIManager.Instance.confirmationPanel.SetActive(false));
             }
-        }
-        else
-        {
-            Debug.LogError("[ShowMyCard] confirmationPanel 未配置");
         }
     }
 
     /// <summary>
-    /// 执行删除卡牌
+    /// 执行删除数字卡
     /// </summary>
-    void ExecuteRemoveCard(NumberCardInstance card, BigInteger cost, GameObject cardGo)
+    void ExecuteRemoveNumberCard(NumberCardInstance card, BigInteger cost)
     {
-        // 检查点数
         if (GameManager.Instance.currentPoints < cost)
         {
             UIManager.Instance.confirmationPanel.SetActive(false);
-            Debug.LogWarning("[ShowMyCard] 点数不足，无法删除");
+            Debug.LogWarning("[ShowMyCard] 点数不足");
             return;
         }
 
-        // 检查最少保留数量
-        int minKeep = 6;
-        if (PlayerCardInventory.Instance.numberCards.Count <= minKeep)
+        if (PlayerCardInventory.Instance.numberCards.Count <= 6)
         {
             UIManager.Instance.confirmationPanel.SetActive(false);
-            Debug.LogWarning($"[ShowMyCard] 至少需要保留 {minKeep} 张数字卡");
+            Debug.LogWarning("[ShowMyCard] 至少需要保留6张数字卡");
             return;
         }
 
-        // 执行删除：从库存中移除
+        // 执行删除
         PlayerCardInventory.Instance.numberCards.Remove(card);
-
-        // 扣除点数
         GameManager.Instance.AddPoints(-cost);
-
-        // 增加删除计数（用于成本计算）
         ShopManager.Instance.totalRemovedNumberCards++;
-
-        // 同步 CardManager
         CardManager.Instance.SyncDeckFromInventory();
 
-        // 刷新UI
+        // 刷新
         UIManager.Instance.UpdatePointsDisplay(GameManager.Instance.currentPoints);
         UIManager.Instance.confirmationPanel.SetActive(false);
-
-        // 刷新卡牌显示
         RefreshAllCards();
 
-        Debug.Log($"[ShowMyCard] 删除卡牌成功: {card.cardData.cardName}");
+        Debug.Log($"[ShowMyCard] 删除数字卡成功: {card.cardData.cardName}");
     }
 
+    /// <summary>
+    /// 显示公式卡删除确认
+    /// </summary>
+    void ShowDeleteConfirmation_Formula(FormulaCardData card)
+    {
+        // 计算删除成本（公式卡价格的50%）
+        BigInteger cost = (BigInteger)(card.CardPrice * 0.5f);
+        string message = $"确认删除 [{card.Name}] 吗？\n消耗点数: {cost}";
+
+        if (UIManager.Instance.confirmationPanel != null)
+        {
+            UIManager.Instance.confirmationPanel.SetActive(true);
+
+            Text confirmText = UIManager.Instance.confirmationPanel.GetComponentInChildren<Text>();
+            if (confirmText != null)
+                confirmText.text = message;
+
+            Button[] buttons = UIManager.Instance.confirmationPanel.GetComponentsInChildren<Button>();
+            if (buttons.Length >= 2)
+            {
+                buttons[0].onClick.RemoveAllListeners();
+                buttons[1].onClick.RemoveAllListeners();
+
+                buttons[0].onClick.AddListener(() => ExecuteRemoveFormulaCard(card, cost));
+                buttons[1].onClick.AddListener(() => UIManager.Instance.confirmationPanel.SetActive(false));
+            }
+        }
+    }
+    /// <summary>
+    /// 执行删除公式卡
+    /// </summary>
+    void ExecuteRemoveFormulaCard(FormulaCardData card, BigInteger cost)
+    {
+        if (GameManager.Instance.currentPoints < cost)
+        {
+            UIManager.Instance.confirmationPanel.SetActive(false);
+            Debug.LogWarning("[ShowMyCard] 点数不足");
+            return;
+        }
+
+        if (PlayerCardInventory.Instance.formulaCards.Count <= 1)
+        {
+            UIManager.Instance.confirmationPanel.SetActive(false);
+            Debug.LogWarning("[ShowMyCard] 至少需要保留1张公式卡");
+            return;
+        }
+
+        // 执行删除
+        PlayerCardInventory.Instance.formulaCards.Remove(card);
+        GameManager.Instance.AddPoints(-cost);
+        CardManager.Instance.SyncDeckFromInventory();
+
+        // 刷新
+        UIManager.Instance.UpdatePointsDisplay(GameManager.Instance.currentPoints);
+        UIManager.Instance.confirmationPanel.SetActive(false);
+        RefreshAllCards();
+
+        Debug.Log($"[ShowMyCard] 删除公式卡成功: {card.Name}");
+    }
     /// <summary>
     /// 更新删除模式UI
     /// </summary>

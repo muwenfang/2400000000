@@ -256,56 +256,6 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log("高效催化效果已激活");
                 break;
 
-            case BlessingData.BlessingType.CardCheat:
-                // 老千 - 可叠加：选择一张数字卡，将其替换为一张随机的数字卡
-                Debug.Log("老千效果已激活");
-                break;
-
-            case BlessingData.BlessingType.GamblingGearUpgraded:
-                // 赌具升级 - 可叠加：选择一个骰子使其立即升一级，祝福“赌具升级”的价格翻倍
-                Debug.Log("赌具升级效果已激活");
-                break;
-
-            case BlessingData.BlessingType.Dyed:
-                // 染色 - 可叠加：立即将数字卡的一个普通数字染为绿色，祝福“染色”的价格变为10倍
-                Debug.Log("染色效果已激活");
-                break;
-
-            case BlessingData.BlessingType.CompulsiveGambler:
-                // 狂赌之渊 - 不可叠加，本回合商店不刷新：立即将所有绿色数字变为~20~
-                Debug.Log("狂赌之渊效果已激活");
-                break;
-
-            case BlessingData.BlessingType.EnergySpread:
-                // 能量扩散 - 不可叠加：不参与计算的绿色数字每回合也会+1
-                Debug.Log("能量扩散效果已激活");
-                break;
-
-            case BlessingData.BlessingType.Utopianism:
-                // 空想主义 - 可叠加：立即获得一张未拥有的填空卡；如果获得此祝福时拥有了全部种类的填空卡，你立即获得2400000000点并失去所有“空想主义”
-                Debug.Log("空想主义效果已激活");
-                break;
-
-            case BlessingData.BlessingType.Pragmatism:
-                // 实用主义 - 不可叠加：任意时刻你仅保留价值最高的填空卡并自动删除其它填空卡
-                Debug.Log("实用主义效果已激活");
-                break;
-
-            case BlessingData.BlessingType.QuitGambling:
-                // 戒赌 - 可叠加：将数字卡中的一个骰子变为{0}
-                Debug.Log("戒赌效果已激活");
-                break;
-
-            case BlessingData.BlessingType.RapidActivation:
-                // 高效催化 - 可叠加：选择一个数字卡中的绿色数字使其立即+1，祝福“高效催化”的价格翻倍
-                Debug.Log("高效催化效果已激活");
-                break;
-
-            case BlessingData.BlessingType.CardCheat:
-                // 老千 - 可叠加：选择一张数字卡，将其替换为一张随机的数字卡
-                Debug.Log("老千效果已激活");
-                break;
-
             case BlessingData.BlessingType.GamblingGearUpgraded:
                 // 赌具升级 - 可叠加：选择一个骰子使其立即升一级，祝福“赌具升级”的价格翻倍
                 Debug.Log("赌具升级效果已激活");
