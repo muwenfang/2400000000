@@ -16,7 +16,7 @@ public class BlessingManager : MonoBehaviour
 
     [Header("玩家已拥有的祝福")]
     // 用字典存储：祝福ID -> 购买次数
-    private Dictionary<int, int> ownedBlessings = new Dictionary<int, int>();
+    public Dictionary<int, int> ownedBlessings = new Dictionary<int, int>();
 
     // 跟踪已永久购买过的祝福（用于NeverRefresh类型）
     private HashSet<int> blessingsEverPurchased = new HashSet<int>();
@@ -507,7 +507,7 @@ public class BlessingManager : MonoBehaviour
         // 眷顾 - 你每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%
         if (blessingTypeCount[BlessingData.BlessingType.Bless] == 1)
         { 
-            blessingCount = GetOwnedBlessingInstanceCount();
+            int blessingCount = GetOwnedBlessingInstanceCount();
             multiplier *= 1 - blessingCount * 0.01;
         }
         return multiplier;
