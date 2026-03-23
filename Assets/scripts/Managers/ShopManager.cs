@@ -115,6 +115,7 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
+        // 获取价格乘数（如果有祝福影响价格的话）
         float priceMultiplier = BlessingManager.Instance != null
          ? BlessingManager.Instance.GetCurrentPriceMultiplier()
          : 1.0f;
@@ -177,7 +178,7 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
-        // 获取价格乘数
+        // 获取价格乘数（如果有祝福影响价格的话）
         float priceMultiplier = BlessingManager.Instance != null
             ? BlessingManager.Instance.GetCurrentPriceMultiplier()
             : 1.0f;
@@ -212,6 +213,7 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
+        // 获取价格乘数（如果有祝福影响价格的话）
         float priceMultiplier = BlessingManager.Instance != null
         ? BlessingManager.Instance.GetCurrentPriceMultiplier()
         : 1.0f;

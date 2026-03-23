@@ -119,9 +119,9 @@ public class BlessingManager : MonoBehaviour
         return true;
     }
 
-    public int GetOwnedBlessingCount()
+    public int GetOwnedBlessingInstanceCount()
     { 
-    return ownedBlessings.Count;
+    return ownedBlessingInstance.Count;
     }
 
     /// <summary>
@@ -497,9 +497,18 @@ public class BlessingManager : MonoBehaviour
     {
         // 每购买一次"辩证主义"，价格上升1%
         float multiplier = Mathf.Pow(1.01f, totalDialecticalCount);
+
+        // 友情折扣 - 所有数字卡、填空卡与祝福的价格-10%
         if (blessingTypeCount[BlessingData.BlessingType.FriendDiscount] == 1)
         { 
-            multiplier *= 0.9f; // 友情折扣 - 所有数字卡、填空卡与祝福的价格-10%
+            multiplier *= 0.9f; 
+        }
+
+        // 眷顾 - 你每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%
+        if (blessingTypeCount[BlessingData.BlessingType.Bless] == 1)
+        { 
+            blessingCount = GetOwnedBlessingInstanceCount();
+            multiplier *= 1 - blessingCount * 0.01;
         }
         return multiplier;
     }
