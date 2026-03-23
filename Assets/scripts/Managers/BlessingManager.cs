@@ -90,7 +90,7 @@ public class BlessingManager : MonoBehaviour
         // 扣除点数
         GameManager.Instance.AddPoints(-finalPrice);
 
-        // 记录祝福购买
+        // 记录祝福购买，ownedBlessings字典中增加购买次数
         if (ownedBlessings.ContainsKey(blessingData.blessingId))
         {
             ownedBlessings[blessingData.blessingId]++;
