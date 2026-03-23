@@ -9,6 +9,7 @@ using System.Numerics;
 /// 商店系统。读取database中的商品信息，读取玩家信息，处理购买逻辑
 /// </summary>
 
+
 //商店购买系统
 [System.Serializable]
 public class ShopItem<T>
@@ -115,6 +116,7 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
+        // 获取价格乘数（如果有祝福影响价格的话）
         float priceMultiplier = BlessingManager.Instance != null
          ? BlessingManager.Instance.GetCurrentPriceMultiplier()
          : 1.0f;
@@ -124,7 +126,7 @@ public class ShopManager : MonoBehaviour
         {
             // 未锁定槽位：随机抽取一张卡
              int randomIndex = Random.Range(0, numberCardLibrary.allCards.Count);
-            NumberCardData randomCard = numberCardLibrary.allCards[randomIndex];
+             NumberCardData randomCard = numberCardLibrary.allCards[randomIndex];
 
             // 推断布局类型
             randomCard.layoutType = InferLayoutType(randomCard);
@@ -177,7 +179,7 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
-        // 获取价格乘数
+        // 获取价格乘数（如果有祝福影响价格的话）
         float priceMultiplier = BlessingManager.Instance != null
             ? BlessingManager.Instance.GetCurrentPriceMultiplier()
             : 1.0f;
@@ -212,6 +214,7 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
+        // 获取价格乘数（如果有祝福影响价格的话）
         float priceMultiplier = BlessingManager.Instance != null
         ? BlessingManager.Instance.GetCurrentPriceMultiplier()
         : 1.0f;
@@ -508,7 +511,7 @@ public class ShopManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 卡牌删除选择的回调（支持三种卡牌）
+    /// 卡牌删除选择的回调
     /// </summary>
     private void OnCardSelectedForDeletion(object selectedObject)
     {
@@ -527,10 +530,6 @@ public class ShopManager : MonoBehaviour
         {
             HandleFormulaCardDeletion(formulaCard);
         }
-        //else if (selectedObject is BlessingData blessingCard)
-        //{
-        //    HandleBlessingCardDeletion(blessingCard);
-        //}
         else
         {
             Debug.LogError($"[ShopManager] 未知的卡牌类型：{selectedObject.GetType().Name}");

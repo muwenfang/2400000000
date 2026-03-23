@@ -16,7 +16,7 @@ public class BlessingManager : MonoBehaviour
 
     [Header("玩家已拥有的祝福")]
     // 用字典存储：祝福ID -> 购买次数
-    private Dictionary<int, int> ownedBlessings = new Dictionary<int, int>();
+    public Dictionary<int, int> ownedBlessings = new Dictionary<int, int>();
 
     // 跟踪已永久购买过的祝福（用于NeverRefresh类型）
     private HashSet<int> blessingsEverPurchased = new HashSet<int>();
@@ -24,6 +24,8 @@ public class BlessingManager : MonoBehaviour
     // 用于快速查询特定祝福的购买次数
     private Dictionary<BlessingData.BlessingType, int> blessingTypeCount =
         new Dictionary<BlessingData.BlessingType, int>();
+
+    public List<BlessingInstance> ownedBlessingInstance =new List<BlessingInstance>();
 
     [Header("祝福效果累积")]
     private float totalMultiplierBonus = 0f; // 倍率加成
@@ -88,7 +90,7 @@ public class BlessingManager : MonoBehaviour
         // 扣除点数
         GameManager.Instance.AddPoints(-finalPrice);
 
-        // 记录祝福购买
+        // 记录祝福购买，ownedBlessings字典中增加购买次数
         if (ownedBlessings.ContainsKey(blessingData.blessingId))
         {
             ownedBlessings[blessingData.blessingId]++;
@@ -108,11 +110,20 @@ public class BlessingManager : MonoBehaviour
         }
         blessingTypeCount[blessingData.blessingType]++;
 
+        // 创建祝福实例并添加到列表
+        ownedBlessingInstance.Add(new BlessingInstance(blessingData, ownedBlessings[blessingData.blessingId]));
+
         // 应用祝福效果
         ApplyBlessingEffect(blessingData);
 
         return true;
     }
+
+    public int GetOwnedBlessingInstanceCount()
+    { 
+    return ownedBlessingInstance.Count;
+    }
+
     /// <summary>
     /// 检查祝福是否已被购买过（用于NeverRefresh判定）
     /// </summary>
@@ -225,7 +236,7 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.FriendDiscount:
-                // 友情折扣 - 不可叠加：所有数字卡、填空卡与祝福的价格-10%
+                // 友情折扣 - 不可叠加：所有数字卡、填空卡与祝福的价格-10%(在 ShopManager 中调用)
                 totalDialecticalCount++;
                 totalMultiplierBonus += blessingData.effectValue;
                 Debug.Log("友情折扣效果已激活");
@@ -260,56 +271,6 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.RapidActivation:
                 // 高效催化 - 可叠加：选择一个数字卡中的绿色数字使其立即+1，祝福“高效催化”的价格翻倍
                 Debug.Log("高效催化效果已激活");
-                break;
-
-            case BlessingData.BlessingType.CardCheat:
-                // 老千 - 可叠加：选择一张数字卡，将其替换为一张随机的数字卡
-                Debug.Log("老千效果已激活");
-                break;
-
-            case BlessingData.BlessingType.GamblingGearUpgraded:
-                // 赌具升级 - 可叠加：选择一个骰子使其立即升一级，祝福“赌具升级”的价格翻倍
-                Debug.Log("赌具升级效果已激活");
-                break;
-
-            case BlessingData.BlessingType.Dyed:
-                // 染色 - 可叠加：立即将数字卡的一个普通数字染为绿色，祝福“染色”的价格变为10倍
-                Debug.Log("染色效果已激活");
-                break;
-
-            case BlessingData.BlessingType.CompulsiveGambler:
-                // 狂赌之渊 - 不可叠加，本回合商店不刷新：立即将所有绿色数字变为~20~
-                Debug.Log("狂赌之渊效果已激活");
-                break;
-
-            case BlessingData.BlessingType.EnergySpread:
-                // 能量扩散 - 不可叠加：不参与计算的绿色数字每回合也会+1
-                Debug.Log("能量扩散效果已激活");
-                break;
-
-            case BlessingData.BlessingType.Utopianism:
-                // 空想主义 - 可叠加：立即获得一张未拥有的填空卡；如果获得此祝福时拥有了全部种类的填空卡，你立即获得2400000000点并失去所有“空想主义”
-                Debug.Log("空想主义效果已激活");
-                break;
-
-            case BlessingData.BlessingType.Pragmatism:
-                // 实用主义 - 不可叠加：任意时刻你仅保留价值最高的填空卡并自动删除其它填空卡
-                Debug.Log("实用主义效果已激活");
-                break;
-
-            case BlessingData.BlessingType.QuitGambling:
-                // 戒赌 - 可叠加：将数字卡中的一个骰子变为{0}
-                Debug.Log("戒赌效果已激活");
-                break;
-
-            case BlessingData.BlessingType.RapidActivation:
-                // 高效催化 - 可叠加：选择一个数字卡中的绿色数字使其立即+1，祝福“高效催化”的价格翻倍
-                Debug.Log("高效催化效果已激活");
-                break;
-
-            case BlessingData.BlessingType.CardCheat:
-                // 老千 - 可叠加：选择一张数字卡，将其替换为一张随机的数字卡
-                Debug.Log("老千效果已激活");
                 break;
 
             case BlessingData.BlessingType.GamblingGearUpgraded:
@@ -542,6 +503,19 @@ public class BlessingManager : MonoBehaviour
     {
         // 每购买一次"辩证主义"，价格上升1%
         float multiplier = Mathf.Pow(1.01f, totalDialecticalCount);
+
+        // 友情折扣 - 所有数字卡、填空卡与祝福的价格-10%
+        if (blessingTypeCount[BlessingData.BlessingType.FriendDiscount] == 1)
+        { 
+            multiplier *= 0.9f; 
+        }
+
+        // 眷顾 - 你每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%
+        if (blessingTypeCount[BlessingData.BlessingType.Bless] == 1)
+        { 
+            int blessingCount = GetOwnedBlessingInstanceCount();
+            multiplier *= 1 - blessingCount * 0.01;
+        }
         return multiplier;
     }
 
@@ -617,6 +591,7 @@ public class BlessingManager : MonoBehaviour
         }
         return result;
     }
+
 
     /// <summary>
     /// 调试：打印当前祝福状态

@@ -46,7 +46,6 @@ public class ShowMyBlessings : MonoBehaviour
     }
     /// <summary>
     /// 外部初始化方法，应在BlessingManager准备好后调用
-    /// 推荐从UIManager.OpenBlessCardDeck()中调用此方法
     /// </summary>
     public void Initialize()
     {

@@ -12,6 +12,8 @@ public class FormulaCardUI : MonoBehaviour
     public GameObject slotPrefab;           // # 槽位
 
     private readonly List<FormulaSlot> slots = new();
+    // 保存当前绑定的公式卡数据
+    private FormulaCardData currentFormulaData;
 
     public void Bind(FormulaCardData formula)
     {
@@ -27,7 +29,8 @@ public class FormulaCardUI : MonoBehaviour
             Debug.LogError("【错误】FormulaCardUI: 传入的 formula 数据为 null");
             return;
         }
-
+        // 保存数据供后续使用
+        currentFormulaData = formula;
         // 确保 formulaArea 有 HorizontalLayoutGroup
         HorizontalLayoutGroup layoutGroup = formulaArea.GetComponent<HorizontalLayoutGroup>();
         if (layoutGroup == null)
@@ -180,6 +183,20 @@ public class FormulaCardUI : MonoBehaviour
 
         // 如果公式卡本身也在一个 LayoutGroup 里，可能需要刷新根节点
         LayoutRebuilder.ForceRebuildLayoutImmediate(transform.GetComponent<RectTransform>());
+    }
+    /// <summary>
+    /// 获取当前绑定的公式卡数据
+    /// 用于卡牌选择系统（删卡功能）
+    /// </summary>
+    public FormulaCardData GetFormulaCardData()
+    {
+        if (currentFormulaData == null)
+        {
+            Debug.LogWarning("[FormulaCardUI] 当前没有绑定公式卡数据");
+            return null;
+        }
+
+        return currentFormulaData;
     }
     void Clear()
     {
