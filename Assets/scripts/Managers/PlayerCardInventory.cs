@@ -20,6 +20,11 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
         return formulaCards.Count;
     }
 
+    public int GetNumberCardCount()
+    {
+        return numberCards.Count;
+    }
+
     private void Awake()
     {
         if (Instance == null)
