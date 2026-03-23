@@ -25,6 +25,8 @@ public class BlessingManager : MonoBehaviour
     private Dictionary<BlessingData.BlessingType, int> blessingTypeCount =
         new Dictionary<BlessingData.BlessingType, int>();
 
+    public List<BlessingInstance> ownedBlessingInstance =new List<BlessingInstance>();
+
     [Header("祝福效果累积")]
     private float totalMultiplierBonus = 0f; // 倍率加成
     private int totalDialecticalCount = 0;   // 购买次数
@@ -107,6 +109,8 @@ public class BlessingManager : MonoBehaviour
             blessingTypeCount[blessingData.blessingType] = 0;
         }
         blessingTypeCount[blessingData.blessingType]++;
+
+        ownedBlessingInstance.Add(new BlessingInstance(blessingData, ownedBlessings[blessingData.blessingId]));
 
         // 应用祝福效果
         ApplyBlessingEffect(blessingData);
