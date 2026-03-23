@@ -110,6 +110,7 @@ public class BlessingManager : MonoBehaviour
         }
         blessingTypeCount[blessingData.blessingType]++;
 
+        // 创建祝福实例并添加到列表
         ownedBlessingInstance.Add(new BlessingInstance(blessingData, ownedBlessings[blessingData.blessingId]));
 
         // 应用祝福效果
