@@ -131,24 +131,65 @@ public class CardManager : MonoBehaviour
         // 创建临时池（使用库存中的实例）
         List<NumberCardInstance> tempPool = new List<NumberCardInstance>(inventoryInstances);
 
-        for (int i = 0; i < count; i++)
+        if (BlessingManager.blessingTypeCount[BlessingData.BlessingType.Empiricism] == 1)
         {
+            int i = 0;
             if (tempPool.Count == 0)
             {
                 Debug.LogWarning($"卡牌不足！只抽到 {i} 张");
                 break;
             }
+            int index = 0;
+            NumberCardInstance selectedInstance = tempPool[index];
+            tempPool.RemoveAt(index);
 
-            int randomIndex = Random.Range(0, tempPool.Count);
-            NumberCardInstance selectedInstance = tempPool[randomIndex];
-            tempPool.RemoveAt(randomIndex);
-
-            //抽中时处理骰子和递增
+            // 抽中时处理骰子和递增
             selectedInstance.OnDrawn();
-
             currentNumberCards.Add(selectedInstance);
-
             Debug.Log($"抽到卡牌: {selectedInstance.cardData.cardName}, 当前值: A={selectedInstance.currentA}, B={selectedInstance.currentB}");
+
+            for (; i < count; i++)
+            {
+                if (tempPool.Count == 0)
+                {
+                    Debug.LogWarning($"卡牌不足！只抽到 {i} 张");
+                    break;
+                }
+
+                int randomIndex = Random.Range(0, tempPool.Count);
+                NumberCardInstance selectedInstance = tempPool[randomIndex];
+                tempPool.RemoveAt(randomIndex);
+
+                //抽中时处理骰子和递增
+                selectedInstance.OnDrawn();
+
+                currentNumberCards.Add(selectedInstance);
+
+                Debug.Log($"抽到卡牌: {selectedInstance.cardData.cardName}, 当前值: A={selectedInstance.currentA}, B={selectedInstance.currentB}");
+            }
+        }
+
+        else
+        {
+            for (int i = 0; i < count; i++)
+            {
+                if (tempPool.Count == 0)
+                {
+                    Debug.LogWarning($"卡牌不足！只抽到 {i} 张");
+                    break;
+                }
+
+                int randomIndex = Random.Range(0, tempPool.Count);
+                NumberCardInstance selectedInstance = tempPool[randomIndex];
+                tempPool.RemoveAt(randomIndex);
+
+                //抽中时处理骰子和递增
+                selectedInstance.OnDrawn();
+
+                currentNumberCards.Add(selectedInstance);
+
+                Debug.Log($"抽到卡牌: {selectedInstance.cardData.cardName}, 当前值: A={selectedInstance.currentA}, B={selectedInstance.currentB}");
+            }
         }
     }
     public void DrawFormulaCards()
