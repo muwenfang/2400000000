@@ -118,6 +118,12 @@ public class BlessingManager : MonoBehaviour
 
         return true;
     }
+
+    public int GetOwnedBlessingCount()
+    { 
+    return ownedBlessings.Count;
+    }
+
     /// <summary>
     /// 检查祝福是否已被购买过（用于NeverRefresh判定）
     /// </summary>
