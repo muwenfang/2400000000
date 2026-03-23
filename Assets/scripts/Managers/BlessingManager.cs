@@ -219,7 +219,7 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.FriendDiscount:
-                // 友情折扣 - 不可叠加：所有数字卡、填空卡与祝福的价格-10%
+                // 友情折扣 - 不可叠加：所有数字卡、填空卡与祝福的价格-10%(在 ShopManager 中调用)
                 totalDialecticalCount++;
                 totalMultiplierBonus += blessingData.effectValue;
                 Debug.Log("友情折扣效果已激活");
@@ -486,6 +486,10 @@ public class BlessingManager : MonoBehaviour
     {
         // 每购买一次"辩证主义"，价格上升1%
         float multiplier = Mathf.Pow(1.01f, totalDialecticalCount);
+        if (blessingTypeCount[BlessingData.BlessingType.FriendDiscount] == 1)
+        { 
+            multiplier *= 0.9f; // 友情折扣 - 所有数字卡、填空卡与祝福的价格-10%
+        }
         return multiplier;
     }
 
@@ -561,6 +565,7 @@ public class BlessingManager : MonoBehaviour
         }
         return result;
     }
+
 
     /// <summary>
     /// 调试：打印当前祝福状态
