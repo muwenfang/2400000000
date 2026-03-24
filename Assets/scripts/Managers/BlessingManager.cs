@@ -22,7 +22,7 @@ public class BlessingManager : MonoBehaviour
     private HashSet<int> blessingsEverPurchased = new HashSet<int>();
 
     // 用于快速查询特定祝福的购买次数
-    private Dictionary<BlessingData.BlessingType, int> blessingTypeCount =
+    public Dictionary<BlessingData.BlessingType, int> blessingTypeCount =
         new Dictionary<BlessingData.BlessingType, int>();
 
     public List<BlessingInstance> ownedBlessingInstance =new List<BlessingInstance>();
