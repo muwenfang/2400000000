@@ -123,7 +123,7 @@ public class BlessingManager : MonoBehaviour
 
     public int GetOwnedBlessingInstanceCount()
     { 
-    return ownedBlessingInstance.Count;
+        return ownedBlessingInstance.Count;
     }
 
     /// <summary>
