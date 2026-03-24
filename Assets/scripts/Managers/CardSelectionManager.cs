@@ -175,10 +175,11 @@ public class CardSelectionManager : MonoBehaviour
                 if (formulaCardPanel != null && formulaCardPanel.gameObject.activeSelf)
                     panelsToCheck.Add(formulaCardPanel);
                 break;        
-            
+                
             case SelectionMode.WishCoinSelect:
+                // 选择祝福的模式
                 if (blessingPanel != null && blessingPanel.gameObject.activeSelf)
-                panelsToCheck.Add(blessingPanel);        
+                    panelsToCheck.Add(blessingPanel);        
                 break;
         }
 

@@ -63,6 +63,7 @@ public class BlessingManager : MonoBehaviour
         LuckTurnsCount = 0;
         CardMasterCount = 0;
         hasJackpot7 = false;
+        wishCoinTargetBlessing = null; 
     }
 
     /// <summary>
@@ -432,8 +433,23 @@ public class BlessingManager : MonoBehaviour
             Debug.LogError("CardSelectionManager 未初始化");
             return;
         }
-
-    // 开启祝福选择模式
+        List<BlessingData> validStackableBlessings = new List<BlessingData>();
+        foreach (var kvp in ownedBlessings)
+        {
+            int id = kvp.Key;
+            int count = kvp.Value;
+            if (count <= 0) continue;
+            BlessingData data = blessingLibrary.GetBlessingById(id);
+            if (data != null && data.isStackable)
+            {
+                validStackableBlessings.Add(data);
+            }
+            if (validStackableBlessings.Count == 0)
+            {
+                Debug.LogWarning("没有可叠加祝福");
+            }
+        }
+            // 开启祝福选择模式
         CardSelectionManager.Instance.StartCardSelection(
         CardSelectionManager.SelectionMode.WishCoinSelect,
         OnWishCoinBlessingSelected);
@@ -629,6 +645,7 @@ public class BlessingManager : MonoBehaviour
         LuckTurnsCount = 0;
         CardMasterCount = 0;
         hasJackpot7 = false;
+        wishCoinTargetBlessing = null;
     }
 
     /// <summary>
@@ -668,14 +685,15 @@ public class BlessingManager : MonoBehaviour
     }
     
     /// <summary>
-    /// 神灯核心逻辑：直接添加3个随机可叠加祝福到 ownedBlessings（支持重复，跳过购买流程）
+    /// 神灯:直接添加3个随机可叠加祝福到 ownedBlessings
     /// </summary>
     private void AddStackableBlessingsToOwned(int count)
     {
         // 1. 获取祝福库中所有可叠加祝福
         List<BlessingData> allStackable = blessingLibrary.GetAllStackableBlessing();
+        allStackable.RemoveAll(b =>b.blessingType == BlessingData.BlessingType.MagicLamp);
         System.Random rnd = new System.Random();
-        // 2. 随机选择 count 个祝福（支持重复）
+        // 2. 随机选择 count 个祝福
         for (int i = 0; i < count; i++)
         {
             int randomIdx = rnd.Next(allStackable.Count);
@@ -686,7 +704,7 @@ public class BlessingManager : MonoBehaviour
             if (ownedBlessings.ContainsKey(selected.blessingId)) ownedBlessings[selected.blessingId]++;
             else ownedBlessings[selected.blessingId] = 1;
 
-        // 4. 同步关联数据（你原代码里的结构）
+        // 4. 同步关联数据
             blessingsEverPurchased.Add(selected.blessingId);
             if (!blessingTypeCount.ContainsKey(selected.blessingType)) blessingTypeCount[selected.blessingType] = 0;
             blessingTypeCount[selected.blessingType]++;
