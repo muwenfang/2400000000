@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -18,10 +18,14 @@ public class CardSelectionManager : MonoBehaviour
     [Tooltip("公式卡界面 - 由 ShowMyCard 管理")]
     public RectTransform formulaCardPanel;
 
+    [Tooltip("祝福界面 - 由 ShowMyCard 管理")]
+    public RectTransform blessingPanel;
+
     public enum SelectionMode
     {
         CardCheat,      // 老千祝福：只能选择数字卡
-        RemoveCard      // 删除卡牌：可以选择数字卡和公式卡
+        RemoveCard,     // 删除卡牌：可以选择数字卡和公式卡
+        WishCoinSelect  // 许愿币祝福：只能选择祝福
     }
 
     private SelectionMode currentMode;
@@ -71,11 +75,31 @@ public class CardSelectionManager : MonoBehaviour
                 // 删卡模式：显示数字卡和公式卡
                 ShowNumberAndFormulaCardPanels();
                 break;
+
+            case SelectionMode.WishCoinSelect:
+                // 许愿模式：只显示祝福
+                ShowBlessingPanelOnly();
+                break;
         }
 
         // 激活按钮
         ActivateSelectionButtons();
     }
+
+    private void ShowBlessingPanelOnly()
+    {
+        // 隐藏公式卡界面
+        if (formulaCardPanel != null)
+            formulaCardPanel.gameObject.SetActive(false);
+
+        // 隐藏数字卡界面
+        if (numberCardPanel != null)
+        {
+            numberCardPanel.gameObject.SetActive(false);
+        }
+        blessingPanel.gameObject.SetActive(true);
+    }
+
 
     /// <summary>
     /// 老千模式：只显示数字卡界面
@@ -150,6 +174,11 @@ public class CardSelectionManager : MonoBehaviour
                     panelsToCheck.Add(numberCardPanel);
                 if (formulaCardPanel != null && formulaCardPanel.gameObject.activeSelf)
                     panelsToCheck.Add(formulaCardPanel);
+                break;        
+            
+            case SelectionMode.WishCoinSelect:
+                if (blessingPanel != null && blessingPanel.gameObject.activeSelf)
+                panelsToCheck.Add(blessingPanel);        
                 break;
         }
 
@@ -206,6 +235,20 @@ public class CardSelectionManager : MonoBehaviour
                 activeSelectionButtons.Add(selectedBtn);
                 Debug.Log($"[CardSelectionManager] 已激活数字卡选择按钮：{cardController.BoundCard.cardData.cardName}");
             }
+
+            if (currentMode == SelectionMode.WishCoinSelect)
+            {
+            // 遍历祝福面板内的祝福项（挂有BlessingItemUI）
+                foreach (Transform child in panel)
+                {
+                    var blessItem = child.GetComponent<BlessingUI>();
+                    if (blessItem == null || blessItem.BoundBlessing == null) continue;
+        
+                    Button btn = child.GetComponent<Button>() ?? child.gameObject.AddComponent<Button>();
+                    btn.onClick.AddListener(() => OnWishCoinBlessingSelected(blessItem.BoundBlessing));
+                }
+            }   
+        
         }
 
         // 获取面板中所有的 FormulaCardUI（公式卡 prefab）
@@ -272,7 +315,15 @@ public class CardSelectionManager : MonoBehaviour
         selectionCallback?.Invoke(selectedFormula);
         EndCardSelection();
     }
-
+    /// <summary>
+    /// 处理祝福被选中
+    /// </summary>
+    private void OnWishCoinBlessingSelected(BlessingData selectedBlessing)
+    {
+        selectionCallback?.Invoke(selectedBlessing);
+        EndCardSelection();
+    }
+    
     /// <summary>
     /// 关闭卡牌选择模式
     /// </summary>
@@ -293,6 +344,8 @@ public class CardSelectionManager : MonoBehaviour
             numberCardPanel.gameObject.SetActive(false);
         if (formulaCardPanel != null)
             formulaCardPanel.gameObject.SetActive(false);
+        if (blessingPanel != null)
+            blessingPanel.gameObject.SetActive(false);
 
         // 通过 UIManager 隐藏卡牌界面
         if (UIManager.Instance != null && UIManager.Instance.myNumberCardPanel != null)

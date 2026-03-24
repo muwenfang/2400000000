@@ -208,16 +208,32 @@ public class ShopManager : MonoBehaviour
     {
         shopBlessings.Clear();
 
+        // 获取价格乘数（如果有祝福影响价格的话）
+        float priceMultiplier = BlessingManager.Instance != null
+        ? BlessingManager.Instance.GetCurrentPriceMultiplier()
+        : 1.0f;
+
+        BlessingData wishBlessing = BlessingManager.Instance.GetWishCoinTargetBlessing();
+        if (wishBlessing != null)
+        {
+            // 强制加入本次商品，优先占用第一个槽位
+            priceMultiplier = BlessingManager.Instance.GetCurrentPriceMultiplier();
+            int currentCount = BlessingManager.Instance.GetBlessingCount(wishBlessing.blessingId);
+            int price = wishBlessing.CalculatePrice(currentCount, priceMultiplier);
+
+            shopBlessings.Add(new ShopItem<BlessingData>(wishBlessing, price));
+            Debug.Log($"许愿币生效：强制刷新出【{wishBlessing.blessingName}】");
+
+            // 消耗许愿币
+            BlessingManager.Instance.ConsumeWishCoin();
+        }
+        
+
         if (blessingLibrary == null || blessingLibrary.GetAllBlessings().Count == 0)
         {
             Debug.LogError("BlessingLibrary 未设置或为空！");
             return;
         }
-
-        // 获取价格乘数（如果有祝福影响价格的话）
-        float priceMultiplier = BlessingManager.Instance != null
-        ? BlessingManager.Instance.GetCurrentPriceMultiplier()
-        : 1.0f;
 
         // 构建可用祝福池（根据刷新行为过滤）
         List<BlessingData> availableBlessings = BuildAvailableBlessingPool();
@@ -787,7 +803,6 @@ public class ShopManager : MonoBehaviour
         Debug.Log("[ShopManager] 离开商店，删除功能已清理");
     }
     #endregion
-
 
 
     #region 槽位解锁逻辑
