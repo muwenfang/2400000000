@@ -514,7 +514,7 @@ public class BlessingManager : MonoBehaviour
         if (blessingTypeCount[BlessingData.BlessingType.Bless] == 1)
         { 
             int blessingCount = GetOwnedBlessingInstanceCount();
-            multiplier *= 1 - blessingCount * 0.01;
+            multiplier *= (float)(1 - blessingCount * 0.01);
         }
         return multiplier;
     }

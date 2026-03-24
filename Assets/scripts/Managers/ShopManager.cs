@@ -417,7 +417,7 @@ public class ShopManager : MonoBehaviour
         long refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
 
         // 如果拥有丰盈宝库祝福，刷新费用为0
-        if (BlessingManager.ownedBlessings[26] == 1)
+        if (BlessingManager.Instance.ownedBlessings[26] == 1)
         {
             refreshCost = 0;
         }
