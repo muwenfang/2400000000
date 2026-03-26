@@ -769,6 +769,37 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 314141763}
   m_CullTransparentMesh: 1
+--- !u!1 &419274596 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 4867336503892678451, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+  m_PrefabInstance: {fileID: 1329721509}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &419274597
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 419274596}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  m_Padding:
+    m_Left: 20
+    m_Right: 20
+    m_Top: 0
+    m_Bottom: 0
+  m_ChildAlignment: 4
+  m_Spacing: 50
+  m_ChildForceExpandWidth: 1
+  m_ChildForceExpandHeight: 1
+  m_ChildControlWidth: 0
+  m_ChildControlHeight: 0
+  m_ChildScaleWidth: 0
+  m_ChildScaleHeight: 0
+  m_ReverseArrangement: 0
 --- !u!1 &428569053
 GameObject:
   m_ObjectHideFlags: 0
@@ -976,12 +1007,13 @@ MonoBehaviour:
   contentRoot: {fileID: 1350498825}
   scrollRect: {fileID: 682225276}
   deleteCostText: {fileID: 152407951}
+  deleteCardSlotPrefab: {fileID: 0}
+  deleteNumberCardSlotPrefab: {fileID: 0}
+  deleteFormulaCardSlotPrefab: {fileID: 0}
   cardScale: 1
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
-  deleteButtonPrefab: {fileID: 5508115172736919030, guid: 4ea257627ca306249bc33edc127af3ca, type: 3}
-  deleteConfirmPanelPrefab: {fileID: 1349119964460934882, guid: 4ec46f1dbbe97104194b3b4b911b567f, type: 3}
 --- !u!114 &496826563
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1677,6 +1709,24 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 636421120}
   m_CullTransparentMesh: 1
+--- !u!114 &664232536
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1011417144}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ae0c89ad16c98154f8ba3f1b87b6ea0b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardContentRoot: {fileID: 0}
+  selectButton: {fileID: 0}
+  numberCardLibrary: {fileID: 0}
+  formulaCardPrefab: {fileID: 0}
+  numberCardSize: {x: 280, y: 200}
+  formulaCardSize: {x: 1450, y: 310}
 --- !u!1 &679115383
 GameObject:
   m_ObjectHideFlags: 0
@@ -2639,6 +2689,22 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 982904769}
   m_CullTransparentMesh: 1
+--- !u!1 &1011417144 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1339343424640892095, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+  m_PrefabInstance: {fileID: 1329721509}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1038536867 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+  m_PrefabInstance: {fileID: 1329721509}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 4e29b1a8efbd4b44bb3f3716e73f07ff, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1050276291
 GameObject:
   m_ObjectHideFlags: 0
@@ -2907,8 +2973,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dd2567fcad9d4f64390c42f980495c1e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  baseRemoveCost: 5
-  minNumberCardsToKeep: 6
 --- !u!4 &1230954574
 Transform:
   m_ObjectHideFlags: 0
@@ -3082,8 +3146,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b95e722a1f9c6e246acc016c1853556d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  closeButton: {fileID: 1269274290}
-  isInDeleteMode: 0
 --- !u!114 &1329308360 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 3391227158671819026, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
@@ -3269,7 +3331,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
-      value: 2
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
@@ -3282,7 +3344,7 @@ PrefabInstance:
     - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
       value: 
-      objectReference: {fileID: 1230954573}
+      objectReference: {fileID: 1713274719}
     - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_Target
       value: 
@@ -3297,7 +3359,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OpenDeleteMode
+      value: OnEnterRemovalMode
       objectReference: {fileID: 0}
     - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
@@ -3305,7 +3367,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_TargetAssemblyTypeName
-      value: CardRemovalManager, Assembly-CSharp
+      value: ShopManager, Assembly-CSharp
       objectReference: {fileID: 0}
     - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_TargetAssemblyTypeName
@@ -4106,12 +4168,15 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2122976576}
     m_AddedComponents:
+    - targetCorrespondingSourceObject: {fileID: 1339343424640892095, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 664232536}
     - targetCorrespondingSourceObject: {fileID: 6944657651253763023, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1191084447}
     - targetCorrespondingSourceObject: {fileID: 4867336503892678451, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       insertIndex: -1
-      addedObject: {fileID: 1538916299}
+      addedObject: {fileID: 419274597}
     - targetCorrespondingSourceObject: {fileID: 4078334534948872150, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       insertIndex: -1
       addedObject: {fileID: 2050035150}
@@ -4194,12 +4259,13 @@ MonoBehaviour:
   contentRoot: {fileID: 1702525666}
   scrollRect: {fileID: 772237203}
   deleteCostText: {fileID: 152407951}
+  deleteCardSlotPrefab: {fileID: 0}
+  deleteNumberCardSlotPrefab: {fileID: 0}
+  deleteFormulaCardSlotPrefab: {fileID: 0}
   cardScale: 1
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
-  deleteButtonPrefab: {fileID: 5508115172736919030, guid: 4ea257627ca306249bc33edc127af3ca, type: 3}
-  deleteConfirmPanelPrefab: {fileID: 1349119964460934882, guid: 4ec46f1dbbe97104194b3b4b911b567f, type: 3}
 --- !u!1 &1348500145
 GameObject:
   m_ObjectHideFlags: 0
@@ -4430,37 +4496,6 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: -20, y: -20}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!1 &1538916296 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 4867336503892678451, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
-  m_PrefabInstance: {fileID: 1329721509}
-  m_PrefabAsset: {fileID: 0}
---- !u!114 &1538916299
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1538916296}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30649d3a9faa99c48a7b1166b86bf2a0, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Padding:
-    m_Left: 10
-    m_Right: 10
-    m_Top: 0
-    m_Bottom: 0
-  m_ChildAlignment: 4
-  m_Spacing: 800
-  m_ChildForceExpandWidth: 0
-  m_ChildForceExpandHeight: 0
-  m_ChildControlWidth: 0
-  m_ChildControlHeight: 0
-  m_ChildScaleWidth: 1
-  m_ChildScaleHeight: 1
-  m_ReverseArrangement: 0
 --- !u!1 &1542867558
 GameObject:
   m_ObjectHideFlags: 0
@@ -4846,8 +4881,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b95e722a1f9c6e246acc016c1853556d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  closeButton: {fileID: 1662474150}
-  isInDeleteMode: 0
 --- !u!1 &1702525665
 GameObject:
   m_ObjectHideFlags: 0
@@ -5092,6 +5125,8 @@ MonoBehaviour:
   formulaCardCount: 1
   blessingCardCount: 2
   refreshCount: 0
+  deleteCardButton: {fileID: 1038536867}
+  deleteCardCostText: {fileID: 152407951}
   totalRemovedNumberCards: 0
   baseNumberCardRemoveCost: 5
   baseNumberSlotUnlockCost: 10
@@ -5719,8 +5754,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: b95e722a1f9c6e246acc016c1853556d, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  closeButton: {fileID: 2122976577}
-  isInDeleteMode: 0
 --- !u!1001 &7053959220092451204
 PrefabInstance:
   m_ObjectHideFlags: 0

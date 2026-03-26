@@ -22,9 +22,12 @@ public class ShowMyCard : MonoBehaviour
 
     [Header("删除模式")]
     public Text deleteCostText; // 显示删除所需点数的文本
-    public GameObject deleteCardSlotPrefab; [Header("删除模式Prefabs")]
+    public GameObject deleteCardSlotPrefab; 
+    
+    [Header("删除模式Prefabs")]
     public GameObject deleteNumberCardSlotPrefab;  // 数字卡删除槽位
     public GameObject deleteFormulaCardSlotPrefab; // 公式卡删除槽位
+
     [Header("显示设置")]
     public float cardScale = 1.0f;
 
@@ -138,6 +141,7 @@ public class ShowMyCard : MonoBehaviour
         {
             Destroy(child.gameObject);
         }
+        cardGameObjects.Clear();
 
         // 2. 根据类型生成
         if (isDeleteMode)
@@ -195,9 +199,10 @@ public class ShowMyCard : MonoBehaviour
             if (slot != null)
             {
                 // 注意：DeleteCardSlot 使用 Action<object> 回调，统一以 object 传递，ShowMyCard 统一处理类型
-                slot.BindNumberCardForDeletion(instance, (obj) =>
+                slot.BindNumberCardForDeletion(instance, (card) =>
                 {
-                    OnCardDeleteClick(obj);
+                    // 直接调用ShopManager的删除处理
+                    ShopManager.Instance.OnCardSelectedForDeletion(card);
                 });
 
                 Debug.Log($"[ShowMyCard] 为删除模式创建数字卡槽位：{instance.cardData.cardName}");
@@ -241,9 +246,11 @@ public class ShowMyCard : MonoBehaviour
             DeleteCardSlot slot = slotGo.GetComponent<DeleteCardSlot>();
             if (slot != null)
             {
-                slot.BindFormulaCardForDeletion(formulaData, (obj) =>
+                // 绑定卡牌，并设置回调指向ShopManager
+                slot.BindFormulaCardForDeletion(formulaData, (card) =>
                 {
-                    OnCardDeleteClick(obj);
+                    // 直接调用ShopManager的删除处理
+                    ShopManager.Instance.OnCardSelectedForDeletion(card);
                 });
 
                 Debug.Log($"[ShowMyCard] 为删除模式创建公式卡槽位：{formulaData.Name}");

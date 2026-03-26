@@ -485,7 +485,7 @@ GameObject:
   - component: {fileID: 3620570132582677884}
   - component: {fileID: 7099995316750335835}
   m_Layer: 5
-  m_Name: ShopNumberCardUI
+  m_Name: ShopNumberCard
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

@@ -39,7 +39,7 @@ public class UIManager : MonoBehaviour
     public Text pointsText;              // 总分数
     public Text roundText;               // 当前回合
     public Text stageRequirementText;    // 阶段要求点数
-    public Text targetRoundText; // 拖入用于显示 "目标回合: X" 的文本组件
+    public Text targetRoundText;        // 显示目标回合的文本组件
 
     [Header("点数获得提示")]
     public Text pointsGainText; // 显示获得的点数数值
