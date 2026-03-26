@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -19,23 +19,20 @@ public class BlessingManager : MonoBehaviour
     public Dictionary<int, int> ownedBlessings = new Dictionary<int, int>();
 
     // 跟踪已永久购买过的祝福（用于NeverRefresh类型）
-    private HashSet<int> blessingsEverPurchased = new HashSet<int>();
+    public HashSet<int> blessingsEverPurchased = new HashSet<int>();
 
     // 用于快速查询特定祝福的购买次数
     public Dictionary<BlessingData.BlessingType, int> blessingTypeCount =
         new Dictionary<BlessingData.BlessingType, int>();
 
-    public List<BlessingInstance> ownedBlessingInstance =new List<BlessingInstance>();
-
     [Header("祝福效果累积")]
     private float totalMultiplierBonus = 0f; // 倍率加成
-    private int totalDialecticalCount = 0;   // 购买次数
+    private int totalDialecticalCount = 0;   // '辩证主义'购买次数
     private float AllGodsCount = 0;          // 众神归位数量 
-    private int LuckTurnsCount = 0;           //是否激活转运，1是激活
+    private int LuckTurnsCount = 0;           //是否激活，1是激活
     private bool hasJackpot7 = false;        //是否激活逢7过
     private int CardMasterCount = 0;       //是否激活卡牌大师 
-    private BlessingData wishCoinTargetBlessing = null; //许愿币储存的祝福
-    
+   
     private void Awake()
     {
         if (Instance == null)
@@ -63,7 +60,6 @@ public class BlessingManager : MonoBehaviour
         LuckTurnsCount = 0;
         CardMasterCount = 0;
         hasJackpot7 = false;
-        wishCoinTargetBlessing = null; 
     }
 
     /// <summary>
@@ -78,9 +74,7 @@ public class BlessingManager : MonoBehaviour
         }
 
         // 计算当前祝福的价格（考虑已购买次数）
-        int currentCount = GetBlessingCount(blessingData.blessingId);
-        float priceMultiplier = GetCurrentPriceMultiplier();
-        int finalPrice = blessingData.CalculatePrice(currentCount, priceMultiplier);
+        int finalPrice = CalculateBlessingPrice(blessingData);
 
         // 检查点数是否足够
         if (GameManager.Instance.currentPoints < finalPrice)
@@ -92,7 +86,7 @@ public class BlessingManager : MonoBehaviour
         // 扣除点数
         GameManager.Instance.AddPoints(-finalPrice);
 
-        // 记录祝福购买，ownedBlessings字典中增加购买次数
+        // 记录祝福购买
         if (ownedBlessings.ContainsKey(blessingData.blessingId))
         {
             ownedBlessings[blessingData.blessingId]++;
@@ -112,20 +106,11 @@ public class BlessingManager : MonoBehaviour
         }
         blessingTypeCount[blessingData.blessingType]++;
 
-        // 创建祝福实例并添加到列表
-        ownedBlessingInstance.Add(new BlessingInstance(blessingData, ownedBlessings[blessingData.blessingId]));
-
         // 应用祝福效果
         ApplyBlessingEffect(blessingData);
 
         return true;
     }
-
-    public int GetOwnedBlessingInstanceCount()
-    { 
-        return ownedBlessingInstance.Count;
-    }
-
     /// <summary>
     /// 检查祝福是否已被购买过（用于NeverRefresh判定）
     /// </summary>
@@ -149,7 +134,28 @@ public class BlessingManager : MonoBehaviour
         }
         return totalCount;
     }
-    
+
+    public int CalculateBlessingPrice(BlessingData data)
+
+    {
+        int purchaseCount = GetBlessingCount(data.blessingId);
+        float calculatedPrice;
+        int currentPrice = data.basePrice;
+        float priceMultiplier = Mathf.Pow(data.effectValue + 1, purchaseCount) * GetCurrentPriceMultiplier();
+        switch (data.blessingType)
+        {
+            case BlessingData.BlessingType.Raise:
+                currentPrice += purchaseCount * 300;
+                calculatedPrice = currentPrice * priceMultiplier;
+                return Mathf.RoundToInt(calculatedPrice);
+
+            default:
+                calculatedPrice = currentPrice * priceMultiplier;
+                return Mathf.RoundToInt(calculatedPrice);
+        }
+    }
+
+
     /// <summary>
     /// 应用祝福效果
     /// </summary>
@@ -161,12 +167,6 @@ public class BlessingManager : MonoBehaviour
                 // 逢七过 - 
                 hasJackpot7 = true;
                 Debug.Log("逢七过效果已激活");
-                break;
-            
-            case BlessingData.BlessingType.WishingCoin:
-                 // 许愿币：选择一个已拥有的可叠加祝福，下回合商店必出
-                Debug.Log("许愿币效果激活：请选择一个已拥有的可叠加祝福");
-                ActivateWishCoinSelection();
                 break;
             
             case BlessingData.BlessingType.AllGodsInPlace:
@@ -213,14 +213,12 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.DoubleDown:
                 // 倍投 - 倍率+1,价格翻倍
-                totalDialecticalCount++;
                 totalMultiplierBonus += blessingData.effectValue;
                 Debug.Log("倍投效果已激活");
                 break;
 
             case BlessingData.BlessingType.Raise:
                 // 加注 - 倍率+1,价格+300
-                totalDialecticalCount++;
                 totalMultiplierBonus += blessingData.effectValue;
                 Debug.Log("加注效果已激活");
                 break;
@@ -237,15 +235,8 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log("大卡牌包效果已激活：立即获得五张随机数字卡");
                 break;
 
-            case BlessingData.BlessingType.MagicLamp:
-                 //神灯 - 获取三个随机可叠加祝福
-                AddStackableBlessingsToOwned(3);
-                Debug.Log("神灯效果已激活");
-                break;
-
             case BlessingData.BlessingType.FriendDiscount:
-                // 友情折扣 - 不可叠加：所有数字卡、填空卡与祝福的价格-10%(在 ShopManager 中调用)
-                totalDialecticalCount++;
+                // 友情折扣 - 不可叠加：所有数字卡、填空卡与祝福的价格-10%
                 totalMultiplierBonus += blessingData.effectValue;
                 Debug.Log("友情折扣效果已激活");
                 break;
@@ -256,7 +247,7 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.RichTreasury:
-                // 丰盈宝库 - 不可叠加：商店刷新永久免费（在 ShopManager 里调用）
+                // 丰盈宝库 - 不可叠加：商店刷新永久免费
                 Debug.Log("丰盈宝库效果已激活");
                 break;
 
@@ -265,10 +256,9 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log("经验主义效果已激活");
                 break;
 
-            case BlessingData.BlessingType.CardCheat:
-                // 老千祝福 - 激活卡牌选择
-                Debug.Log("[BlessingManager] 老千祝福已激活，等待玩家选择数字卡");
-                ActivateCardCheatSelection();
+            case BlessingData.BlessingType.Materialism:
+                // 唯物主义 - 不可叠加：立即获得等同于当前已拥有祝福数量2倍的永久倍率，然后失去所有祝福
+                Debug.Log("唯物主义效果已激活");
                 break;
 
             case BlessingData.BlessingType.QuitGambling:
@@ -279,6 +269,11 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.RapidActivation:
                 // 高效催化 - 可叠加：选择一个数字卡中的绿色数字使其立即+1，祝福“高效催化”的价格翻倍
                 Debug.Log("高效催化效果已激活");
+                break;
+
+            case BlessingData.BlessingType.CardCheat:
+                // 老千 - 可叠加：选择一张数字卡，将其替换为一张随机的数字卡
+                Debug.Log("老千效果已激活");
                 break;
 
             case BlessingData.BlessingType.GamblingGearUpgraded:
@@ -313,100 +308,7 @@ public class BlessingManager : MonoBehaviour
 
         }
     }
-    /// <summary>
-    /// ✨ 激活老千祝福的卡牌选择
-    /// </summary>
-    private void ActivateCardCheatSelection()
-    {
-        if (CardSelectionManager.Instance == null)
-        {
-            Debug.LogError("[BlessingManager] CardSelectionManager 未初始化");
-            return;
-        }
 
-        // 开启卡牌选择模式
-        CardSelectionManager.Instance.StartCardSelection(
-            CardSelectionManager.SelectionMode.CardCheat,
-            OnCardCheatCardSelected
-        );
-    }
-
-    /// <summary>
-    /// ✨ 老千祝福的卡牌选择回调
-    /// </summary>
-    private void OnCardCheatCardSelected(object selectedObject)
-    {
-        // 检查是否是数字卡（应该是）
-        if (!(selectedObject is NumberCardInstance selectedCard))
-        {
-            Debug.LogError("[BlessingManager] 老千祝福：选择的不是数字卡！");
-            return;
-        }
-
-        if (selectedCard == null)
-        {
-            Debug.LogError("[BlessingManager] 选择的卡牌为空");
-            return;
-        }
-
-        Debug.Log($"[BlessingManager] 老千祝福选中数字卡：{selectedCard.cardData.cardName}");
-
-        // 执行老千逻辑
-        ApplyCardCheatEffect(selectedCard);
-    }
-
-    /// <summary>
-    /// 执行老千祝福效果
-    /// </summary>
-    private void ApplyCardCheatEffect(NumberCardInstance cardToReplace)
-    {
-        var playerInventory = PlayerCardInventory.Instance;
-        if (playerInventory == null)
-        {
-            Debug.LogError("[BlessingManager] PlayerCardInventory 为空");
-            return;
-        }
-
-        // 检查卡牌是否在库存中
-        if (!playerInventory.numberCards.Contains(cardToReplace))
-        {
-            Debug.LogWarning("[BlessingManager] 选择的卡牌不在库存中");
-            return;
-        }
-
-        // 获取卡牌库
-        if (playerInventory.numberCardLibrary == null ||
-            playerInventory.numberCardLibrary.allCards == null ||
-            playerInventory.numberCardLibrary.allCards.Count == 0)
-        {
-            Debug.LogError("[BlessingManager] 卡牌库为空");
-            return;
-        }
-
-        // 随机选择新卡牌
-        int randomIndex = UnityEngine.Random.Range(0, playerInventory.numberCardLibrary.allCards.Count);
-        NumberCardData randomCard = playerInventory.numberCardLibrary.allCards[randomIndex];
-
-        // 替换卡牌
-        int oldCardIndex = playerInventory.numberCards.IndexOf(cardToReplace);
-        if (oldCardIndex >= 0)
-        {
-            NumberCardInstance newCardInstance = new NumberCardInstance(randomCard);
-            playerInventory.numberCards[oldCardIndex] = newCardInstance;
-
-            Debug.Log($"[BlessingManager] 老千祝福：'{cardToReplace.cardData.cardName}' → '{randomCard.cardName}'");
-
-            // 刷新UI
-            if (UIManager.Instance != null)
-            {
-                UIManager.Instance.RefreshGameUI();
-            }
-            else
-            {
-                Debug.LogWarning("[BlessingManager] UIManager 为空，无法刷新UI");
-            }
-        }
-    }
     /// <summary>
     /// 提供转运祝福的激活状态（是否拥有转运祝福）
     /// </summary>
@@ -416,7 +318,7 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 获取特定祝福的购买次数
+    /// 根据id获取特定类型祝福的购买次数
     /// </summary>
     public int GetBlessingCount(int blessingId)
     {
@@ -424,71 +326,7 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 许愿币：打开祝福选择界面（只显示玩家已拥有的可叠加祝福）
-    /// </summary>
-    private void ActivateWishCoinSelection()
-    {
-        if (CardSelectionManager.Instance == null)
-        {
-            Debug.LogError("CardSelectionManager 未初始化");
-            return;
-        }
-        List<BlessingData> validStackableBlessings = new List<BlessingData>();
-        foreach (var kvp in ownedBlessings)
-        {
-            int id = kvp.Key;
-            int count = kvp.Value;
-            if (count <= 0) continue;
-            BlessingData data = blessingLibrary.GetBlessingById(id);
-            if (data != null && data.isStackable)
-            {
-                validStackableBlessings.Add(data);
-            }
-            if (validStackableBlessings.Count == 0)
-            {
-                Debug.LogWarning("没有可叠加祝福");
-            }
-        }
-            // 开启祝福选择模式
-        CardSelectionManager.Instance.StartCardSelection(
-        CardSelectionManager.SelectionMode.WishCoinSelect,
-        OnWishCoinBlessingSelected);
-    }
-
-    /// <summary>
-    /// 许愿币：玩家选择祝福后的回调
-    /// </summary>
-    private void OnWishCoinBlessingSelected(object selectedObject)
-    {
-        if (!(selectedObject is BlessingData selectedBlessing) || selectedBlessing == null)
-        {
-            Debug.LogError("许愿币选择无效！");
-            return;
-        }
-
-        // 保存目标祝福
-        wishCoinTargetBlessing = selectedBlessing;
-        Debug.Log($"许愿币已锁定：下次商店必出【{selectedBlessing.blessingName}】");
-    }
-
-    /// <summary>
-    /// 商店获取许愿币锁定的祝福（ShopManager 调用）
-    /// </summary>
-    public BlessingData GetWishCoinTargetBlessing()
-    {
-        return wishCoinTargetBlessing;
-    }
-
-    /// <summary>
-    /// 许愿币效果已使用（商店刷新后调用）
-    /// </summary>
-    public void ConsumeWishCoin()
-    {
-        wishCoinTargetBlessing = null;
-    }
-    
-    /// <summary>
-    /// 获取特定类型祝福的购买次数
+    /// 根据blessingtype获取特定类型祝福的购买次数
     /// </summary>
     public int GetBlessingTypeCount(BlessingData.BlessingType type)
     {
@@ -544,11 +382,11 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 获取当前总倍率加成（来自所有祝福）
+    /// 获取当前总倍率加成
     /// </summary>
     public float GetTotalMultiplierBonus()
     {
-        float totalMultiplierBonus = 0f;
+        
         
         ///逢七过的额外倍率
         float Jackpot7Bonus = CalculateJackpot7Bonus();
@@ -575,19 +413,6 @@ public class BlessingManager : MonoBehaviour
     {
         // 每购买一次"辩证主义"，价格上升1%
         float multiplier = Mathf.Pow(1.01f, totalDialecticalCount);
-
-        // 友情折扣 - 所有数字卡、填空卡与祝福的价格-10%
-        if (blessingTypeCount[BlessingData.BlessingType.FriendDiscount] == 1)
-        { 
-            multiplier *= 0.9f; 
-        }
-
-        // 眷顾 - 你每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%
-        if (blessingTypeCount[BlessingData.BlessingType.Bless] == 1)
-        { 
-            int blessingCount = GetOwnedBlessingInstanceCount();
-            multiplier *= (float)(1 - blessingCount * 0.01);
-        }
         return multiplier;
     }
 
@@ -645,7 +470,6 @@ public class BlessingManager : MonoBehaviour
         LuckTurnsCount = 0;
         CardMasterCount = 0;
         hasJackpot7 = false;
-        wishCoinTargetBlessing = null;
     }
 
     /// <summary>
@@ -665,7 +489,6 @@ public class BlessingManager : MonoBehaviour
         return result;
     }
 
-
     /// <summary>
     /// 调试：打印当前祝福状态
     /// </summary>
@@ -682,37 +505,47 @@ public class BlessingManager : MonoBehaviour
             }
         }
         Debug.Log($"总倍率加成：{totalMultiplierBonus}");
+        Debug.Log($"价格乘数：{GetCurrentPriceMultiplier()}");
+        Debug.Log($"转运祝福激活状态：{(IsLuckTurnsActive() ? "已激活" : "未激活")}");
     }
-    
-    /// <summary>
-    /// 神灯:直接添加3个随机可叠加祝福到 ownedBlessings
-    /// </summary>
-    private void AddStackableBlessingsToOwned(int count)
-    {
-        // 1. 获取祝福库中所有可叠加祝福
-        List<BlessingData> allStackable = blessingLibrary.GetAllStackableBlessing();
-        allStackable.RemoveAll(b =>b.blessingType == BlessingData.BlessingType.MagicLamp);
-        System.Random rnd = new System.Random();
-        // 2. 随机选择 count 个祝福
-        for (int i = 0; i < count; i++)
-        {
-            int randomIdx = rnd.Next(allStackable.Count);
-            BlessingData selected = allStackable[randomIdx];
-            if (selected == null) continue;
+}
 
-        // 3. 直接添加到 ownedBlessings
-            if (ownedBlessings.ContainsKey(selected.blessingId)) ownedBlessings[selected.blessingId]++;
-            else ownedBlessings[selected.blessingId] = 1;
+/// <summary>
+/// 获取最终总祝福倍率（修复重复累加问题）
+/// </summary>
+public float GetFinalBlessingMultiplier()
+{
+    float baseMultiplier = totalMultiplierBonus;
+    float jackpotBonus = CalculateJackpot7Bonus();
+    float godsBonus = CalculateAllGodsInPlaceBonus();
+    float cardMasterBonus = CalculateCardMasterBonus();
 
-        // 4. 同步关联数据
-            blessingsEverPurchased.Add(selected.blessingId);
-            if (!blessingTypeCount.ContainsKey(selected.blessingType)) blessingTypeCount[selected.blessingType] = 0;
-            blessingTypeCount[selected.blessingType]++;
+    float final = baseMultiplier + jackpotBonus + godsBonus + cardMasterBonus;
+    Debug.Log($"最终祝福倍率 = 基础:{baseMultiplier} + 逢7过:{jackpotBonus} + 众神:{godsBonus} + 卡牌大师:{cardMasterBonus} = {final}");
+    return final;
+}
 
-        // 5. 触发该祝福的效果
-            ApplyBlessingEffect(selected);
-            Debug.Log($"神灯获得：{selected.blessingName}（当前次数：{ownedBlessings[selected.blessingId]}）");
-        }
-    }   
+/// <summary>
+/// 获取当前所有祝福提供的点数加成（理财大师等）
+/// </summary>
+public BigInteger GetBlessingPointBonus(BigInteger currentPoints)
+{
+    return CalculateFinancialMasterBonus(currentPoints);
+}
 
+/// <summary>
+/// 获取祝福导致的价格提高倍数（辩证主义等）
+/// </summary>
+public float GetBlessingPriceIncreaseMultiplier()
+{
+    return GetCurrentPriceMultiplier();
+}
+
+/// <summary>
+/// 获取价格提高百分比（方便显示用，如 15%）
+/// </summary>
+public float GetBlessingPriceIncreasePercent()
+{
+    float multiplier = GetCurrentPriceMultiplier();
+    return (multiplier - 1f) * 100f;
 }
