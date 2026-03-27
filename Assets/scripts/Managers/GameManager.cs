@@ -27,6 +27,9 @@ public class GameManager : MonoBehaviour
     public BlessingManager blessingManager;
     public ShopManager shopManager;
 
+    // 记录上一回合最大的数字卡
+    public NumberCardInstance lastRoundMaxCard; 
+
     [Header("结算动画配置")]
     [Tooltip("显示本回合得分的停留时间（秒）")]
     public float roundScoreDisplayTime = 1.0f;
@@ -258,6 +261,9 @@ public class GameManager : MonoBehaviour
         // 更新UI显示
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
         UIManager.Instance.UpdateRoundDisplay(currentRound);// 检查阶段要求
+
+        // 获取本回合的最大数字卡,为经验主义祝福提供数据支持
+        lastRoundMaxCard = cardManager.PrepareCardsForCalculation();
 
         // 检查是否到达阶段结算点
         if (IsStageRound(currentRound))
