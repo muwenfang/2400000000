@@ -147,6 +147,7 @@ public class CardManager : MonoBehaviour
             selectedInstance.OnDrawn();
             currentNumberCards.Add(selectedInstance);
             Debug.Log($"抽到卡牌: {selectedInstance.cardData.cardName}, 当前值: A={selectedInstance.currentA}, B={selectedInstance.currentB}");
+            i++;
 
             for (; i < count; i++)
             {
