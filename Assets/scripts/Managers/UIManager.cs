@@ -306,6 +306,60 @@ public class UIManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 格式化大数字（≤100亿千分位，>100亿科学计数法，四位有效数字）
+    /// </summary>
+    string FormatBigNumber(System.Numerics.BigInteger number)
+    {
+        System.Numerics.BigInteger threshold = 10000000000;
+
+        if (System.Numerics.BigInteger.Abs(number) > threshold)
+        {
+            // 保留4位有效数字
+           string numStr = number.ToString();
+           bool isNegative = numStr.StartsWith("-");
+           if (isNegative) numStr = numStr.Substring(1);
+
+            int len = numStr.Length;
+            string digits = numStr.Substring(0, System.Math.Min(4, len)); // 取前4位
+
+           string decimalPart = digits[0] + "." + digits.Substring(1);
+            int exponent = len - 1;
+
+            string result = $"{decimalPart}e{exponent}";
+            return isNegative ? "-" + result : result;
+        }
+
+        // 100亿以内正常显示
+        return ((long)number).ToString("N0");
+    }
+
+    /*
+    //四舍五入的科学计数法（留着看看以后需不需要）
+    /// <summary>
+    /// 格式化大数字显示（≤100亿用千分位，>100亿用科学计数法，四位有效数字+小写e）
+    /// </summary>
+    string FormatBigNumber(System.Numerics.BigInteger number)
+    {
+        // 阈值：100亿
+        System.Numerics.BigInteger threshold = 10000000000;
+
+        // 大于100亿 → 科学计数法，四位有效数字 + 小写 e
+        if (System.Numerics.BigInteger.Abs(number) > threshold)
+        {
+            double numDouble = (double)number;
+            return numDouble.ToString("0.000e0");
+        }
+
+        // 小于等于100亿 → 直接千分位（一定在 long 范围内）
+        return ((long)number).ToString("N0");
+    }
+    */
+
+
+
+    /*
+    //正常版本
+    /// <summary>
     /// 格式化大数字显示（例如：1,234,567）
     /// </summary>
     string FormatBigNumber(System.Numerics.BigInteger number)
@@ -349,6 +403,7 @@ public class UIManager : MonoBehaviour
         return result.ToString();
 
     }
+    */
     #endregion
 
     #region 手牌显示
