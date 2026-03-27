@@ -136,7 +136,7 @@ public class CardManager : MonoBehaviour
         {
             if (tempPool.Count == 0)
             {
-                Debug.LogWarning($"卡牌不足！只抽到 {i} 张");
+                Debug.LogWarning($"卡牌不足！只抽到 0 张");
                 return;
             }
             // 抽取上一回合最大值的卡牌
