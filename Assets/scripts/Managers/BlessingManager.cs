@@ -165,6 +165,18 @@ public class BlessingManager : MonoBehaviour
     {
         switch (blessingData.blessingType)
         {
+            case BlessingData.BlessingType.WishingCoin:
+                 // 许愿币：选择一个已拥有的可叠加祝福，下回合商店必出
+                Debug.Log("许愿币效果激活：请选择一个已拥有的可叠加祝福");
+                ActivateWishCoinSelection();
+                break;
+
+            case BlessingData.BlessingType.MagicLamp:
+                 //神灯 - 获取三个随机可叠加祝福
+                AddStackableBlessingsToOwned(3);
+                Debug.Log("神灯效果已激活");
+                break;
+
             case BlessingData.BlessingType.Jackpot7:
                 // 逢七过 - 
                 hasJackpot7 = true;
@@ -318,7 +330,57 @@ public class BlessingManager : MonoBehaviour
     {
         return LuckTurnsCount > 0;
     }
+ 
+    /// <summary>
+    /// 许愿币：打开祝福选择界面（只显示玩家已拥有的可叠加祝福）
+    /// </summary>
+    private void ActivateWishCoinSelection()
+    {
+        if (CardSelectionManager.Instance == null)
+        {
+            Debug.LogError("CardSelectionManager 未初始化");
+            return;
+        }
 
+    // 开启祝福选择模式
+        CardSelectionManager.Instance.StartCardSelection(
+        CardSelectionManager.SelectionMode.WishCoinSelect,
+        OnWishCoinBlessingSelected);
+    }
+
+    /// <summary>
+    /// 许愿币：玩家选择祝福后的回调
+    /// </summary>
+    private void OnWishCoinBlessingSelected(object selectedObject)
+    {
+        if (!(selectedObject is BlessingData selectedBlessing) || selectedBlessing == null)
+        {
+            Debug.LogError("许愿币选择无效！");
+            return;
+        }
+
+        // 保存目标祝福
+        wishCoinTargetBlessing = selectedBlessing;
+        Debug.Log($"许愿币已锁定：下次商店必出【{selectedBlessing.blessingName}】");
+    }
+
+    /// <summary>
+    /// 商店获取许愿币锁定的祝福（ShopManager 调用）
+    /// </summary>
+    public BlessingData GetWishCoinTargetBlessing()
+    {
+        return wishCoinTargetBlessing;
+    }
+
+    /// <summary>
+    /// 许愿币效果已使用（商店刷新后调用）
+    /// </summary>
+    public void ConsumeWishCoin()
+    {
+        wishCoinTargetBlessing = null;
+    }
+    
+    
     /// <summary>
     /// 根据id获取特定类型祝福的购买次数
     /// </summary>
@@ -414,7 +476,7 @@ public class BlessingManager : MonoBehaviour
     {
         // 1. 获取祝福库中所有可叠加祝福
         List<BlessingData> allStackable = blessingLibrary.GetAllStackableBlessing();
-        allStackable.RemoveAll(b=>b.BlessingData.BlessingType.MagicLamp);
+        allStackable.RemoveAll(b=>b.blessingType == BlessingData.BlessingType.MagicLamp);
         System.Random rnd = new System.Random();
         // 2. 随机选择 count 个祝福
         for (int i = 0; i < count; i++)
