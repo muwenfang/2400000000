@@ -131,25 +131,24 @@ public class CardManager : MonoBehaviour
         // 创建临时池（使用库存中的实例）
         List<NumberCardInstance> tempPool = new List<NumberCardInstance>(inventoryInstances);
 
+        // 经验主义祝福
         if (BlessingManager.Instance.GetBlessingTypeCount(BlessingData.BlessingType.Empiricism) == 1)
         {
-            int i = 0;
             if (tempPool.Count == 0)
             {
-                Debug.LogWarning($"卡牌不足！只抽到 {i} 张");
+                Debug.LogWarning($"卡牌不足！只抽到 0 张");
                 return;
             }
-            int index = 0;
-            NumberCardInstance selectedInstance = tempPool[index];
-            tempPool.RemoveAt(index);
+            // 抽取上一回合最大值的卡牌
+            NumberCardInstance selectedInstance = GameManager.Instance.lastRoundMaxCard;
 
             // 抽中时处理骰子和递增
             selectedInstance.OnDrawn();
             currentNumberCards.Add(selectedInstance);
-            Debug.Log($"抽到卡牌: {selectedInstance.cardData.cardName}, 当前值: A={selectedInstance.currentA}, B={selectedInstance.currentB}");
-            i++;
+            Debug.Log($"抽到卡牌: {selectedInstance.cardData.cardName}," +
+                $" 当前值: A={selectedInstance.currentA}, B={selectedInstance.currentB}");
 
-            for (; i < count; i++)
+            for (int i = 1; i < count; i++)
             {
                 if (tempPool.Count == 0)
                 {
@@ -170,6 +169,7 @@ public class CardManager : MonoBehaviour
             }
         }
 
+        //无经验主义祝福逻辑
         else
         {
             for (int i = 0; i < count; i++)
@@ -208,16 +208,31 @@ public class CardManager : MonoBehaviour
         Debug.Log("抽到公式卡：" + currentFormulaCard.Name);
 
     }
-    public void PrepareCardsForCalculation()
+    public NumberCardInstance PrepareCardsForCalculation()
     {
-        if (selectedNumberCards == null) return;
+        //实现保存上一回合最大值的功能，供经验主义祝福使用
+        int maxValue = 0;
+        NumberCardInstance lastRoundMaxCard;
+
+        if (selectedNumberCards == null) 
+        {return null;}
+
         for (int i = 0; i < selectedNumberCards.Count; i++)
         {
             if (selectedNumberCards[i] != null)
             {
+                // 计算骰子和递增后数值
                 selectedNumberCards[i].PrepareForCalculation();
-            }
-        }
+
+                // 经验主义祝福：记录本回合填入的数字卡中数值最大的卡牌
+                if (selectedNumberCards[i].GetOutPutValue() > maxValue)
+                {
+                maxValue = selectedNumberCards[i].GetOutPutValue();
+                lastRoundMaxCard = selectedNumberCards[i];
+                }
+             }
+         }
+         return lastRoundMaxCard;
     }
     public BigInteger CalculateResult()
     {

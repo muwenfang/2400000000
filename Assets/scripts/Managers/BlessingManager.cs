@@ -32,7 +32,7 @@ public class BlessingManager : MonoBehaviour
     private int LuckTurnsCount = 0;           //是否激活，1是激活
     private bool hasJackpot7 = false;        //是否激活逢7过
     private int CardMasterCount = 0;       //是否激活卡牌大师 
-   
+
     private void Awake()
     {
         if (Instance == null)
@@ -127,7 +127,7 @@ public class BlessingManager : MonoBehaviour
         int totalCount = 0;
         foreach (var kvp in ownedBlessings)
         {
-            if(kvp.Value > 0)
+            if (kvp.Value > 0)
             {
                 totalCount += kvp.Value;
             }
@@ -163,24 +163,18 @@ public class BlessingManager : MonoBehaviour
     {
         switch (blessingData.blessingType)
         {
-            case BlessingData.BlessingType.MagicLamp:
-                 //神灯 - 获取三个随机可叠加祝福
-                AddStackableBlessingsToOwned(3);
-                Debug.Log("神灯效果已激活");
-                break;
-
             case BlessingData.BlessingType.Jackpot7:
                 // 逢七过 - 
                 hasJackpot7 = true;
                 Debug.Log("逢七过效果已激活");
                 break;
-            
+
             case BlessingData.BlessingType.AllGodsInPlace:
                 // 众神归位 - 效果每回合可能要重新检测祝福数量
                 AllGodsCount++;
                 Debug.Log("众神归位效果已激活");
                 break;
-            
+
             case BlessingData.BlessingType.FinancialMaster:
                 // 理财大师 - 效果在回合结束时应用（在 GameManager 中调用）
                 Debug.Log("理财大师效果已激活");
@@ -191,14 +185,14 @@ public class BlessingManager : MonoBehaviour
                 //[todo]
                 Debug.Log("多多益善效果已激活，等待玩家选择填空卡");
                 break;
-            
+
             case BlessingData.BlessingType.CardMaster:
                 // 卡牌大师 - 每张数字卡额外提供1倍率
                 CardMasterCount++;
                 Debug.Log("卡牌大师效果已激活，提供额外倍率");
                 break;
 
-            
+
             case BlessingData.BlessingType.DialecticalViewpoint:
                 // 辩证主义 - 立即应用倍率和点数
                 totalDialecticalCount++;
@@ -338,16 +332,16 @@ public class BlessingManager : MonoBehaviour
     {
         return blessingTypeCount.ContainsKey(type) ? blessingTypeCount[type] : 0;
     }
-    
+
     /// <summary>
     /// 计算“逢七过”的倍率
     /// </summary>
     private float CalculateJackpot7Bonus()
     {
         if (!hasJackpot7) return 0f;
-        return 7f; 
+        return 7f;
     }
-    
+
     /// <summary>
     /// 计算“众神归位”的倍率
     /// </summary>
@@ -356,9 +350,9 @@ public class BlessingManager : MonoBehaviour
         if (AllGodsCount <= 0) return 0f;
         int totalBlessingCount = GetTotalBlessingCount();
         float Godsbonus = totalBlessingCount * AllGodsCount;
-        return Godsbonus; 
+        return Godsbonus;
     }
-    
+
     /// <summary>
     /// 计算"理财大师"效果的额外点数
     /// </summary>
@@ -392,22 +386,22 @@ public class BlessingManager : MonoBehaviour
     /// </summary>
     public float GetTotalMultiplierBonus()
     {
-        
-        
+
+
         ///逢七过的额外倍率
         float Jackpot7Bonus = CalculateJackpot7Bonus();
         totalMultiplierBonus += Jackpot7Bonus;
-        
+
         ///众神归位的额外倍率
         float AllGodsInPlaceBonus = CalculateAllGodsInPlaceBonus();
-        totalMultiplierBonus += AllGodsInPlaceBonus; 
+        totalMultiplierBonus += AllGodsInPlaceBonus;
         Debug.Log("众神归位+" + AllGodsInPlaceBonus);
 
         ///卡牌大师的额外倍率
         float cardMasterBonus = CalculateCardMasterBonus();
         totalMultiplierBonus += cardMasterBonus;
         Debug.Log($"卡牌大师倍率加成：{cardMasterBonus}");
-        
+
         return totalMultiplierBonus;
     }
 
@@ -435,10 +429,10 @@ public class BlessingManager : MonoBehaviour
         if (triggerJackpot7)
         {
             Debug.Log("逢七过触发，本回合得分归0");
-        } 
+        }
         return triggerJackpot7;
     }
-    
+
     /// <summary>
     /// 执行"多多益善"效果 - 复制指定的填空卡
     /// </summary>
@@ -514,75 +508,45 @@ public class BlessingManager : MonoBehaviour
         Debug.Log($"价格乘数：{GetCurrentPriceMultiplier()}");
         Debug.Log($"转运祝福激活状态：{(IsLuckTurnsActive() ? "已激活" : "未激活")}");
     }
-    
+
+
     /// <summary>
-    /// 神灯
+    /// 获取最终总祝福倍率（修复重复累加问题）
     /// </summary>
-    private void AddStackableBlessingsToOwned(int count)
+    public float GetFinalBlessingMultiplier()
     {
-        // 1. 获取祝福库中所有可叠加祝福
-        List<BlessingData> allStackable = blessingLibrary.GetAllStackableBlessing();
-        allStackable.RemoveAll(b>=b.blessingType == BlessingData.BlessingType.MagicLamp);
-        System.Random rnd = new System.Random();
-        // 2. 随机选择 count 个祝福
-        for (int i = 0; i < count; i++)
-        {
-            int randomIdx = rnd.Next(allStackable.Count);
-            BlessingData selected = allStackable[randomIdx];
-            if (selected == null) continue;
+        float baseMultiplier = totalMultiplierBonus;
+        float jackpotBonus = CalculateJackpot7Bonus();
+        float godsBonus = CalculateAllGodsInPlaceBonus();
+        float cardMasterBonus = CalculateCardMasterBonus();
 
-        // 3. 直接添加到 ownedBlessings
-            if (ownedBlessings.ContainsKey(selected.blessingId)) ownedBlessings[selected.blessingId]++;
-            else ownedBlessings[selected.blessingId] = 1;
-
-        // 4. 同步关联数据
-            blessingsEverPurchased.Add(selected.blessingId);
-            if (!blessingTypeCount.ContainsKey(selected.blessingType)) blessingTypeCount[selected.blessingType] = 0;
-            blessingTypeCount[selected.blessingType]++;
-
-        // 5. 触发该祝福的效果
-            ApplyBlessingEffect(selected);
-            Debug.Log($"神灯获得：{selected.blessingName}（当前次数：{ownedBlessings[selected.blessingId]}）");
-        }
+        float final = baseMultiplier + jackpotBonus + godsBonus + cardMasterBonus;
+        Debug.Log($"最终祝福倍率 = 基础:{baseMultiplier} + 逢7过:{jackpotBonus} + 众神:{godsBonus} + 卡牌大师:{cardMasterBonus} = {final}");
+        return final;
     }
-}
 
-/// <summary>
-/// 获取最终总祝福倍率（修复重复累加问题）
-/// </summary>
-public float GetFinalBlessingMultiplier()
-{
-    float baseMultiplier = totalMultiplierBonus;
-    float jackpotBonus = CalculateJackpot7Bonus();
-    float godsBonus = CalculateAllGodsInPlaceBonus();
-    float cardMasterBonus = CalculateCardMasterBonus();
+    /// <summary>
+    /// 获取当前所有祝福提供的点数加成（理财大师等）
+    /// </summary>
+    public BigInteger GetBlessingPointBonus(BigInteger currentPoints)
+    {
+        return CalculateFinancialMasterBonus(currentPoints);
+    }
 
-    float final = baseMultiplier + jackpotBonus + godsBonus + cardMasterBonus;
-    Debug.Log($"最终祝福倍率 = 基础:{baseMultiplier} + 逢7过:{jackpotBonus} + 众神:{godsBonus} + 卡牌大师:{cardMasterBonus} = {final}");
-    return final;
-}
+    /// <summary>
+    /// 获取祝福导致的价格提高倍数（辩证主义等）
+    /// </summary>
+    public float GetBlessingPriceIncreaseMultiplier()
+    {
+        return GetCurrentPriceMultiplier();
+    }
 
-/// <summary>
-/// 获取当前所有祝福提供的点数加成（理财大师等）
-/// </summary>
-public BigInteger GetBlessingPointBonus(BigInteger currentPoints)
-{
-    return CalculateFinancialMasterBonus(currentPoints);
-}
-
-/// <summary>
-/// 获取祝福导致的价格提高倍数（辩证主义等）
-/// </summary>
-public float GetBlessingPriceIncreaseMultiplier()
-{
-    return GetCurrentPriceMultiplier();
-}
-
-/// <summary>
-/// 获取价格提高百分比（方便显示用，如 15%）
-/// </summary>
-public float GetBlessingPriceIncreasePercent()
-{
-    float multiplier = GetCurrentPriceMultiplier();
-    return (multiplier - 1f) * 100f;
+    /// <summary>
+    /// 获取价格提高百分比（方便显示用，如 15%）
+    /// </summary>
+    public float GetBlessingPriceIncreasePercent()
+    {
+        float multiplier = GetCurrentPriceMultiplier();
+        return (multiplier - 1f) * 100f;
+    }
 }
