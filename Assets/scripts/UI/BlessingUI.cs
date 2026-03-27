@@ -15,6 +15,7 @@ public class BlessingUI : MonoBehaviour
     public Image blessingImage;         // 祝福图标
     public Text stackCountText;             // 叠加数量显示
     public BlessingData BoundBlessing;
+    
     [Header("颜色配置")]
     [SerializeField] private Color stackableNameColor = Color.green;      // 可叠加祝福：绿色
     [SerializeField] private Color unStackableNameColor = Color.black;    // 不可叠加祝福：白色
