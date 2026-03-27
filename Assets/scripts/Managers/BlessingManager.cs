@@ -163,6 +163,12 @@ public class BlessingManager : MonoBehaviour
     {
         switch (blessingData.blessingType)
         {
+            case BlessingData.BlessingType.MagicLamp:
+                 //神灯 - 获取三个随机可叠加祝福
+                AddStackableBlessingsToOwned(3);
+                Debug.Log("神灯效果已激活");
+                break;
+
             case BlessingData.BlessingType.Jackpot7:
                 // 逢七过 - 
                 hasJackpot7 = true;
@@ -507,6 +513,37 @@ public class BlessingManager : MonoBehaviour
         Debug.Log($"总倍率加成：{totalMultiplierBonus}");
         Debug.Log($"价格乘数：{GetCurrentPriceMultiplier()}");
         Debug.Log($"转运祝福激活状态：{(IsLuckTurnsActive() ? "已激活" : "未激活")}");
+    }
+    
+    /// <summary>
+    /// 神灯
+    /// </summary>
+    private void AddStackableBlessingsToOwned(int count)
+    {
+        // 1. 获取祝福库中所有可叠加祝福
+        List<BlessingData> allStackable = blessingLibrary.GetAllStackableBlessing();
+        allStackable.RemoveAll(b>=b.blessingType == BlessingData.BlessingType.MagicLamp);
+        System.Random rnd = new System.Random();
+        // 2. 随机选择 count 个祝福
+        for (int i = 0; i < count; i++)
+        {
+            int randomIdx = rnd.Next(allStackable.Count);
+            BlessingData selected = allStackable[randomIdx];
+            if (selected == null) continue;
+
+        // 3. 直接添加到 ownedBlessings
+            if (ownedBlessings.ContainsKey(selected.blessingId)) ownedBlessings[selected.blessingId]++;
+            else ownedBlessings[selected.blessingId] = 1;
+
+        // 4. 同步关联数据
+            blessingsEverPurchased.Add(selected.blessingId);
+            if (!blessingTypeCount.ContainsKey(selected.blessingType)) blessingTypeCount[selected.blessingType] = 0;
+            blessingTypeCount[selected.blessingType]++;
+
+        // 5. 触发该祝福的效果
+            ApplyBlessingEffect(selected);
+            Debug.Log($"神灯获得：{selected.blessingName}（当前次数：{ownedBlessings[selected.blessingId]}）");
+        }
     }
 }
 
