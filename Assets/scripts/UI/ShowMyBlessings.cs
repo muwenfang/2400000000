@@ -5,10 +5,6 @@ using UnityEngine.UI;
 
 /// <summary>
 /// 显示我的祝福 - 在卡牌界面中展示玩家已拥有的所有祝福
-/// 功能：
-/// 1. 仅显示一次重复的祝福，底部显示数量
-/// 2. 可叠加的祝福用绿色标明
-/// 3. 使用 BlessingUI 预制件来显示
 /// </summary>
 public class ShowMyBlessings : MonoBehaviour
 {

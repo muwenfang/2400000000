@@ -106,7 +106,6 @@ public class UIManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"已激活并置顶面板: {panelToShow.name}");
     }
     #region 展示卡牌库
     // 打开数字卡库

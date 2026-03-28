@@ -10,6 +10,7 @@ using UnityEngine.UI;
 /// </summary>
 public class ShowMyCard : MonoBehaviour
 {
+    public static ShowMyCard instance { get; private set; }
     [Header("类型设置")]
     public bool showNumberCards = true;
     public bool showFormulaCards = false;
@@ -22,7 +23,7 @@ public class ShowMyCard : MonoBehaviour
 
     [Header("删除模式")]
     public Text deleteCostText; // 显示删除所需点数的文本
-    public GameObject deleteCardSlotPrefab; 
+    //public GameObject deleteCardSlotPrefab; 
     
     [Header("删除模式Prefabs")]
     public GameObject deleteNumberCardSlotPrefab;  // 数字卡删除槽位
