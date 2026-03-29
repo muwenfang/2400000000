@@ -213,20 +213,20 @@ public class ShopManager : MonoBehaviour
         ? BlessingManager.Instance.GetCurrentPriceMultiplier()
         : 1.0f;
 
-        //BlessingData wishBlessing = BlessingManager.Instance.GetWishCoinTargetBlessing();
-        //if (wishBlessing != null)
-        //{
-        //    // 强制加入本次商品，优先占用第一个槽位
-        //    priceMultiplier = BlessingManager.Instance.GetCurrentPriceMultiplier();
-        //    int currentCount = BlessingManager.Instance.GetBlessingCount(wishBlessing.blessingId);
-        //    int price = wishBlessing.CalculatePrice(currentCount, priceMultiplier);
+        BlessingData wishBlessing = BlessingManager.Instance.GetWishCoinTargetBlessing();
+        if (wishBlessing != null)
+        {
+            // 强制加入本次商品，优先占用第一个槽位
+            priceMultiplier = BlessingManager.Instance.GetCurrentPriceMultiplier();
+            int currentCount = BlessingManager.Instance.GetBlessingCount(wishBlessing.blessingId);
+            int price = wishBlessing.CalculatePrice(currentCount, priceMultiplier);
 
-        //    shopBlessings.Add(new ShopItem<BlessingData>(wishBlessing, price));
-        //    Debug.Log($"许愿币生效：强制刷新出【{wishBlessing.blessingName}】");
+            shopBlessings.Add(new ShopItem<BlessingData>(wishBlessing, price));
+            Debug.Log($"许愿币生效：强制刷新出【{wishBlessing.blessingName}】");
 
-        //    // 消耗许愿币
-        //    BlessingManager.Instance.ConsumeWishCoin();
-        //}
+            // 消耗许愿币
+            BlessingManager.Instance.ConsumeWishCoin();
+        }
         
 
         if (blessingLibrary == null || blessingLibrary.GetAllBlessings().Count == 0)
@@ -265,6 +265,7 @@ public class ShopManager : MonoBehaviour
                     int price = selectedBlessing.CalculatePrice(currentCount, priceMultiplier);
 
                     shopBlessings.Add(new ShopItem<BlessingData>(selectedBlessing, price));
+                    Debug.Log($"祝福槽位{i}：{selectedBlessing.blessingName}（{selectedBlessing.refreshBehavior}），价格 {price}");
                 }
                 else
                 {
@@ -316,6 +317,7 @@ public class ShopManager : MonoBehaviour
             if (isAvailable)
             {
                 availableBlessings.Add(blessing);
+                Debug.Log($"[ShopManager] 祝福 '{blessing.blessingName}' 可用（{blessing.refreshBehavior}）");
             }
             else
             {
@@ -517,12 +519,16 @@ public class ShopManager : MonoBehaviour
 
         Debug.Log("[ShopManager] 进入卡牌删除模式");
 
-        // 使用 CardSelectionManager 的删除模式
-        // 这会显示数字卡和公式卡界面，但不显示祝福
-        CardSelectionManager.Instance.StartCardSelection(
-            CardSelectionManager.SelectionMode.RemoveCard,
-            OnCardSelectedForDeletion
-        );
+        UIManager.Instance.myNumberCardPanel.SetActive(true);
+
+        //// 开启卡牌选择模式，支持删除任意卡牌
+        //CardSelectionManager.Instance.StartCardSelection(
+        //    CardSelectionManager.SelectionMode.RemoveCard,
+        //    OnCardSelectedForDeletion
+        //);
+        // 激活两个面板中的所有DeleteCardSlot和删除按钮
+        ActivateDeleteButtonsInPanel(UIManager.Instance.myNumberCardPanel, "数字卡面板");
+        ActivateDeleteButtonsInPanel(UIManager.Instance.myFormulaCardPanel, "公式卡面板");
     }
     /// <summary>
     /// 激活面板中所有卡牌的删除按钮
@@ -586,12 +592,10 @@ public class ShopManager : MonoBehaviour
         // 判断卡牌类型并执行对应删除逻辑
         if (selectedObject is NumberCardInstance numberCard)
         {
-            Debug.Log($"[ShopManager] 用户选择删除数字卡：{numberCard.cardData.cardName}");
             HandleNumberCardDeletion(numberCard);
         }
         else if (selectedObject is FormulaCardData formulaCard)
         {
-            Debug.Log($"[ShopManager] 用户选择删除公式卡：{formulaCard.Name}");
             HandleFormulaCardDeletion(formulaCard);
         }
         else
@@ -615,12 +619,7 @@ public class ShopManager : MonoBehaviour
         if (TryRemoveNumberCard(selectedCard))
         {
             Debug.Log("[ShopManager] 数字卡删除成功");
-
-            // 删除成功后，关闭选择界面并刷新
-            CardSelectionManager.Instance.EndCardSelection();
-
             RefreshUI();
-
         }
         else
         {
@@ -642,10 +641,6 @@ public class ShopManager : MonoBehaviour
         if (TryRemoveFormulaCard(selectedCard))
         {
             Debug.Log("[ShopManager] 公式卡删除成功");
-
-            // 删除成功后，关闭选择界面并刷新
-            CardSelectionManager.Instance.EndCardSelection();
-
             RefreshUI();
         }
         else
@@ -757,18 +752,9 @@ public class ShopManager : MonoBehaviour
 
         BigInteger numberCardCost = CalculateNumberRemoveCost();
 
-        // 显示提示信息
-        string costInfo = $"删除消耗:\n数字卡: {numberCardCost}";
+        // 显示数字卡的删除消耗（公式卡和祝福卡的消耗动态计算）
+        deleteCardCostText.text = $"删除消耗: {numberCardCost} 点";
 
-        // 如果有公式卡，显示公式卡的消耗
-        if (PlayerCardInventory.Instance.formulaCards.Count > 0 && PlayerCardInventory.Instance.formulaCards.Count > 1)
-        {
-            FormulaCardData firstFormula = PlayerCardInventory.Instance.formulaCards[0];
-            BigInteger formulaCost = (BigInteger)(firstFormula.CardPrice * 0.5f);
-            costInfo += $"\n公式卡: {formulaCost}";
-        }
-
-        deleteCardCostText.text = costInfo;
         Debug.Log($"[ShopManager] 删除消耗已更新：{numberCardCost}");
     }
     /// <summary>
@@ -836,24 +822,13 @@ public class ShopManager : MonoBehaviour
             UIManager.Instance.RefreshShopUI();
         }
         // 刷新ShowMyCard中的卡牌显示
-        if (UIManager.Instance != null && UIManager.Instance.myNumberCardPanel != null)
+        if (UIManager.Instance.myNumberCardPanel != null)
         {
             ShowMyCard showMyCard = UIManager.Instance.myNumberCardPanel.GetComponent<ShowMyCard>();
             if (showMyCard != null)
             {
                 showMyCard.RefreshAllCards();
-                Debug.Log("[ShopManager] 数字卡面板已刷新");
-            }
-        }
-
-        // 刷新公式卡面板
-        if (UIManager.Instance != null && UIManager.Instance.myFormulaCardPanel != null)
-        {
-            ShowMyCard formulaShowMyCard = UIManager.Instance.myFormulaCardPanel.GetComponent<ShowMyCard>();
-            if (formulaShowMyCard != null)
-            {
-                formulaShowMyCard.RefreshAllCards();
-                Debug.Log("[ShopManager] 公式卡面板已刷新");
+                Debug.Log("[ShopManager] 卡牌面板已刷新");
             }
         }
     }
@@ -866,7 +841,6 @@ public class ShopManager : MonoBehaviour
         InitializeDeleteButton();
         UpdateDeleteCardCostDisplay();
         UpdateDeleteButtonState();
-        ShowMyCard.instance.EnterDeleteMode();
         Debug.Log("[ShopManager] 进入商店，删除功能已初始化");
     }
 

@@ -90,6 +90,8 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
         }
 
+        // 检查是否每张卡牌都被绑定
+        Debug.Log($"绑定卡牌：{card.cardData.layoutType}");
     }
     /// <summary>
     /// 获取卡牌实例

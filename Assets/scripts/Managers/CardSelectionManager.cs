@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -137,21 +137,17 @@ public class CardSelectionManager : MonoBehaviour
     {
         Debug.Log("[CardSelectionManager] 删卡模式：显示数字卡和公式卡界面");
 
-        // 先隐藏祝福面板（删除模式不能选祝福）
-        if (blessingPanel != null)
-        {
-            blessingPanel.gameObject.SetActive(false);
-        }
+        // 显示数字卡和公式卡
+        if (numberCardPanel != null)
+            numberCardPanel.gameObject.SetActive(true);
+        if (formulaCardPanel != null)
+            formulaCardPanel.gameObject.SetActive(true);
 
-        // 通过 UIManager 显示数字卡界面（会隐藏其他面板）
+        // 通过 UIManager 显示卡牌界面
         if (UIManager.Instance != null && UIManager.Instance.myNumberCardPanel != null)
         {
             UIManager.Instance.ShowPanel(UIManager.Instance.myNumberCardPanel);
-            Debug.Log("[CardSelectionManager] 通过 UIManager 显示数字卡界面");
-        }
-        else
-        {
-            Debug.LogError("[CardSelectionManager] UIManager 或 myNumberCardPanel 未设置");
+            Debug.Log("[CardSelectionManager] 通过 UIManager 显示卡牌界面");
         }
     }
 
@@ -161,32 +157,29 @@ public class CardSelectionManager : MonoBehaviour
     /// </summary>
     private void ActivateSelectionButtons()
     {
-        List<GameObject> panelsToCheck = new List<GameObject>();
+        List<RectTransform> panelsToCheck = new List<RectTransform>();
 
         // 根据模式决定检查哪些面板
         switch (currentMode)
         {
             case SelectionMode.CardCheat:
                 // 老千模式：只检查数字卡面板
-                if (UIManager.Instance != null && UIManager.Instance.myNumberCardPanel != null)
-                    panelsToCheck.Add(UIManager.Instance.myNumberCardPanel);
+                if (numberCardPanel != null && numberCardPanel.gameObject.activeSelf)
+                    panelsToCheck.Add(numberCardPanel);
                 break;
 
             case SelectionMode.RemoveCard:
-                // 删卡模式：检查数字卡和公式卡面板（但不检查祝福）
-                if (UIManager.Instance != null)
-                {
-                    if (UIManager.Instance.myNumberCardPanel != null)
-                        panelsToCheck.Add(UIManager.Instance.myNumberCardPanel);
-                    if (UIManager.Instance.myFormulaCardPanel != null)
-                        panelsToCheck.Add(UIManager.Instance.myFormulaCardPanel);
-                }
-                break;
-
+                // 删卡模式：检查数字卡和公式卡面板
+                if (numberCardPanel != null && numberCardPanel.gameObject.activeSelf)
+                    panelsToCheck.Add(numberCardPanel);
+                if (formulaCardPanel != null && formulaCardPanel.gameObject.activeSelf)
+                    panelsToCheck.Add(formulaCardPanel);
+                break;        
+                
             case SelectionMode.WishCoinSelect:
-                // 祝福模式：只检查祝福面板
-                if (UIManager.Instance != null && UIManager.Instance.myBlessPanel != null)
-                    panelsToCheck.Add(UIManager.Instance.myBlessPanel);
+                // 选择祝福的模式
+                if (blessingPanel != null && blessingPanel.gameObject.activeSelf)
+                    panelsToCheck.Add(blessingPanel);        
                 break;
         }
 
@@ -197,7 +190,7 @@ public class CardSelectionManager : MonoBehaviour
         }
 
         // 为每个面板中的卡牌激活按钮
-        foreach (GameObject panel in panelsToCheck)
+        foreach (RectTransform panel in panelsToCheck)
         {
             ActivateButtonsInPanel(panel);
         }
@@ -213,87 +206,10 @@ public class CardSelectionManager : MonoBehaviour
     /// <summary>
     /// 在指定面板中激活所有卡牌的选择按钮
     /// </summary>
-    private void ActivateButtonsInPanel(GameObject panel)
+    private void ActivateButtonsInPanel(RectTransform panel)
     {
         if (panel == null) return;
 
-        Debug.Log($"[CardSelectionManager] 在面板 {panel.name} 中激活按钮");
-
-        // 删除模式：激活DeleteCardSlot中的选择按钮
-        if (currentMode == SelectionMode.RemoveCard)
-        {
-            ActivateDeleteCardSlotButtons(panel);
-        }
-        // 老千模式：激活数字卡选择按钮
-        else if (currentMode == SelectionMode.CardCheat)
-        {
-            ActivateCardCheatButtons(panel);
-        }
-        // 祝福模式：激活祝福选择按钮
-        else if (currentMode == SelectionMode.WishCoinSelect)
-        {
-            ActivateWishCoinButtons(panel);
-        }
-    }
-    /// <summary>
-    /// 删除模式：激活面板中DeleteCardSlot中的选择按钮
-    /// </summary>
-    private void ActivateDeleteCardSlotButtons(GameObject panel)
-    {
-        // 获取面板中所有的 DeleteCardSlot 组件
-        DeleteCardSlot[] deleteSlots = panel.GetComponentsInChildren<DeleteCardSlot>(true);
-
-        if (deleteSlots.Length == 0)
-        {
-            Debug.LogWarning($"[CardSelectionManager] 在面板 {panel.name} 中找不到 DeleteCardSlot");
-            return;
-        }
-
-        foreach (DeleteCardSlot slot in deleteSlots)
-        {
-            if (slot == null) continue;
-
-            // 获取 DeleteCardSlot 中的选择按钮
-            Button selectButton = slot.GetComponent<Button>();
-            if (selectButton == null)
-            {
-                // 尝试从子物体中查找按钮
-                Transform btnTransform = slot.transform.Find("selectButton");
-                if (btnTransform != null)
-                {
-                    selectButton = btnTransform.GetComponent<Button>();
-                }
-            }
-
-            // 如果还是找不到，尝试获取 public 字段
-            if (selectButton == null)
-            {
-                var field = typeof(DeleteCardSlot).GetField("selectButton",
-                    System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Instance);
-                if (field != null)
-                {
-                    selectButton = field.GetValue(slot) as Button;
-                }
-            }
-
-            if (selectButton != null)
-            {
-                // 这里不直接添加监听器，因为 DeleteCardSlot 已有内部逻辑
-                // 只是启用按钮
-                selectButton.gameObject.SetActive(true);
-                activeSelectionButtons.Add(selectButton);
-                Debug.Log($"[CardSelectionManager] 已激活 DeleteCardSlot 中的选择按钮");
-            }
-        }
-
-        Debug.Log($"[CardSelectionManager] 在 {panel.name} 中激活了 {deleteSlots.Length} 个 DeleteCardSlot");
-    }
-
-    /// <summary>
-    /// 老千模式：激活数字卡选择按钮
-    /// </summary>
-    private void ActivateCardCheatButtons(GameObject panel)
-    {
         // 获取面板中所有的 PlayerController（数字卡）
         PlayerController[] cardControllers = panel.GetComponentsInChildren<PlayerController>();
 
@@ -320,33 +236,51 @@ public class CardSelectionManager : MonoBehaviour
                 activeSelectionButtons.Add(selectedBtn);
                 Debug.Log($"[CardSelectionManager] 已激活数字卡选择按钮：{cardController.BoundCard.cardData.cardName}");
             }
-        }
-    }
 
-    /// <summary>
-    /// 祝福模式：激活祝福选择按钮
-    /// </summary>
-    private void ActivateWishCoinButtons(GameObject panel)
-    {
-        // 遍历祝福面板内的祝福项（挂有BlessingUI）
-        foreach (Transform child in panel.transform)
-        {
-            var blessItem = child.GetComponent<BlessingUI>();
-            if (blessItem == null || blessItem.BoundBlessing == null)
-                continue;
-
-            Button btn = child.GetComponent<Button>();
-            if (btn == null)
+            if (currentMode == SelectionMode.WishCoinSelect)
             {
-                btn = child.gameObject.AddComponent<Button>();
+            // 遍历祝福面板内的祝福项（挂有BlessingItemUI）
+                foreach (Transform child in panel)
+                {
+                    var blessItem = child.GetComponent<BlessingUI>();
+                    if (blessItem == null || blessItem.BoundBlessing == null) continue;
+        
+                    Button btn = child.GetComponent<Button>() ?? child.gameObject.AddComponent<Button>();
+                    btn.onClick.AddListener(() => OnWishCoinBlessingSelected(blessItem.BoundBlessing));
+                }
+            }   
+        
+        }
+
+        // 获取面板中所有的 FormulaCardUI（公式卡 prefab）
+        FormulaCardUI[] formulaCardUIs = panel.GetComponentsInChildren<FormulaCardUI>();
+
+        foreach (FormulaCardUI formulaUI in formulaCardUIs)
+        {
+            if (formulaUI == null) continue;
+
+            // 获取或添加 Button 组件
+            Button formulaBtn = formulaUI.GetComponent<Button>();
+            if (formulaBtn == null)
+            {
+                formulaBtn = formulaUI.gameObject.AddComponent<Button>();
+                Debug.Log($"[CardSelectionManager] 为公式卡 prefab 添加了 Button 组件");
             }
 
-            if (btn != null)
+            if (formulaBtn != null)
             {
-                BlessingData blessing = blessItem.BoundBlessing;
-                btn.onClick.AddListener(() => OnWishCoinBlessingSelected(blessing));
-                activeSelectionButtons.Add(btn);
-                Debug.Log($"[CardSelectionManager] 已激活祝福选择按钮：{blessing.blessingName}");
+                // 从 FormulaCardUI 获取数据
+                FormulaCardData formulaData = formulaUI.GetFormulaCardData();
+                if (formulaData != null)
+                {
+                    formulaBtn.onClick.AddListener(() => OnFormulaCardSelected(formulaData));
+                    activeSelectionButtons.Add(formulaBtn);
+                    Debug.Log($"[CardSelectionManager] 已激活公式卡选择按钮：{formulaData.Name}");
+                }
+                else
+                {
+                    Debug.LogWarning($"[CardSelectionManager] 无法从 FormulaCardUI 获取数据");
+                }
             }
         }
     }
@@ -407,14 +341,18 @@ public class CardSelectionManager : MonoBehaviour
         activeSelectionButtons.Clear();
 
         // 隐藏所有卡牌面板
-        if (UIManager.Instance != null)
+        if (numberCardPanel != null)
+            numberCardPanel.gameObject.SetActive(false);
+        if (formulaCardPanel != null)
+            formulaCardPanel.gameObject.SetActive(false);
+        if (blessingPanel != null)
+            blessingPanel.gameObject.SetActive(false);
+
+        // 通过 UIManager 隐藏卡牌界面
+        if (UIManager.Instance != null && UIManager.Instance.myNumberCardPanel != null)
         {
-            if (UIManager.Instance.myNumberCardPanel != null)
-                UIManager.Instance.myNumberCardPanel.SetActive(false);
-            if (UIManager.Instance.myFormulaCardPanel != null)
-                UIManager.Instance.myFormulaCardPanel.SetActive(false);
-            if (UIManager.Instance.myBlessPanel != null)
-                UIManager.Instance.myBlessPanel.SetActive(false);
+            UIManager.Instance.myNumberCardPanel.SetActive(false);
+            Debug.Log("[CardSelectionManager] 通过 UIManager 隐藏卡牌界面");
         }
 
         Debug.Log("[CardSelectionManager] 关闭卡牌选择模式");
@@ -445,10 +383,7 @@ public class CardSelectionManager : MonoBehaviour
     /// </summary>
     public bool IsSelecting()
     {
-        if (UIManager.Instance == null) return false;
-
-        return (UIManager.Instance.myNumberCardPanel != null && UIManager.Instance.myNumberCardPanel.activeSelf) ||
-               (UIManager.Instance.myFormulaCardPanel != null && UIManager.Instance.myFormulaCardPanel.activeSelf) ||
-               (UIManager.Instance.myBlessPanel != null && UIManager.Instance.myBlessPanel.activeSelf);
+        return (numberCardPanel != null && numberCardPanel.gameObject.activeSelf) ||
+               (formulaCardPanel != null && formulaCardPanel.gameObject.activeSelf);
     }
 }
