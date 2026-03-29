@@ -22,10 +22,6 @@ public class ShopNumberCardSlot : MonoBehaviour
     public Button unlockButton;         // 新增：解锁按钮
     public Text unlockCostText;         // 新增：解锁成本显示
 
-    [Header("删除功能")]
-    public Button deleteButton;         // 新增：删除按钮
-    public Text deleteButtonText;
-
     [Header("引用")]
     public NumberCardUIFactory numberCardLibrary; // 用于获取数字卡 Prefab
 

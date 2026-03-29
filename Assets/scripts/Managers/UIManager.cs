@@ -124,7 +124,7 @@ public class UIManager : MonoBehaviour
             myCardButton.transform.SetAsLastSibling();
         }
         // 调用刷新逻辑 (需要 ShowMyCard 挂在面板上)
-        var showScript = myNumberCardPanel.GetComponent<ShowMyCard>();
+        var showScript = myNumberCardPanel.GetComponent<ShowMyNumberCard>();
         if (showScript != null) showScript.RefreshAllCards();
     }
 
@@ -142,7 +142,7 @@ public class UIManager : MonoBehaviour
             myCardButton.transform.SetAsLastSibling();
         }
 
-        var showScript = myFormulaCardPanel.GetComponent<ShowMyCard>();
+        var showScript = myFormulaCardPanel.GetComponent<ShowMyFormula>();
         if (showScript != null) showScript.RefreshAllCards();
     }
     public void OpenBlessCardDeck()

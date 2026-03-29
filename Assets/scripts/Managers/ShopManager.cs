@@ -78,6 +78,9 @@ public class ShopManager : MonoBehaviour
     public List<ShopItem<FormulaCardData>> shopFormulaCards = new();
     public List<ShopItem<BlessingData>> shopBlessings = new();
 
+    // 新增标志位：当前是否处于删卡模式
+    public bool isDeletionMode = false;
+
     /// <summary>
     /// 本回合已在当前商店刷新中显示过的祝福ID（用于CurrentRoundOnly类型）
     /// </summary>
@@ -589,83 +592,21 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
-        // 判断卡牌类型并执行对应删除逻辑
-        if (selectedObject is NumberCardInstance numberCard)
-        {
-            HandleNumberCardDeletion(numberCard);
-        }
-        else if (selectedObject is FormulaCardData formulaCard)
-        {
-            HandleFormulaCardDeletion(formulaCard);
-        }
+        //// 判断卡牌类型并执行对应删除逻辑
+        //if (selectedObject is NumberCardInstance numberCard)
+        //{
+        //    HandleNumberCardDeletion(numberCard);
+        //}
+        //else if (selectedObject is FormulaCardData formulaCard)
+        //{
+        //    HandleFormulaCardDeletion(formulaCard);
+        //}
         else
         {
             Debug.LogError($"[ShopManager] 未知的卡牌类型：{selectedObject.GetType().Name}");
         }
     }
 
-    /// <summary>
-    /// 处理数字卡删除
-    /// </summary>
-    private void HandleNumberCardDeletion(NumberCardInstance selectedCard)
-    {
-        if (selectedCard == null)
-        {
-            Debug.LogError("[ShopManager] 要删除的数字卡为空");
-            return;
-        }
-
-        // 执行删除逻辑
-        if (TryRemoveNumberCard(selectedCard))
-        {
-            Debug.Log("[ShopManager] 数字卡删除成功");
-            RefreshUI();
-        }
-        else
-        {
-            Debug.LogWarning("[ShopManager] 数字卡删除失败");
-        }
-    }
-
-    /// <summary>
-    /// 处理公式卡删除
-    /// </summary>
-    private void HandleFormulaCardDeletion(FormulaCardData selectedCard)
-    {
-        if (selectedCard == null)
-        {
-            Debug.LogError("[ShopManager] 要删除的公式卡为空");
-            return;
-        }
-
-        if (TryRemoveFormulaCard(selectedCard))
-        {
-            Debug.Log("[ShopManager] 公式卡删除成功");
-            RefreshUI();
-        }
-        else
-        {
-            Debug.LogWarning("[ShopManager] 公式卡删除失败");
-        }
-    }
-
-    ///// <summary>
-    ///// 处理祝福卡删除
-    ///// </summary>
-    //private void HandleBlessingCardDeletion(BlessingData selectedCard)
-    //{
-    //    Debug.Log($"[ShopManager] 用户选择删除祝福卡：{selectedCard.blessingName}");
-
-    //    if (TryRemoveBlessingCard(selectedCard))
-    //    {
-    //        Debug.Log("[ShopManager] 祝福卡删除成功");
-    //        RefreshUI();
-    //    }
-    //    else
-    //    {
-    //        Debug.LogWarning("[ShopManager] 祝福卡删除失败");
-    //    }
-    //}
     ///删除对应的卡牌实例
     public bool TryRemoveNumberCard(NumberCardInstance NumbercardToRemove)///这里的NumbercardToRemove应该是要跟UI关联起来（？），这个我不太会做
     {
@@ -824,7 +765,7 @@ public class ShopManager : MonoBehaviour
         // 刷新ShowMyCard中的卡牌显示
         if (UIManager.Instance.myNumberCardPanel != null)
         {
-            ShowMyCard showMyCard = UIManager.Instance.myNumberCardPanel.GetComponent<ShowMyCard>();
+            ShowMyNumberCard showMyCard = UIManager.Instance.myNumberCardPanel.GetComponent<ShowMyNumberCard>();
             if (showMyCard != null)
             {
                 showMyCard.RefreshAllCards();
@@ -838,9 +779,11 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     public void OnEnterRemovalMode()
     {
-        InitializeDeleteButton();
+        if (!IsDeleteCardAvailable()) return;
+
+        isDeletionMode = true; // 开启删卡模式
+
         UpdateDeleteCardCostDisplay();
-        UpdateDeleteButtonState();
         Debug.Log("[ShopManager] 进入商店，删除功能已初始化");
     }
 
@@ -849,10 +792,13 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     public void OnExitRemovalMode()
     {
-        if (deleteCardButton != null)
-        {
-            deleteCardButton.onClick.RemoveListener(OnDeleteCardButtonClicked);
-        }
+        isDeletionMode = false;
+
+        // 刷新一下面板，将卡牌上的删除按钮重新隐藏
+        if (UIManager.Instance.myNumberCardPanel.activeSelf)
+            UIManager.Instance.myNumberCardPanel.GetComponent<ShowMyNumberCard>().RefreshAllCards();
+        if (UIManager.Instance.myFormulaCardPanel.activeSelf)
+            UIManager.Instance.myFormulaCardPanel.GetComponent<ShowMyFormula>().RefreshAllCards();
         Debug.Log("[ShopManager] 离开商店，删除功能已清理");
     }
     #endregion
