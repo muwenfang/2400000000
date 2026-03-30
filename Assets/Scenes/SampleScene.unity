@@ -1751,6 +1751,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   blessingLibrary: {fileID: 11400000, guid: 1ec143d897bd7bd46bc61e19ec7dd011, type: 2}
+  HasRichTreasure: 0
 --- !u!4 &679115385
 Transform:
   m_ObjectHideFlags: 0
@@ -1826,7 +1827,7 @@ MonoBehaviour:
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 10
+  m_ScrollSensitivity: 30
   m_Viewport: {fileID: 314141764}
   m_HorizontalScrollbar: {fileID: 2056905518}
   m_VerticalScrollbar: {fileID: 789625774}
@@ -1935,7 +1936,7 @@ MonoBehaviour:
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 10
+  m_ScrollSensitivity: 30
   m_Viewport: {fileID: 278582958}
   m_HorizontalScrollbar: {fileID: 499162758}
   m_VerticalScrollbar: {fileID: 533042725}
@@ -4315,7 +4316,7 @@ MonoBehaviour:
   m_Elasticity: 0.1
   m_Inertia: 1
   m_DecelerationRate: 0.135
-  m_ScrollSensitivity: 10
+  m_ScrollSensitivity: 30
   m_Viewport: {fileID: 1542867559}
   m_HorizontalScrollbar: {fileID: 1560900956}
   m_VerticalScrollbar: {fileID: 81862844}
