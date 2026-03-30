@@ -669,7 +669,6 @@ public class UIManager : MonoBehaviour
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)shopBlessArea);
         }
 
-        Debug.Log($"商店UI刷新完成：数字卡{numItems.Count}个，公式卡{formulaItems.Count}个");
     }
 
     #endregion

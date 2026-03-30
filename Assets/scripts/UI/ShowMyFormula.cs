@@ -14,8 +14,11 @@ public class ShowMyFormula : MonoBehaviour
     [Header("显示设置")]
     public float cardScale = 1.0f;
 
-    // 删除模式状态
-    private bool isDeleteMode = false;
+    [Header("删卡功能配置")]
+    [Tooltip("删除公式卡按钮 - 从Inspector拖入")]
+    public Button deleteFormulaCardButton;
+
+    private List<Button> activeDeletionButtons = new List<Button>();
 
     [Header("颜色配置")]
     public Color incrementalColor = Color.green;   // 递增数字：绿色
@@ -27,8 +30,134 @@ public class ShowMyFormula : MonoBehaviour
         InitializeScrollRect();
         RefreshAllCards();
 
-        // 是否处于删除模式
-        isDeleteMode = ShopManager.Instance.isDeletionMode;
+        // 根据当前的SelectionMode激活对应的button
+        ActivateButtonsBasedOnMode();
+    }
+    private void OnDisable()
+    {
+        // 禁用删卡按钮
+        if (deleteFormulaCardButton != null)
+            deleteFormulaCardButton.gameObject.SetActive(false);
+
+        // 清除激活的按钮监听
+        foreach (var btn in activeDeletionButtons)
+        {
+            if (btn != null)
+                btn.onClick.RemoveAllListeners();
+        }
+        activeDeletionButtons.Clear();
+    }
+
+    /// <summary>
+    /// 根据当前选择模式激活对应的button
+    /// </summary>
+    private void ActivateButtonsBasedOnMode()
+    {
+        var mode = CardSelectionManager.Instance.GetCurrentMode();
+
+        // 删卡模式：激活公式卡的删除按钮
+        if (mode == CardSelectionManager.SelectionMode.RemoveCard)
+        {
+            ActivateFormulaCardDeletionButtons();
+        }
+    }
+
+    /// <summary>
+    /// 激活公式卡的删除按钮
+    /// </summary>
+    private void ActivateFormulaCardDeletionButtons()
+    {
+        var deck = CardManager.Instance.formulaCardDeck;
+        if (deck == null || deck.Count <= 1)
+        {
+            Debug.LogWarning("[ShowMyFormula] 没有公式卡可以删除");
+            return;
+        }
+
+        // 清除之前的按钮监听
+        foreach (var btn in activeDeletionButtons)
+        {
+            if (btn != null)
+                btn.onClick.RemoveAllListeners();
+        }
+        activeDeletionButtons.Clear();
+
+        // 获取所有公式卡UI组件
+        FormulaCardUI[] formulaCardUIs = contentRoot.GetComponentsInChildren<FormulaCardUI>();
+
+        foreach (var formulaUI in formulaCardUIs)
+        {
+            if (formulaUI == null) continue;
+
+            // 查找或添加删除按钮
+            Button deleteBtn = formulaUI.GetComponent<Button>();
+            if (deleteBtn == null)
+            {
+                deleteBtn = formulaUI.gameObject.AddComponent<Button>();
+            }
+
+            // 清除之前的监听
+            deleteBtn.onClick.RemoveAllListeners();
+
+            // 获取公式卡数据
+            FormulaCardData formulaData = formulaUI.GetFormulaCardData();
+            if (formulaData != null)
+            {
+                // 添加删除回调
+                deleteBtn.onClick.AddListener(() => OnFormulaCardDeleteSelected(formulaData));
+
+                // 激活按钮
+                deleteBtn.gameObject.SetActive(true);
+
+                // 记录按钮
+                activeDeletionButtons.Add(deleteBtn);
+
+                Debug.Log($"[ShowMyFormula] 激活公式卡删除按钮");
+            }
+        }
+    }
+
+    /// <summary>
+    /// 处理公式卡删除选择
+    /// </summary>
+    private void OnFormulaCardDeleteSelected(FormulaCardData selectedFormula)
+    {
+        if (selectedFormula == null)
+        {
+            Debug.LogError("[ShowMyFormula] 选择的公式卡为空");
+            return;
+        }
+
+        // 触发CardSelectionManager的回调
+        CardSelectionManager.Instance.OnCardSelected(selectedFormula);
+
+        // 执行删卡逻辑
+        ExecuteFormulaCardDeletion(selectedFormula);
+    }
+
+    /// <summary>
+    /// 执行公式卡删除逻辑
+    /// </summary>
+    private void ExecuteFormulaCardDeletion(FormulaCardData cardToDelete)
+    {
+        // 删除卡牌
+        bool deleted = CardManager.Instance.formulaCardDeck.Remove(cardToDelete);
+
+        if (deleted)
+        {
+            // 通知ShopManager更新统计
+            if (ShopManager.Instance != null)
+            {
+                ShopManager.Instance.OnCardDeleted(cardToDelete);
+            }
+
+            // 刷新显示
+            RefreshAllCards();
+        }
+        else
+        {
+            Debug.LogWarning("[ShowMyFormula] 删除公式卡失败");
+        }
     }
     /// <summary>
     /// 初始化滚轮支持

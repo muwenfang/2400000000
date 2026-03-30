@@ -76,6 +76,20 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
         formulaCards.Add(card);
         Debug.Log("获得公式卡：" + card.Name);
     }
+    // =========================
+    // 删除卡牌
+    // =========================
+    public void RemoveNumberCard(NumberCardInstance card)
+    {
+        if (numberCards.Remove(card))
+        {
+            Debug.Log("删除数字卡：" + card.cardData.name);
+        }
+        else
+        {
+            Debug.LogWarning("尝试删除不存在的数字卡：" + card.cardData.name);
+        }
+    }
 
     // =========================
     // 大小卡牌包祝福效果：添加随机n张数字卡
