@@ -211,41 +211,9 @@ public class CardManager : MonoBehaviour
 
     public NumberCardInstance PrepareCardsForCalculation()
     {
-        // 实现保存上一回合最大值的功能，供经验主义祝福使用
-        int maxValue = 0;
-        // 赋初始值 null，
-        NumberCardInstance lastRoundMaxCard = null;
-
-        if (selectedNumberCards == null)
-        {
-            return null;
-        }
-
-        for (int i = 0; i < selectedNumberCards.Count; i++)
-        {
-            if (selectedNumberCards[i] != null)
-            {
-                // 计算骰子和递增后数值
-                selectedNumberCards[i].OnDrawn();
-
-                // 经验主义祝福：记录本回合填入的数字卡中数值最大的卡牌
-                int currentVal = selectedNumberCards[i].GetOutPutValue();
-               if (currentVal > maxValue)
-                {
-                    maxValue = currentVal;
-                    lastRoundMaxCard = selectedNumberCards[i];
-                }
-            }
-        }
-        return lastRoundMaxCard;
-    }
-
-    /*
-    public NumberCardInstance PrepareCardsForCalculation()
-    {
         //实现保存上一回合最大值的功能，供经验主义祝福使用
         int maxValue = 0;
-        NumberCardInstance lastRoundMaxCard;
+        NumberCardInstance lastRoundMaxCard=null;
 
         if (selectedNumberCards == null) 
         {return null;}
@@ -267,7 +235,7 @@ public class CardManager : MonoBehaviour
          }
          return lastRoundMaxCard;
     }
-    */
+    
     public BigInteger CalculateResult()
     {
         if (currentFormulaCard == null)
