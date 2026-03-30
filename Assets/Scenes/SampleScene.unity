@@ -1043,6 +1043,7 @@ MonoBehaviour:
   contentRoot: {fileID: 1350498825}
   scrollRect: {fileID: 682225276}
   cardScale: 1
+  deleteFormulaCardButton: {fileID: 5565338637335754498, guid: 796ee20411d8e78449ca4a6d32c4c617, type: 3}
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
@@ -1435,6 +1436,50 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 533042723}
   m_CullTransparentMesh: 1
+--- !u!1 &561221005
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 561221007}
+  - component: {fileID: 561221006}
+  m_Layer: 0
+  m_Name: CardSelectionManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &561221006
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 561221005}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1ad6c64898997d943adfc2140c85ef6a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &561221007
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 561221005}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 1006.1733, y: 539.92737, z: -6.1186843}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &566926308
 GameObject:
   m_ObjectHideFlags: 0
@@ -2938,50 +2983,6 @@ MonoBehaviour:
   m_ChildScaleWidth: 1
   m_ChildScaleHeight: 1
   m_ReverseArrangement: 0
---- !u!1 &1230954572
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1230954574}
-  - component: {fileID: 1230954573}
-  m_Layer: 0
-  m_Name: deleteObject
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!114 &1230954573
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1230954572}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dd2567fcad9d4f64390c42f980495c1e, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
---- !u!4 &1230954574
-Transform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1230954572}
-  serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 221.71736, y: 86.08315, z: -0.56374425}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 0}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1269274288
 GameObject:
   m_ObjectHideFlags: 0
@@ -3078,9 +3079,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: ShowMyCard, Assembly-CSharp
-        m_MethodName: ExitDeleteMode
+      - m_Target: {fileID: 1713274719}
+        m_TargetAssemblyTypeName: ShopManager, Assembly-CSharp
+        m_MethodName: EndCardDeletion
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -3353,7 +3354,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: OnEnterRemovalMode
+      value: StartCardDeletion
       objectReference: {fileID: 0}
     - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
@@ -4251,10 +4252,10 @@ MonoBehaviour:
   contentRoot: {fileID: 1702525666}
   scrollRect: {fileID: 772237203}
   cardScale: 1
+  deleteNumberCardButton: {fileID: 1647833135757660059, guid: 944f087166581f54986c8754047048b1, type: 3}
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
-  isDeleteMode: 0
 --- !u!1 &1348500145
 GameObject:
   m_ObjectHideFlags: 0
@@ -5116,6 +5117,7 @@ MonoBehaviour:
   refreshCount: 0
   deleteCardButton: {fileID: 1038536867}
   deleteCardCostText: {fileID: 152407951}
+  deleteCostPanel: {fileID: 1081799470}
   totalRemovedNumberCards: 0
   baseNumberCardRemoveCost: 5
   baseNumberSlotUnlockCost: 10
@@ -5682,9 +5684,9 @@ MonoBehaviour:
           m_StringArgument: 
           m_BoolArgument: 0
         m_CallState: 2
-      - m_Target: {fileID: 0}
-        m_TargetAssemblyTypeName: ShowMyCard, Assembly-CSharp
-        m_MethodName: ExitDeleteMode
+      - m_Target: {fileID: 1713274719}
+        m_TargetAssemblyTypeName: ShopManager, Assembly-CSharp
+        m_MethodName: EndCardDeletion
         m_Mode: 1
         m_Arguments:
           m_ObjectArgument: {fileID: 0}
@@ -5867,5 +5869,5 @@ SceneRoots:
   - {fileID: 1713274720}
   - {fileID: 911707646}
   - {fileID: 679115385}
-  - {fileID: 1230954574}
+  - {fileID: 561221007}
   - {fileID: 1050276293}

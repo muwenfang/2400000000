@@ -16,19 +16,22 @@ public class ShowMyNumberCard : MonoBehaviour
     [Header("显示设置")]
     public float cardScale = 1.0f;
 
+    [Header("删卡功能配置")]
+    [Tooltip("删除卡牌按钮 - 从Inspector拖入")]
+    public Button deleteNumberCardButton;
+
     [Header("颜色配置")]
     public Color incrementalColor = Color.green;   // 递增数字：绿色
     public Color diceColor = Color.red; // 骰子数字：红色
     public Color normalColor = Color.black;        // 普通数字：黑色
 
-    public bool isDeleteMode = false; // 是否处于删除模式
     private void OnEnable()
     {
         InitializeScrollRect();
         RefreshAllCards();
 
-        // 是否处于删除模式
-        isDeleteMode = ShopManager.Instance.isDeletionMode;
+        // 根据当前的SelectionMode激活对应的button
+        ActivateButtonsBasedOnMode();
     }
     /// <summary>
     /// 初始化滚轮支持
@@ -163,7 +166,6 @@ public class ShowMyNumberCard : MonoBehaviour
             if (playerController != null)
             {
                 playerController.enabled = false;  // 禁用拖动功能
-                Debug.Log("[ShowMyCard] 禁用了卡牌的拖动功能");
             }
 
             //禁用 IBeginDragHandler, IDragHandler, IEndDragHandler
@@ -205,6 +207,102 @@ public class ShowMyNumberCard : MonoBehaviour
             }
             cardGameObjects[instance] = go;
         }
+    }
+    private void OnDisable()
+    {
+        // 禁用删卡按钮
+        if (deleteNumberCardButton != null)
+            deleteNumberCardButton.gameObject.SetActive(false);
+    }
+
+    /// <summary>
+    /// 根据当前选择模式激活对应的button
+    /// </summary>
+    private void ActivateButtonsBasedOnMode()
+    {
+        var mode = CardSelectionManager.Instance.GetCurrentMode();
+
+        // 删卡模式：激活数字卡的删除按钮
+        if (mode == CardSelectionManager.SelectionMode.RemoveCard)
+        {
+            ActivateNumberCardDeletionButtons();
+        }
+    }
+
+    /// <summary>
+    /// 激活数字卡的删除按钮
+    /// </summary>
+    private void ActivateNumberCardDeletionButtons()
+    {
+        var instances = PlayerCardInventory.Instance.GetAllNumberCards();
+        if (instances == null || instances.Count <=6)
+        {
+            Debug.LogWarning("[ShowMyNumberCard] 卡牌过少，不可继续删除");
+            return;
+        }
+
+        foreach (var instance in instances)
+        {
+            if (instance == null || !cardGameObjects.ContainsKey(instance))
+                continue;
+
+            GameObject cardGo = cardGameObjects[instance];
+            if (cardGo == null) continue;
+
+            // 查找或添加删除按钮
+            Button deleteBtn = cardGo.GetComponent<Button>();
+            if (deleteBtn == null)
+            {
+                deleteBtn = cardGo.AddComponent<Button>();
+            }
+
+            // 清除之前的监听
+            deleteBtn.onClick.RemoveAllListeners();
+
+            // 添加删除回调
+            deleteBtn.onClick.AddListener(() => OnNumberCardDeleteSelected(instance));
+
+            // 激活按钮
+            deleteBtn.gameObject.SetActive(true);
+
+            Debug.Log($"[ShowMyFormula] 激活公式卡删除按钮");
+        }
+    }
+
+    /// <summary>
+    /// 处理数字卡删除选择
+    /// </summary>
+    private void OnNumberCardDeleteSelected(NumberCardInstance selectedCard)
+    {
+        if (selectedCard == null)
+        {
+            Debug.LogError("[ShowMyNumberCard] 选择的数字卡为空");
+            return;
+        }
+
+        // 触发CardSelectionManager的回调
+        CardSelectionManager.Instance.OnCardSelected(selectedCard);
+
+        // 执行删卡逻辑
+        ExecuteNumberCardDeletion(selectedCard);
+    }
+
+    /// <summary>
+    /// 执行数字卡删除逻辑
+    /// </summary>
+    private void ExecuteNumberCardDeletion(NumberCardInstance cardToDelete)
+    {
+        // 删除卡牌
+        PlayerCardInventory.Instance.RemoveNumberCard(cardToDelete);
+
+        // 通知ShopManager更新统计
+        if (ShopManager.Instance != null)
+        {
+            ShopManager.Instance.OnCardDeleted(cardToDelete);
+        }
+
+        // 刷新显示
+        RefreshAllCards();
     }
     /// <summary>
     /// 通用方法：设置文本内容和颜色

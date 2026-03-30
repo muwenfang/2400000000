@@ -52,6 +52,7 @@ public class ShopManager : MonoBehaviour
     [Header("删除功能配置")]
     public Button deleteCardButton;          // 删除卡牌按钮
     public Text deleteCardCostText;          // 显示删除消耗的文本
+    public GameObject deleteCostPanel;
     public int totalRemovedNumberCards = 0;
     public int baseNumberCardRemoveCost = 5;
 
@@ -81,6 +82,7 @@ public class ShopManager : MonoBehaviour
     // 新增标志位：当前是否处于删卡模式
     public bool isDeletionMode = false;
 
+    
     /// <summary>
     /// 本回合已在当前商店刷新中显示过的祝福ID（用于CurrentRoundOnly类型）
     /// </summary>
@@ -92,6 +94,7 @@ public class ShopManager : MonoBehaviour
         GenerateNumberCards();
         GenerateFormulaCards();
         GenerateBlessings();
+        InitializeDeletionUI();
         // ---通知 UI 刷新 ---
         UIManager.Instance.RefreshShopUI();
     }
@@ -139,7 +142,6 @@ public class ShopManager : MonoBehaviour
             long price = instance.GetNumberCardPrice(randomCard);
 
             shopNumberCards.Add(new ShopItem<NumberCardInstance>(instance, price));
-            Debug.Log($"槽位{i}：{randomCard.cardName}，价格 {price}");
             
 
         }
@@ -199,8 +201,7 @@ public class ShopManager : MonoBehaviour
                 tempPool.RemoveAt(randomIndex); // 避免重复
 
                 shopFormulaCards.Add(new ShopItem<FormulaCardData>(randomCard, randomCard.CardPrice));
-                Debug.Log($"槽位{i}：{randomCard.Name}，价格 {randomCard.CardPrice}");
-            
+
         }
     }
 
@@ -320,7 +321,6 @@ public class ShopManager : MonoBehaviour
             if (isAvailable)
             {
                 availableBlessings.Add(blessing);
-                Debug.Log($"[ShopManager] 祝福 '{blessing.blessingName}' 可用（{blessing.refreshBehavior}）");
             }
             else
             {
@@ -469,338 +469,242 @@ public class ShopManager : MonoBehaviour
         refreshCount = 0;
     }
 
-    #region 数字卡删除逻辑
-    /// <summary>
-    /// 计算删除数字卡卡牌的消耗点数
-    /// </summary>
-    public BigInteger CalculateNumberRemoveCost()
-    {
-        BigInteger powerOfTwo = BigInteger.Pow(2, totalRemovedNumberCards);
-        return baseNumberCardRemoveCost * powerOfTwo;
-    }
-
-    /// <summary>
-    /// 初始化删除按钮
-    /// </summary>
-    private void InitializeDeleteButton()
+    #region 卡牌删除逻辑
+    public void InitializeDeletionUI()
     {
         if (deleteCardButton != null)
         {
-            deleteCardButton.onClick.AddListener(OnDeleteCardButtonClicked);
-            Debug.Log("[ShopManager] 删除按钮已初始化");
+            deleteCardButton.onClick.AddListener(() => StartCardDeletion());
         }
         else
         {
-            Debug.LogWarning("[ShopManager] deleteCardButton 未设置");
+            Debug.LogWarning("[ShopManager] deleteCardButton 未在Inspector中配置");
         }
-    }
-
-    /// <summary>
-    /// 删除按钮点击事件
-    /// </summary>
-    private void OnDeleteCardButtonClicked()
+}
+/// <summary>
+/// 进入删卡模式
+/// 通过CardSelectionManager启动删卡选择流程
+/// 由deleteCardButton的点击事件调用
+/// </summary>
+    public void StartCardDeletion()
     {
-        Debug.Log("[ShopManager] 用户点击删除卡牌按钮");
+        Debug.Log("[ShopManager] 进入删卡模式");
 
-        // 更新删除消耗显示
-        UpdateDeleteCardCostDisplay();
+        deleteCostPanel.SetActive(true);
+        // 设置标志位
+        isDeletionMode = true;
 
-        // 打开卡牌选择界面
-        OpenCardDeletionMode();
-    }
+        // 初始化删卡统计
+        totalRemovedNumberCards = 0;
 
-    /// <summary>
-    /// 打开卡牌删除模式
-    /// </summary>
-    private void OpenCardDeletionMode()
-    {
-        if (CardSelectionManager.Instance == null)
+        // 启动CardSelectionManager的删卡模式
+        if (CardSelectionManager.Instance != null)
         {
-            Debug.LogError("[ShopManager] CardSelectionManager 未初始化");
-            return;
-        }
-
-        Debug.Log("[ShopManager] 进入卡牌删除模式");
-
-        UIManager.Instance.myNumberCardPanel.SetActive(true);
-
-        //// 开启卡牌选择模式，支持删除任意卡牌
-        //CardSelectionManager.Instance.StartCardSelection(
-        //    CardSelectionManager.SelectionMode.RemoveCard,
-        //    OnCardSelectedForDeletion
-        //);
-        // 激活两个面板中的所有DeleteCardSlot和删除按钮
-        ActivateDeleteButtonsInPanel(UIManager.Instance.myNumberCardPanel, "数字卡面板");
-        ActivateDeleteButtonsInPanel(UIManager.Instance.myFormulaCardPanel, "公式卡面板");
-    }
-    /// <summary>
-    /// 激活面板中所有卡牌的删除按钮
-    /// </summary>
-    private void ActivateDeleteButtonsInPanel(GameObject panel, string panelName)
-    {
-        if (panel == null)
-        {
-            Debug.LogWarning($"[ShopManager] {panelName} 为空，无法激活");
-            return;
-        }
-
-        Debug.Log($"[ShopManager] 激活{panelName}中的所有删除按钮...");
-
-        // 方式1：激活所有DeleteCardSlot组件
-        DeleteCardSlot[] deleteSlots = panel.GetComponentsInChildren<DeleteCardSlot>(true);
-        if (deleteSlots.Length > 0)
-        {
-            foreach (var slot in deleteSlots)
-            {
-                slot.gameObject.SetActive(true);
-
-                // 确保DeleteCardSlot的回调指向ShopManager
-                // 需要在ShowMyCard中生成槽位时正确设置回调
-                Debug.Log($"[ShopManager] 激活了 DeleteCardSlot");
-            }
-            Debug.Log($"[ShopManager] 激活了 {deleteSlots.Length} 个删除槽位");
+            CardSelectionManager.Instance.StartCardSelection(
+                CardSelectionManager.SelectionMode.RemoveCard,
+                OnCardDeletedCallback
+            );
         }
         else
         {
-            Debug.LogWarning($"[ShopManager] 在{panelName}中找不到DeleteCardSlot组件");
-        }
-
-        // 方式2：激活所有带有Delete/Select的Button
-        Button[] allButtons = panel.GetComponentsInChildren<Button>(true);
-        int activatedCount = 0;
-        foreach (var btn in allButtons)
-        {
-            // 检查这个按钮是否是卡牌删除相关的按钮
-            if (btn.name.Contains("Delete") || btn.name.Contains("Select") ||
-                btn.GetComponentInParent<DeleteCardSlot>() != null)
-            {
-                btn.gameObject.SetActive(true);
-                activatedCount++;
-                Debug.Log($"[ShopManager] 激活了按钮: {btn.name}");
-            }
-        }
-        Debug.Log($"[ShopManager] {panelName}中激活了 {activatedCount} 个按钮");
-    }
-    /// <summary>
-    /// 卡牌删除选择的回调
-    /// </summary>
-    public void OnCardSelectedForDeletion(object selectedObject)
-    {
-        if (selectedObject == null)
-        {
-            Debug.LogError("[ShopManager] 选择的卡牌为空");
+            Debug.LogError("[ShopManager] CardSelectionManager.Instance 为空");
             return;
         }
 
-        //// 判断卡牌类型并执行对应删除逻辑
-        //if (selectedObject is NumberCardInstance numberCard)
-        //{
-        //    HandleNumberCardDeletion(numberCard);
-        //}
-        //else if (selectedObject is FormulaCardData formulaCard)
-        //{
-        //    HandleFormulaCardDeletion(formulaCard);
-        //}
+        // 显示数字卡面板供用户选择删卡
+        if (UIManager.Instance != null && UIManager.Instance.myNumberCardPanel != null)
+        {
+            UIManager.Instance.OpenNumberCardDeck();
+            Debug.Log("[ShopManager] 显示数字卡面板，用户可开始删卡");
+        }
         else
         {
-            Debug.LogError($"[ShopManager] 未知的卡牌类型：{selectedObject.GetType().Name}");
-        }
-    }
-
-    ///删除对应的卡牌实例
-    public bool TryRemoveNumberCard(NumberCardInstance NumbercardToRemove)///这里的NumbercardToRemove应该是要跟UI关联起来（？），这个我不太会做
-    {
-        if (NumbercardToRemove == null)///检测是否接收到实例
-        {
-            Debug.LogWarning("没有接受到要删除的数字卡");
-            return false;
-        }
-
-        if (!PlayerCardInventory.Instance.numberCards.Contains(NumbercardToRemove))///检测是否接收到卡组中没有的数字卡
-        {
-            Debug.LogWarning("接收到了玩家未拥有的数字卡");
-            return false;
-        }
-
-        int minRequireCards = 6;///设定最少需要保留几张数字卡，目前设定为6张
-        if (PlayerCardInventory.Instance.numberCards.Count <= minRequireCards)
-        {
-            Debug.LogWarning("卡组中数字卡过少");
-            return false;
-        }
-        BigInteger NumberCardremoveCost = CalculateNumberRemoveCost();///计算所需点数
-        if (GameManager.Instance.currentPoints < NumberCardremoveCost)///检查点数是否足够
-        {
-            Debug.LogWarning("点数不足");
-            return false;
-        }
-        ///删除卡组中的对应数字卡
-        PlayerCardInventory.Instance.numberCards.Remove(NumbercardToRemove);
-        GameManager.Instance.AddPoints(-NumberCardremoveCost);
-        totalRemovedNumberCards++;
-        CardManager.Instance.SyncDeckFromInventory();///应该要调用这个方法同步牌堆（？）
-        return true;
-    }
-    /// <summary>
-    /// 删除公式卡
-    /// </summary>
-    private bool TryRemoveFormulaCard(FormulaCardData cardToRemove)
-    {
-        if (cardToRemove == null)
-        {
-            Debug.LogWarning("[ShopManager] 要删除的公式卡为空");
-            return false;
-        }
-
-        if (!PlayerCardInventory.Instance.formulaCards.Contains(cardToRemove))
-        {
-            Debug.LogWarning("[ShopManager] 公式卡不在库存中");
-            return false;
-        }
-
-        // 计算删除消耗（公式卡消耗 = 其价格的50%）
-        BigInteger removeCost = (BigInteger)(cardToRemove.CardPrice * 0.5f);
-
-        // 检查点数
-        if (GameManager.Instance.currentPoints < removeCost)
-        {
-            Debug.LogWarning($"[ShopManager] 点数不足！需要{removeCost}，当前{GameManager.Instance.currentPoints}");
-            return false;
-        }
-
-        // 检查卡牌数量（至少保留1张）
-        if (PlayerCardInventory.Instance.formulaCards.Count <= 1)
-        {
-            Debug.LogWarning("[ShopManager] 公式卡数量不足，不能删除");
-            return false;
-        }
-
-        // 扣除点数
-        GameManager.Instance.AddPoints(-removeCost);
-
-        // 删除卡牌
-        PlayerCardInventory.Instance.formulaCards.Remove(cardToRemove);
-
-        return true;
-    }
-
-    /// <summary>
-    /// 更新删除卡牌消耗的显示
-    /// </summary>
-    private void UpdateDeleteCardCostDisplay()
-    {
-        if (deleteCardCostText == null) return;
-
-        BigInteger numberCardCost = CalculateNumberRemoveCost();
-
-        // 显示数字卡的删除消耗（公式卡和祝福卡的消耗动态计算）
-        deleteCardCostText.text = $"删除消耗: {numberCardCost} 点";
-
-        Debug.Log($"[ShopManager] 删除消耗已更新：{numberCardCost}");
-    }
-    /// <summary>
-    /// 获取删除功能是否可用
-    /// </summary>
-    public bool IsDeleteCardAvailable()
-    {
-        // 检查点数（以数字卡最小消耗为判断）
-        BigInteger minCost = CalculateNumberRemoveCost();
-        if (GameManager.Instance.currentPoints < minCost)
-        {
-            return false;
-        }
-
-        // 检查是否有可删除的卡牌
-        int totalCards = PlayerCardInventory.Instance.numberCards.Count +
-                        PlayerCardInventory.Instance.formulaCards.Count;
-
-        if (totalCards <= 7)  // 保留6张数字卡 + 1张公式卡的最少需求
-        {
-            return false;
-        }
-
-        return true;
-    }
-
-    /// <summary>
-    /// 更新删除按钮的可用性和显示
-    /// </summary>
-    public void UpdateDeleteButtonState()
-    {
-        if (deleteCardButton == null) return;
-
-        bool isAvailable = IsDeleteCardAvailable();
-        deleteCardButton.interactable = isAvailable;
-
-        // 更新按钮文本颜色
-        Image buttonImage = deleteCardButton.GetComponent<Image>();
-        if (buttonImage != null)
-        {
-            buttonImage.color = isAvailable ? Color.white : Color.gray;
-        }
-
-        if (!isAvailable)
-        {
-            Debug.Log("[ShopManager] 删除功能暂不可用");
+            Debug.LogError("[ShopManager] UIManager 或 myNumberCardPanel 为空");
         }
     }
 
     /// <summary>
-    /// 刷新UI显示
+    /// 删卡完成的回调
+    /// 当ShowMyNumberCard或ShowMyFormula中的卡牌被选中删除时调用
     /// </summary>
-    private void RefreshUI()
+    private void OnCardDeletedCallback(object deletedCard)
     {
-        // 更新删除消耗显示
-        UpdateDeleteCardCostDisplay();
+        Debug.Log($"[ShopManager] 卡牌删除回调触发：{deletedCard}");
 
-        // 更新删除按钮状态
-        UpdateDeleteButtonState();
-
-        // 通过 UIManager 刷新显示
-        if (UIManager.Instance != null)
+        if (deletedCard == null)
         {
-            UIManager.Instance.RefreshGameUI();
-            UIManager.Instance.RefreshShopUI();
+            Debug.LogError("[ShopManager] 删除的卡牌为空");
+            return;
         }
-        // 刷新ShowMyCard中的卡牌显示
-        if (UIManager.Instance.myNumberCardPanel != null)
+
+        // 1. 获取删卡消耗的点数
+        long deletionCost = CalculateDeletionCost(deletedCard);
+
+        // 2. 扣除点数
+        if (GameManager.Instance != null)
         {
-            ShowMyNumberCard showMyCard = UIManager.Instance.myNumberCardPanel.GetComponent<ShowMyNumberCard>();
-            if (showMyCard != null)
-            {
-                showMyCard.RefreshAllCards();
-                Debug.Log("[ShopManager] 卡牌面板已刷新");
-            }
+            GameManager.Instance.AddPoints(-deletionCost);
+            Debug.Log($"[ShopManager] 删卡消耗 {deletionCost} 点，当前点数：{GameManager.Instance.currentPoints}");
+        }
+        else
+        {
+            Debug.LogError("[ShopManager] GameManager.Instance 为空");
+        }
+
+        // 3. 统计删除的卡牌数量（仅数字卡）
+        if (deletedCard is NumberCardInstance)
+        {
+            totalRemovedNumberCards++;
+            Debug.Log($"[ShopManager] 已删除数字卡 {totalRemovedNumberCards} 张");
+        }
+
+        // 4. 更新UI显示（删卡消耗提示）
+        UpdateDeletionUI();
+        //5.继续删除，保持在删卡模式，直到用户选择完成或取消
+        StartCardDeletion();
+    }
+
+    /// <summary>
+    /// 处理单张卡牌被删除的事件
+    /// 由ShowMyNumberCard.cs或ShowMyFormula.cs调用
+    /// </summary>
+    public void OnCardDeleted(object deletedCard)
+    {
+        if (deletedCard == null)
+        {
+            Debug.LogError("[ShopManager] OnCardDeleted: 删除的卡牌为空");
+            return;
+        }
+
+        // 1. 统计删除的卡牌类型
+        if (deletedCard is NumberCardInstance numberCard)
+        {
+            Debug.Log($"[ShopManager] 数字卡被删除：{numberCard.cardData.cardName}");
+            totalRemovedNumberCards++;
+        }
+        else if (deletedCard is FormulaCardData formulaCard)
+        {
+            Debug.Log($"[ShopManager] 公式卡被删除：{formulaCard.Name}");
+        }
+
+        // 2. 计算并扣除消耗
+        long cost = CalculateDeletionCost(deletedCard);
+        if (GameManager.Instance != null)
+        {
+            GameManager.Instance.AddPoints(-cost);
+            Debug.Log($"[ShopManager] 扣除 {cost} 点，当前点数：{GameManager.Instance.currentPoints}");
+        }
+
+        // 3. 更新UI
+        UpdateDeletionUI();
+    }
+
+    /// <summary>
+    /// 计算单张卡牌的删除消耗
+    /// 数字卡：基础消耗 * 2^(已删除数量)，呈指数递增
+    /// 公式卡：固定消耗
+    /// </summary>
+    private long CalculateDeletionCost(object card)
+    {
+        if (card is NumberCardInstance)
+        {
+            // 数字卡删除消耗：基础消耗 + 已删除数量 * 递增值
+            // 示例：第1张数字卡消耗 5，第2张消耗 10，第3张消耗 20，以此类推
+            int deletedCount = totalRemovedNumberCards;
+            long cost = (long)(baseNumberCardRemoveCost * Mathf.Pow(2, deletedCount));
+
+            Debug.Log($"[ShopManager] 计算数字卡删除消耗: " +
+                      $"基础{baseNumberCardRemoveCost} * 2^{deletedCount} = {cost}");
+
+            return cost;
+        }
+        else if (card is FormulaCardData)
+        {
+            // 公式卡删除消耗：固定值
+            long cost = 50; // 可根据游戏平衡调整这个值
+            Debug.Log($"[ShopManager] 公式卡删除消耗: {cost}");
+            return cost;
+        }
+
+        Debug.LogWarning("[ShopManager] 未知的卡牌类型");
+        return 0;
+    }
+
+    /// <summary>
+    /// 更新删卡UI显示
+    /// 显示下一次删卡的消耗提示
+    /// </summary>
+    private void UpdateDeletionUI()
+    {
+        if (deleteCardCostText != null)
+        {
+            // 计算下一次删卡的消耗
+            long nextCost = (long)(baseNumberCardRemoveCost * Mathf.Pow(2, totalRemovedNumberCards));
+
+            deleteCardCostText.text = $"下次删卡消耗：{nextCost}";
+
+            Debug.Log($"[ShopManager] 更新UI - 下次删卡消耗: {nextCost}");
+        }
+        else
+        {
+            Debug.LogWarning("[ShopManager] deleteCardCostText 未绑定");
         }
     }
 
     /// <summary>
-    /// 点击删除时调用此方法
+    /// 结束删卡模式
+    /// 返回商店主界面
+    /// 可以由返回按钮或自动流程调用
     /// </summary>
-    public void OnEnterRemovalMode()
+    public void EndCardDeletion()
     {
-        if (!IsDeleteCardAvailable()) return;
+        Debug.Log("[ShopManager] 结束删卡模式");
 
-        isDeletionMode = true; // 开启删卡模式
-
-        UpdateDeleteCardCostDisplay();
-        Debug.Log("[ShopManager] 进入商店，删除功能已初始化");
-    }
-
-    /// <summary>
-    /// 当离开商店时调用此方法
-    /// </summary>
-    public void OnExitRemovalMode()
-    {
+        // 1. 清除标志位
         isDeletionMode = false;
 
-        // 刷新一下面板，将卡牌上的删除按钮重新隐藏
-        if (UIManager.Instance.myNumberCardPanel.activeSelf)
-            UIManager.Instance.myNumberCardPanel.GetComponent<ShowMyNumberCard>().RefreshAllCards();
-        if (UIManager.Instance.myFormulaCardPanel.activeSelf)
-            UIManager.Instance.myFormulaCardPanel.GetComponent<ShowMyFormula>().RefreshAllCards();
-        Debug.Log("[ShopManager] 离开商店，删除功能已清理");
+        // 2. 结束CardSelectionManager的选择模式
+        if (CardSelectionManager.Instance != null)
+        {
+            CardSelectionManager.Instance.EndCardSelection();
+        }
+
+        // 3. 隐藏卡牌面板
+        if (UIManager.Instance != null)
+        {
+            if (UIManager.Instance.myNumberCardPanel != null)
+                UIManager.Instance.myNumberCardPanel.SetActive(false);
+
+            if (UIManager.Instance.myFormulaCardPanel != null)
+                UIManager.Instance.myFormulaCardPanel.SetActive(false);
+        }
+
+        deleteCostPanel.SetActive(false);
+
+        Debug.Log("[ShopManager] 删卡模式已结束，返回商店");
     }
+
+    /// <summary>
+    /// 取消删卡模式（用户点击取消或返回按钮）
+    /// </summary>
+    public void CancelCardDeletion()
+    {
+        Debug.Log("[ShopManager] 取消删卡模式");
+
+        // 清除标志位和统计
+        isDeletionMode = false;
+        totalRemovedNumberCards = 0;
+
+        // 结束选择模式
+        if (CardSelectionManager.Instance != null)
+        {
+            CardSelectionManager.Instance.CancelSelection();
+        }
+
+        // 隐藏面板并返回商店
+        EndCardDeletion();
+    }
+
     #endregion
 
 

@@ -160,19 +160,16 @@ public class GameManager : MonoBehaviour
     IEnumerator ShowScoreStepByStep(BigInteger baseScore, float multiplier, BigInteger finalScore)
     {
         // 第1步：显示本回合得分（基础分 × 倍率）
-        Debug.Log("第1步：显示本回合得分");
         UIManager.Instance.ShowPointsGain(finalScore); // 弹出 "+XXX" 提示
 
         yield return new WaitForSeconds(roundScoreDisplayTime);
 
         // 第2步：加入总分并显示
-        Debug.Log("第2步：更新总分");
         AddPoints(finalScore);
 
         yield return new WaitForSeconds(totalScoreDisplayTime);
 
         // 第3步：进入商店
-        Debug.Log("第3步：进入商店");
         EndTurn();
     }
 
@@ -244,7 +241,7 @@ public class GameManager : MonoBehaviour
         // 添加基础点数
         currentPoints += points;
 
-        // 【新增】应用祝福效果
+        // 应用祝福效果
         if (blessingManager != null)
         {
             BigInteger financialBonus = blessingManager.CalculateFinancialMasterBonus(pointsBefore);
@@ -268,7 +265,7 @@ public class GameManager : MonoBehaviour
         // 检查是否到达阶段结算点
         if (IsStageRound(currentRound))
         {
-            // 【关键修复】获取本阶段的点数要求
+            // 获取本阶段的点数要求
             stageRequirement = GetStageRequirementForRound(currentRound);
 
             Debug.Log($"第 {currentRound} 回合是阶段回合，要求点数: {stageRequirement}，当前点数: {currentPoints}");
