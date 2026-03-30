@@ -32,7 +32,9 @@ public class BlessingManager : MonoBehaviour
     private int LuckTurnsCount = 0;           //是否激活，1是激活
     private bool hasJackpot7 = false;        //是否激活逢7过
     private int CardMasterCount = 0;       //是否激活卡牌大师 
+    public int HasRichTreasure = 0;        //是否激活丰盈宝库
     private BlessingData wishCoinTargetBlessing = null; //许愿币储存的祝福
+
 
     private void Awake()
     {
@@ -62,6 +64,7 @@ public class BlessingManager : MonoBehaviour
         CardMasterCount = 0;
         hasJackpot7 = false;
         wishCoinTargetBlessing = null; 
+        HasRichTreasure = 0;
     }
 
     /// <summary>
@@ -262,6 +265,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.RichTreasury:
                 // 丰盈宝库 - 不可叠加：商店刷新永久免费
+                HasRichTreasure = 1;
                 Debug.Log("丰盈宝库效果已激活");
                 break;
 
@@ -566,6 +570,7 @@ public class BlessingManager : MonoBehaviour
         LuckTurnsCount = 0;
         CardMasterCount = 0;
         hasJackpot7 = false;
+        HasRichTreasure = 0;
         wishCoinTargetBlessing = null;
     }
 
@@ -645,5 +650,25 @@ public class BlessingManager : MonoBehaviour
     {
         float multiplier = GetCurrentPriceMultiplier();
         return (multiplier - 1f) * 100f;
+    }
+    /// <summary>
+    /// 获取玩家已拥有的可叠加祝福（许愿币）
+    /// </summary>
+    public List<BlessingData> GetOwnedStackableBlessings()
+    {
+        List<BlessingData> result = new List<BlessingData>();
+
+        foreach (var kvp in ownedBlessings)
+        {
+            BlessingData data = blessingLibrary.GetBlessingById(kvp.Key);
+            if (data == null) continue;
+
+            // 只保留已拥有且可叠加的祝福
+            if (data.isStackable)
+            {
+                result.Add(data);
+            }
+        }
+        return result;
     }
 }

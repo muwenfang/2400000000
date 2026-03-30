@@ -259,6 +259,8 @@ public class ShowMyBlessings : MonoBehaviour
             {
                 blessingUI.SetBlessingData(blessingData, stackCount);
 
+                blessingUI.BoundBlessing = blessingData;
+                
                 // 记录映射关系
                 displayedBlessings[blessingData.blessingId] = go;
                 blessingUICache[blessingData.blessingId] = blessingUI;
