@@ -25,7 +25,7 @@ public class CardSelectionManager : MonoBehaviour
     {
         CardCheat,      // 老千祝福：只能选择数字卡
         RemoveCard,     // 删除卡牌：可以选择数字卡和公式卡
-        WishCoinSelect  // 许愿币祝福：只能选择祝福
+        WishCoinSelect  // 许愿币祝福：只能选择祝福遍历
     }
 
     private SelectionMode currentMode;
@@ -77,7 +77,15 @@ public class CardSelectionManager : MonoBehaviour
                 break;
 
             case SelectionMode.WishCoinSelect:
-                // 许愿模式：只显示祝福
+                if (UIManager.Instance != null)
+                {
+                    UIManager.Instance.OpenBlessCardDeck();
+                    ShowMyBlessings showScript = UIManager.Instance.myBlessPanel.GetComponent<ShowMyBlessings>();
+                    if (showScript != null)
+                    {
+                        showScript.RefreshAllBlessings();
+                    }
+                }
                 ShowBlessingPanelOnly();
                 break;
         }
@@ -85,19 +93,21 @@ public class CardSelectionManager : MonoBehaviour
         // 激活按钮
         ActivateSelectionButtons();
     }
-
+    
+    /// <summary>
+    /// 许愿模式：只显示祝福界面
+    /// </summary>
     private void ShowBlessingPanelOnly()
     {
-        // 隐藏公式卡界面
+        // 隐藏其他面板
         if (formulaCardPanel != null)
             formulaCardPanel.gameObject.SetActive(false);
 
-        // 隐藏数字卡界面
         if (numberCardPanel != null)
-        {
             numberCardPanel.gameObject.SetActive(false);
-        }
-        blessingPanel.gameObject.SetActive(true);
+
+        if (blessingPanel != null)
+            blessingPanel.gameObject.SetActive(true);
     }
 
 
@@ -178,6 +188,9 @@ public class CardSelectionManager : MonoBehaviour
                 
             case SelectionMode.WishCoinSelect:
                 // 选择祝福的模式
+                List<BlessingData> validBlessings = BlessingManager.Instance.GetOwnedStackableBlessings();
+                Debug.Log($"[许愿币] 可选择的祝福数量：{validBlessings.Count}");
+                
                 if (blessingPanel != null && blessingPanel.gameObject.activeSelf)
                     panelsToCheck.Add(blessingPanel);        
                 break;
@@ -203,88 +216,113 @@ public class CardSelectionManager : MonoBehaviour
         }
     }
 
-    /// <summary>
-    /// 在指定面板中激活所有卡牌的选择按钮
-    /// </summary>
     private void ActivateButtonsInPanel(RectTransform panel)
     {
         if (panel == null) return;
 
-        // 获取面板中所有的 PlayerController（数字卡）
-        PlayerController[] cardControllers = panel.GetComponentsInChildren<PlayerController>();
+        // ==========================================
+        // 许愿币模式 → 单独处理，跳过所有其他卡
+        // ==========================================
+        if (currentMode == SelectionMode.WishCoinSelect)
+        {
+            Debug.Log("[许愿币] 进入祝福选择模式");
 
+            List<BlessingData> validBlessings = BlessingManager.Instance.GetOwnedStackableBlessings();
+            BlessingUI[] allBlessUI = panel.GetComponentsInChildren<BlessingUI>(true);
+
+            activeSelectionButtons.Clear();
+            Debug.Log("[许愿币] 有效可叠加祝福数量：" + validBlessings.Count);
+            Debug.Log("[许愿币] 找到UI数量：" + allBlessUI.Length);
+
+            foreach (BlessingUI ui in allBlessUI)
+            {
+                if (ui == null) continue;
+
+                // 取出祝福
+                BlessingData data = ui.BoundBlessing ?? ui.GetCurrentBlessingData();
+                if (data == null)
+                {
+                    ui.gameObject.SetActive(false);
+                    continue;
+                }
+
+                // 筛选：只保留【可叠加】祝福
+                if (!data.isStackable)
+                {
+                    ui.gameObject.SetActive(false);
+                    continue;
+                }
+
+                // 显示符合条件的祝福
+                ui.gameObject.SetActive(true);
+                Debug.Log("[许愿币] 显示可选择祝福：" + data.blessingName);
+
+                // ==========================================
+                // 强制创建按钮 + 强制绑定点击！！！
+                // ==========================================
+                Button btn = ui.GetComponent<Button>();
+                if (btn == null)
+                    btn = ui.gameObject.AddComponent<Button>();
+
+                btn.onClick.RemoveAllListeners();
+                btn.onClick.AddListener(() =>
+                {
+                    Debug.Log("[许愿币] 你点击了：" + data.blessingName);
+                    OnWishCoinBlessingSelected(data);
+                });
+
+                activeSelectionButtons.Add(btn);
+            }
+
+            Debug.Log("[许愿币] 最终可点击按钮：" + activeSelectionButtons.Count);
+            return; // 跳过数字卡、公式卡
+        }
+
+        // ==========================================
+        // 下面是原来的数字卡 + 公式卡逻辑（完全不动）
+        // ==========================================
+        PlayerController[] cardControllers = panel.GetComponentsInChildren<PlayerController>();
         foreach (PlayerController cardController in cardControllers)
         {
             if (cardController == null || cardController.BoundCard == null)
                 continue;
 
-            // 查找 selectedButton
             Button selectedBtn = cardController.GetComponent<Button>();
             if (selectedBtn == null)
             {
                 Transform btnTransform = cardController.transform.Find("selectedButton");
                 if (btnTransform != null)
-                {
                     selectedBtn = btnTransform.GetComponent<Button>();
-                }
             }
 
             if (selectedBtn != null)
             {
                 NumberCardInstance cardInstance = cardController.BoundCard;
                 selectedBtn.onClick.AddListener(() => OnCardSelected(cardInstance));
-                activeSelectionButtons.Add(selectedBtn);
-                Debug.Log($"[CardSelectionManager] 已激活数字卡选择按钮：{cardController.BoundCard.cardData.cardName}");
-            }
-
-            if (currentMode == SelectionMode.WishCoinSelect)
-            {
-            // 遍历祝福面板内的祝福项（挂有BlessingItemUI）
-                foreach (Transform child in panel)
-                {
-                    var blessItem = child.GetComponent<BlessingUI>();
-                    if (blessItem == null || blessItem.BoundBlessing == null) continue;
-        
-                    Button btn = child.GetComponent<Button>() ?? child.gameObject.AddComponent<Button>();
-                    btn.onClick.AddListener(() => OnWishCoinBlessingSelected(blessItem.BoundBlessing));
-                }
-            }   
-        
+                    activeSelectionButtons.Add(selectedBtn);
+        }
         }
 
-        // 获取面板中所有的 FormulaCardUI（公式卡 prefab）
         FormulaCardUI[] formulaCardUIs = panel.GetComponentsInChildren<FormulaCardUI>();
-
         foreach (FormulaCardUI formulaUI in formulaCardUIs)
         {
             if (formulaUI == null) continue;
 
-            // 获取或添加 Button 组件
             Button formulaBtn = formulaUI.GetComponent<Button>();
             if (formulaBtn == null)
-            {
                 formulaBtn = formulaUI.gameObject.AddComponent<Button>();
-                Debug.Log($"[CardSelectionManager] 为公式卡 prefab 添加了 Button 组件");
-            }
 
             if (formulaBtn != null)
             {
-                // 从 FormulaCardUI 获取数据
                 FormulaCardData formulaData = formulaUI.GetFormulaCardData();
                 if (formulaData != null)
                 {
                     formulaBtn.onClick.AddListener(() => OnFormulaCardSelected(formulaData));
                     activeSelectionButtons.Add(formulaBtn);
-                    Debug.Log($"[CardSelectionManager] 已激活公式卡选择按钮：{formulaData.Name}");
-                }
-                else
-                {
-                    Debug.LogWarning($"[CardSelectionManager] 无法从 FormulaCardUI 获取数据");
                 }
             }
         }
     }
-
     /// <summary>
     /// 处理数字卡被选中
     /// </summary>
