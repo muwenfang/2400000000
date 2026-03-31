@@ -37,9 +37,6 @@ public class CardSelectionManager : MonoBehaviour
     /// <summary>
     /// 开启卡牌选择模式
     /// </summary>
-    /// <summary>
-    /// 开启卡牌选择模式
-    /// </summary>
     public void StartCardSelection(SelectionMode mode, Action<object> callback)
     {
         if (callback == null)
@@ -53,6 +50,7 @@ public class CardSelectionManager : MonoBehaviour
 
         Debug.Log($"[CardSelectionManager] 开启卡牌选择模式：{mode}");
     }
+    
     /// <summary>
     /// 当卡牌被选中时调用
     /// </summary>

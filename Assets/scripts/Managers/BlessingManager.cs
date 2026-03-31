@@ -350,6 +350,8 @@ public class BlessingManager : MonoBehaviour
         CardSelectionManager.Instance.StartCardSelection(
         CardSelectionManager.SelectionMode.WishCoinSelect,
         OnWishCoinBlessingSelected);
+    
+        UIManager.Instance.OpenWishCoinBlessSelection();
     }
 
     /// <summary>
@@ -366,6 +368,8 @@ public class BlessingManager : MonoBehaviour
         // 保存目标祝福
         wishCoinTargetBlessing = selectedBlessing;
         Debug.Log($"许愿币已锁定：下次商店必出【{selectedBlessing.blessingName}】");
+        
+        UIManager.Instance.CloseWishCoinBlessSelection();
     }
 
     /// <summary>

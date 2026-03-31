@@ -217,7 +217,8 @@ public class ShopManager : MonoBehaviour
         ? BlessingManager.Instance.GetCurrentPriceMultiplier()
         : 1.0f;
 
-        BlessingData wishBlessing = BlessingManager.Instance.GetWishCoinTargetBlessing();
+        BlessingData wishBlessing = BlessingManager.Instance.GetWishCoinTargetBlessing();//许愿币效果
+        int wishAdded = 0;
         if (wishBlessing != null)
         {
             // 强制加入本次商品，优先占用第一个槽位
@@ -230,6 +231,7 @@ public class ShopManager : MonoBehaviour
 
             // 消耗许愿币
             BlessingManager.Instance.ConsumeWishCoin();
+             wishAdded = 1; // 标记已占用1个位置
         }
         
 
@@ -241,8 +243,11 @@ public class ShopManager : MonoBehaviour
 
         // 构建可用祝福池（根据刷新行为过滤）
         List<BlessingData> availableBlessings = BuildAvailableBlessingPool();
+        
+        int remainingSlots = MaxBlessingCardCount - wishAdded;//减去许愿币占位
+        
         // 生成4个槽位（包括锁定的）
-        for (int i = 0; i < MaxBlessingCardCount; i++)
+        for (int i = 0; i < remainingSlots; i++)
         {
             // 如果是解锁的槽位
             if (i < blessingCardCount)

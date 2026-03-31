@@ -35,7 +35,7 @@ public class ShowMyBlessings : MonoBehaviour
 
     //初始化标志
     private bool isInitialized = false;
-
+    private List<Button> tempAddedButtons = new List<Button>();//临时按钮
     private void OnEnable()
     {
         if (isInitialized)
@@ -323,5 +323,55 @@ public class ShowMyBlessings : MonoBehaviour
     public Dictionary<int, GameObject> GetDisplayedBlessings()
     {
         return new Dictionary<int, GameObject>(displayedBlessings);
+    }
+
+    /// <summary>
+    /// 许愿币专用：只显示 已拥有 & 可叠加 的祝福
+    /// </summary>
+
+
+
+    // 许愿币专用：显示可叠加祝福（自动加按钮）
+    public void ShowOnlyStackableOwnedBlessings()
+    {
+        if (contentRoot == null) return;
+
+        ClearTempWishCoinButtons();
+
+        foreach (Transform child in contentRoot)
+            Destroy(child.gameObject);
+
+        displayedBlessings.Clear();
+        blessingStackCounts.Clear();
+
+        List<BlessingData> list = BlessingManager.Instance.GetOwnedStackableBlessings();
+        if (list == null || list.Count == 0) return;
+
+        foreach (BlessingData data in list)
+        {
+            CreateBlessingCard(data, 1);
+            GameObject card = displayedBlessings[data.blessingId];
+
+            Button btn = card.GetComponent<Button>();
+            if (btn == null) btn = card.AddComponent<Button>();
+            tempAddedButtons.Add(btn);
+
+            btn.onClick.AddListener(() =>
+            {
+                CardSelectionManager.Instance.OnCardSelected(data);
+            });
+        }
+
+        LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);
+    }
+
+    // 清理许愿币临时按钮
+    public void ClearTempWishCoinButtons()
+    {
+       foreach (Button btn in tempAddedButtons)
+        {
+            if (btn != null) Destroy(btn);
+        }
+        tempAddedButtons.Clear();
     }
 }
