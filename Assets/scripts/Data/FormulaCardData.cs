@@ -299,7 +299,7 @@ public static class FormulaCalculator
     /// <summary>
     /// 构建表达式字符串
     /// </summary>
-    static string BuildExpression(string pattern, List<int> values)
+    static string BuildExpression(string pattern, List<BigInteger> values)
     {
         if (values == null || values.Count == 0)
         {

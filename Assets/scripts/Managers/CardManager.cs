@@ -212,7 +212,7 @@ public class CardManager : MonoBehaviour
     public NumberCardInstance PrepareCardsForCalculation()
     {
         //实现保存上一回合最大值的功能，供经验主义祝福使用
-        int maxValue = 0;
+        BigInteger maxValue = 0;
         NumberCardInstance lastRoundMaxCard=null;
 
         if (selectedNumberCards == null) 

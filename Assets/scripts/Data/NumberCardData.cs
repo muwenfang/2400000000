@@ -123,7 +123,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     /// <summary>
     /// 获得当前卡牌的输出值（根据逻辑类型计算）
     /// </summary>
-    public int GetOutPutValue()
+    public BigInteger GetOutPutValue()
     {
         int a = currentA;
         int b = currentB;
