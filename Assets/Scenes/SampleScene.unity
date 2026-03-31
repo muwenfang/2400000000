@@ -1748,24 +1748,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 636421120}
   m_CullTransparentMesh: 1
---- !u!114 &664232536
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1011417144}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ae0c89ad16c98154f8ba3f1b87b6ea0b, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  cardContentRoot: {fileID: 0}
-  selectButton: {fileID: 0}
-  numberCardLibrary: {fileID: 0}
-  formulaCardPrefab: {fileID: 0}
-  numberCardSize: {x: 280, y: 200}
-  formulaCardSize: {x: 1450, y: 310}
 --- !u!1 &679115383
 GameObject:
   m_ObjectHideFlags: 0
@@ -2729,11 +2711,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 982904769}
   m_CullTransparentMesh: 1
---- !u!1 &1011417144 stripped
-GameObject:
-  m_CorrespondingSourceObject: {fileID: 1339343424640892095, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
-  m_PrefabInstance: {fileID: 1329721509}
-  m_PrefabAsset: {fileID: 0}
 --- !u!114 &1038536867 stripped
 MonoBehaviour:
   m_CorrespondingSourceObject: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
@@ -4164,9 +4141,6 @@ PrefabInstance:
       insertIndex: -1
       addedObject: {fileID: 2122976576}
     m_AddedComponents:
-    - targetCorrespondingSourceObject: {fileID: 1339343424640892095, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 664232536}
     - targetCorrespondingSourceObject: {fileID: 6944657651253763023, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1191084447}

@@ -265,7 +265,7 @@ public class ShowMyNumberCard : MonoBehaviour
             // 激活按钮
             deleteBtn.gameObject.SetActive(true);
 
-            Debug.Log($"[ShowMyFormula] 激活公式卡删除按钮");
+            Debug.Log($"[ShowMyNumberCard] 激活数字删除按钮");
         }
     }
 
