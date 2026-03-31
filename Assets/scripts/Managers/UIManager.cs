@@ -735,4 +735,39 @@ public class UIManager : MonoBehaviour
             Destroy(child.gameObject);
     }
     #endregion
+    
+    #region 许愿币祝福选择（许愿币专用）
+    /// <summary>
+    /// 打开许愿币祝福选择界面（只显示可叠加的已拥有祝福）
+    /// </summary>
+    public void OpenWishCoinBlessSelection()
+    {
+        // 直接打开你现有的祝福面板
+        myBlessPanel.SetActive(true);
+        myBlessPanel.transform.SetAsLastSibling();
+
+        // 调用专属刷新（只显示可叠加祝福）
+        ShowMyBlessings showScript = myBlessPanel.GetComponent<ShowMyBlessings>();
+        if (showScript != null)
+        {
+            showScript.ShowOnlyStackableOwnedBlessings();
+        }
+    }
+
+    /// <summary>
+    /// 关闭许愿币选择，恢复正常祝福面板显示
+    /// </summary>
+    public void CloseWishCoinBlessSelection()
+    {
+        myBlessPanel.SetActive(false);
+
+        // 恢复正常祝福显示
+        ShowMyBlessings showScript = myBlessPanel.GetComponent<ShowMyBlessings>();
+        if (showScript != null)
+        {
+            showScript.ClearTempWishCoinButtons();
+            showScript.RefreshAllBlessings();
+        }
+    }
+    #endregion
 }
