@@ -1775,7 +1775,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 679115385}
-  - component: {fileID: 679115386}
   - component: {fileID: 679115384}
   m_Layer: 0
   m_Name: BlessingManager
@@ -1813,21 +1812,6 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &679115386
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 679115383}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1ad6c64898997d943adfc2140c85ef6a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  numberCardPanel: {fileID: 1329721517}
-  formulaCardPanel: {fileID: 496826561}
-  blessingPanel: {fileID: 896898555}
 --- !u!1 &682225274
 GameObject:
   m_ObjectHideFlags: 0
