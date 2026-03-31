@@ -72,7 +72,7 @@ public class BlessingData : ScriptableObject
     public int CalculatePrice(int purchaseCount = 0, float priceMultiplier = 1.0f)
     {
         // 基础价格 * 购买次数倍数 * 价格乘数
-        float calculatedPrice = basePrice * Mathf.Pow(1.01f, purchaseCount) * priceMultiplier;
+        float calculatedPrice = basePrice  * priceMultiplier;
         return Mathf.RoundToInt(calculatedPrice);
     }
 }

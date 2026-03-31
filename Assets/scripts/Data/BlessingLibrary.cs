@@ -48,7 +48,7 @@ public class BlessingLibrary : ScriptableObject
             name: "倍投",
             description: "倍率+1，祝福“倍投”的价格翻倍",
             type: BlessingData.BlessingType.DoubleDown,
-            basePrice: 100,
+            basePrice: 200,
             isStackable: true
         ));
 
@@ -58,7 +58,7 @@ public class BlessingLibrary : ScriptableObject
             name: "加注",
             description: "倍率+1，祝福“加注”的价格+300",
             type: BlessingData.BlessingType.Raise,
-            basePrice: 300,
+            basePrice: 500,
             isStackable: true
         ));
 
@@ -79,7 +79,7 @@ public class BlessingLibrary : ScriptableObject
             name: "转运",
             description: "骰子投到1时，重投一次并将这次的结果作为该骰子的最终判定结果",
             type: BlessingData.BlessingType.LuckTurns,
-            basePrice: 1000,
+            basePrice: 10000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -101,7 +101,7 @@ public class BlessingLibrary : ScriptableObject
             name: "小卡牌包",
             description: "立即获得3张随机数字卡",
             type: BlessingData.BlessingType.SmallCardPack,
-            basePrice: 10000,
+            basePrice: 100000,
             isStackable: true
         ));
 
@@ -111,7 +111,7 @@ public class BlessingLibrary : ScriptableObject
             name: "众神归位",
             description: "每拥有一个祝福，倍率+1",
             type: BlessingData.BlessingType.AllGodsInPlace,
-            basePrice: 4000,
+            basePrice: 2000000,
             isStackable: true
         ));
         
@@ -131,7 +131,7 @@ public class BlessingLibrary : ScriptableObject
             name: "理财大师",
             description: "每回合结束时额外获得已拥有点数1%的点数",
             type: BlessingData.BlessingType.FinancialMaster,
-            basePrice: 3000,
+            basePrice: 5000,
             isStackable: true,
             effectValue: 0.01f
         ));
@@ -142,7 +142,7 @@ public class BlessingLibrary : ScriptableObject
             name: "大卡牌包",
             description: "立即获得5张随机数字卡",
             type: BlessingData.BlessingType.BigCardPack,
-            basePrice: 20000,
+            basePrice: 200000,
             isStackable: true
         ));
         
@@ -207,7 +207,7 @@ public class BlessingLibrary : ScriptableObject
             name: "卡牌大师",
             description: "每张数字卡额外提供1倍率",
             type: BlessingData.BlessingType.CardMaster,
-            basePrice: 24000,
+            basePrice: 5000000,
             isStackable: true
             
         ));
@@ -254,7 +254,7 @@ public class BlessingLibrary : ScriptableObject
             name: "神灯",
             description: "随机获得三个可叠加祝福",
             type: BlessingData.BlessingType.MagicLamp,
-            basePrice: 250000,
+            basePrice: 500000,
             isStackable: true
             
         ));

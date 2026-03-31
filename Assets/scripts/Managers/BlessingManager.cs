@@ -146,7 +146,7 @@ public class BlessingManager : MonoBehaviour
         int purchaseCount = GetBlessingCount(data.blessingId);
         float calculatedPrice;
         int currentPrice = data.basePrice;
-        float priceMultiplier = Mathf.Pow(data.effectValue + 1, purchaseCount) * GetCurrentPriceMultiplier();
+        float priceMultiplier = GetCurrentPriceMultiplier();
         switch (data.blessingType)
         {
             case BlessingData.BlessingType.Raise:
@@ -212,12 +212,12 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.DialecticalViewpoint:
                 // 辩证主义 - 立即应用倍率和点数
-                totalDialecticalCount++;
-                totalMultiplierBonus += blessingData.effectValue;
+                
+                totalMultiplierBonus += blessingData.effectValue; 
 
                 // 给予奖励点数
                 GameManager.Instance.AddPoints(blessingData.bonusPoints);
-
+                totalDialecticalCount++;
                 Debug.Log($"辩证主义效果已激活：倍率+{blessingData.effectValue}，" +
                     $"额外获得{blessingData.bonusPoints}点，价格上升1%");
                 break;
@@ -235,7 +235,7 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.Raise:
-                // 加注 - 倍率+1,价格+300
+                // 加注 - 倍率+1,价格+500
                 totalMultiplierBonus += blessingData.effectValue;
                 Debug.Log("加注效果已激活");
                 break;
@@ -515,8 +515,11 @@ public class BlessingManager : MonoBehaviour
     /// </summary>
     public float GetCurrentPriceMultiplier()
     {
-        // 每购买一次"辩证主义"，价格上升1%
-        float multiplier = Mathf.Pow(1.01f, totalDialecticalCount);
+         // 辩证主义：每级 +1% 价格（加法叠加）
+        int dialecticCount = GetBlessingTypeCount(BlessingData.BlessingType.DialecticalViewpoint);
+        float multiplier = 1f + (dialecticCount * 0.01f); 
+        
+        
         return multiplier;
     }
 
@@ -617,7 +620,7 @@ public class BlessingManager : MonoBehaviour
 
 
     /// <summary>
-    /// 获取最终总祝福倍率（修复重复累加问题）
+    /// 获取最终总祝福倍率
     /// </summary>
     public float GetFinalBlessingMultiplier()
     {

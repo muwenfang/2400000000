@@ -63,7 +63,7 @@ public class GameManager : MonoBehaviour
     public void InitializeGame()
     {   
         Debug.Log("初始化游戏");
-        currentPoints = 9999990;
+        currentPoints = 999999999;
         currentRound = 1;
         // 确保调用了 ChangeState，这样上面的 UI 逻辑才会跑起来
         ChangeState(GameState.PlayerTurn);
