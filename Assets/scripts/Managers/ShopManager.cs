@@ -139,8 +139,9 @@ public class ShopManager : MonoBehaviour
 
             // 创建实例并计算价格
             NumberCardInstance instance = new NumberCardInstance(randomCard);
-            long price = instance.GetNumberCardPrice(randomCard);
-
+            
+            long price = (long)(instance.GetNumberCardPrice(randomCard) * priceMultiplier);
+            
             shopNumberCards.Add(new ShopItem<NumberCardInstance>(instance, price));
             
 
@@ -200,7 +201,9 @@ public class ShopManager : MonoBehaviour
                 FormulaCardData randomCard = tempPool[randomIndex];
                 tempPool.RemoveAt(randomIndex); // 避免重复
 
-                shopFormulaCards.Add(new ShopItem<FormulaCardData>(randomCard, randomCard.CardPrice));
+                long finalPrice = (long)(randomCard.CardPrice * priceMultiplier);
+
+                shopFormulaCards.Add(new ShopItem<FormulaCardData>(randomCard, finalPrice));
 
         }
     }
@@ -882,17 +885,19 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
+        float priceMultiplier = BlessingManager.Instance != null ? BlessingManager.Instance.GetCurrentPriceMultiplier() : 1.0f;
+
         // 只生成一个新槽位，避免与现有卡牌重复
         FormulaCardData randomCard = formulaCardLibrary.GetRandomCard();
 
         // 将新卡牌添加到列表
         if (slotIndex < shopFormulaCards.Count)
         {
-            shopFormulaCards[slotIndex] = new ShopItem<FormulaCardData>(randomCard, randomCard.CardPrice);
+            shopFormulaCards[slotIndex] = new ShopItem<FormulaCardData>(randomCard, (long)(randomCard.CardPrice * priceMultiplier));
         }
         else
         {
-            shopFormulaCards.Add(new ShopItem<FormulaCardData>(randomCard, randomCard.CardPrice));
+            shopFormulaCards.Add(new ShopItem<FormulaCardData>(randomCard, (long)(randomCard.CardPrice * priceMultiplier)));
         }
 
         Debug.Log($"槽位{slotIndex}：{randomCard.Name}，价格 {randomCard.CardPrice}");
@@ -919,8 +924,9 @@ public class ShopManager : MonoBehaviour
 
         // 创建实例并计算价格
         NumberCardInstance instance = new NumberCardInstance(randomCard);
-        long price = instance.GetNumberCardPrice(randomCard);
-
+        float priceMultiplier = BlessingManager.Instance != null ? BlessingManager.Instance.GetCurrentPriceMultiplier() : 1.0f;
+        long price = (long)(instance.GetNumberCardPrice(randomCard) * priceMultiplier);
+        
         // 将新卡牌添加到列表
         if (slotIndex < shopNumberCards.Count)
         {
