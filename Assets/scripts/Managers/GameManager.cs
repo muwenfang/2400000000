@@ -123,7 +123,8 @@ public class GameManager : MonoBehaviour
     IEnumerator CalculateProcessSequence(CardManager formula)
     {
         // 1. 投骰子和递增数据
-        formula.PrepareCardsForCalculation();
+        //    并且获取本回合的最大数字卡,为经验主义祝福提供数据支持
+        lastRoundMaxCard = formula.PrepareCardsForCalculation();
 
         // 2. 刷新UI显示投掷和递增后的结果
         UIManager.Instance.RefreshSelectedCardsDisplay(formula.selectedNumberCards);
@@ -259,8 +260,7 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
         UIManager.Instance.UpdateRoundDisplay(currentRound);// 检查阶段要求
 
-        // 获取本回合的最大数字卡,为经验主义祝福提供数据支持
-        lastRoundMaxCard = cardManager.PrepareCardsForCalculation();
+
 
         // 检查是否到达阶段结算点
         if (IsStageRound(currentRound))

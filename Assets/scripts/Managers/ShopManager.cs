@@ -101,6 +101,7 @@ public class ShopManager : MonoBehaviour
         long roundSquare = (long)Mathf.Pow(currentRound, 2);
         long powerOfTwo = (long)Mathf.Pow(2, refreshCount);
         long refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
+        refreshCostText.text = "刷新消耗: 1";
         refreshCostText.text = $"刷新消耗: {refreshCost}";
 
 
