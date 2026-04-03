@@ -183,12 +183,15 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.Jackpot7:
                 // 逢七过 - 
                 hasJackpot7 = true;
+                totalMultiplierBonus += 7;
                 Debug.Log("逢七过效果已激活");
                 break;
 
             case BlessingData.BlessingType.AllGodsInPlace:
                 // 众神归位 - 效果每回合可能要重新检测祝福数量
                 AllGodsCount++;
+                float AllGodsInPlaceBonus = CalculateAllGodsInPlaceBonus();
+                totalMultiplierBonus += AllGodsInPlaceBonus;
                 Debug.Log("众神归位效果已激活");
                 break;
 
@@ -206,6 +209,8 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.CardMaster:
                 // 卡牌大师 - 每张数字卡额外提供1倍率
                 CardMasterCount++;
+                float cardMasterBonus = CalculateCardMasterBonus();
+                totalMultiplierBonus += cardMasterBonus;
                 Debug.Log("卡牌大师效果已激活，提供额外倍率");
                 break;
 
@@ -458,22 +463,6 @@ public class BlessingManager : MonoBehaviour
     /// </summary>
     public float GetTotalMultiplierBonus()
     {
-
-
-        ///逢七过的额外倍率
-        float Jackpot7Bonus = CalculateJackpot7Bonus();
-        totalMultiplierBonus += Jackpot7Bonus;
-
-        ///众神归位的额外倍率
-        float AllGodsInPlaceBonus = CalculateAllGodsInPlaceBonus();
-        totalMultiplierBonus += AllGodsInPlaceBonus;
-        Debug.Log("众神归位+" + AllGodsInPlaceBonus);
-
-        ///卡牌大师的额外倍率
-        float cardMasterBonus = CalculateCardMasterBonus();
-        totalMultiplierBonus += cardMasterBonus;
-        Debug.Log($"卡牌大师倍率加成：{cardMasterBonus}");
-
         return totalMultiplierBonus;
     }
 
