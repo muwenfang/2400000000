@@ -20,7 +20,7 @@ public class NumberComponent
 
 [CreateAssetMenu(fileName = "MyNumberCards", menuName = "CardData/NumberCardData", order = 1)]
 public class NumberCardData : ScriptableObject//不挂载在 GameObject 上
-{                                           //直接作为数据容器使用即可
+{                                           //直接作为数据容器使用即可GetOutPutValue()
     public string cardName;
     public NumberCardLayoutType layoutType;
 
@@ -121,6 +121,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         // 标记为已结算
         isPrepared = true;
     }
+    
     /// <summary>
     /// 获得当前卡牌的输出值（根据逻辑类型计算）
     /// </summary>
@@ -134,13 +135,14 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             case NumberCardData.LogicalType.Addition:
                 return a + b;
             case NumberCardData.LogicalType.Multiplication:
-                return a * b;
+                return (BigInteger)a * b;
             case NumberCardData.LogicalType.Power:
-                return (int)System.Math.Pow(a, b);
+                return BigInteger.Pow((BigInteger)a, b);
             default:
                 return a;
         }
     }
+    
 
     /// <summary>
     /// GetNumberCardPrice 返回 long，避免溢出
@@ -281,7 +283,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     }
 
     /// <summary>
-    /// 计算指数型卡牌期望（8种组合）
+    /// 计算指数型卡牌价格期望（8种组合）
     /// 返回long，用整数运算计算
     /// </summary>
     private long CalculatePowerExpectation(NumberComponent a, NumberComponent b)
