@@ -150,7 +150,7 @@ public class BlessingManager : MonoBehaviour
         switch (data.blessingType)
         {
             case BlessingData.BlessingType.Raise:
-                currentPrice += purchaseCount * 300;
+                currentPrice += purchaseCount * 500;
                 calculatedPrice = currentPrice * priceMultiplier;
                 return Mathf.RoundToInt(calculatedPrice);
 
