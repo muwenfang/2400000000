@@ -14,6 +14,13 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     [Header("玩家拥有的公式卡")]
     public List<FormulaCardData> formulaCards = new();
 
+    // 删卡约束常数
+    [Header("删卡约束")]
+    [Tooltip("数字卡最少保留数量")]
+    public int minNumberCardCount = 6;
+    [Tooltip("公式卡最少保留数量")]
+    public int minFormulaCardCount = 1;
+
     //倍率逻辑:获取玩家拥有的公式卡数量，作为每回合的基础倍率
     public int GetFormulaCardCount()
     {
@@ -79,18 +86,52 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     // =========================
     // 删除卡牌
     // =========================
-    public void RemoveNumberCard(NumberCardInstance card)
+    public bool RemoveNumberCard(NumberCardInstance card)
     {
         if (numberCards.Remove(card))
         {
-            Debug.Log("删除数字卡：" + card.cardData.name);
+            Debug.Log($"[PlayerCardInventory] 成功删除数字卡：{card.cardData.name}（剩余 {numberCards.Count} 张）");
+            return true;
         }
         else
         {
-            Debug.LogWarning("尝试删除不存在的数字卡：" + card.cardData.name);
+            Debug.LogWarning($"[PlayerCardInventory] 删除失败：卡牌不在库存中");
+            return false;
+        }
+    }
+    /// <summary>
+    /// 尝试删除公式卡
+    /// 添加约束检查，确保至少保留minFormulaCardCount张卡牌
+    /// </summary>
+    public bool RemoveFormulaCard(FormulaCardData card)
+    {
+        if (formulaCards.Remove(card))
+        {
+            Debug.Log($"[PlayerCardInventory] 成功删除公式卡：{card.Name}（剩余 {formulaCards.Count} 张）");
+            return true;
+        }
+        else
+        {
+            Debug.LogWarning($"[PlayerCardInventory] 删除失败：卡牌不在库存中");
+            return false;
         }
     }
 
+    /// <summary>
+    /// 检查是否可以删除数字卡
+    /// </summary>
+    public bool CanRemoveNumberCard()
+    {
+        return numberCards.Count > minNumberCardCount;
+    }
+
+    /// <summary>
+    /// 检查是否可以删除公式卡
+    /// </summary>
+    public bool CanRemoveFormulaCard()
+    {
+        return formulaCards.Count > minFormulaCardCount;
+    }
     // =========================
     // 大小卡牌包祝福效果：添加随机n张数字卡
     // =========================

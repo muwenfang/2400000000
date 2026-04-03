@@ -39,12 +39,6 @@ public class CardSelectionManager : MonoBehaviour
     /// </summary>
     public void StartCardSelection(SelectionMode mode, Action<object> callback)
     {
-        if (callback == null)
-        {
-            Debug.LogError("[CardSelectionManager] 回调为空");
-            return;
-        }
-
         currentMode = mode;
         selectionCallback = callback;
 
@@ -67,8 +61,11 @@ public class CardSelectionManager : MonoBehaviour
         // 触发回调
         selectionCallback?.Invoke(selectedCard);
 
-        // 结束选择
-        EndCardSelection();
+        //如果不是删卡模式才自动结束；删卡模式允许连续点击
+        if (currentMode != SelectionMode.RemoveCard)
+        {
+            EndCardSelection();
+        }
     }
     /// <summary>
     /// 关闭卡牌选择模式

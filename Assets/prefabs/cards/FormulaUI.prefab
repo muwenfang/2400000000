@@ -111,7 +111,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6e72d36ef065e1841806c1e6ec567ee5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  formulaArea: {fileID: 1600727368693779754}
+  formulaArea: {fileID: 3598395829523233909}
   textPrefab: {fileID: 6620907051930291993}
   slotPrefab: {fileID: 3506440502956340770}
 --- !u!1 &3506440502956340770
@@ -520,6 +520,22 @@ PrefabInstance:
     - target: {fileID: 5565338637335754498, guid: 796ee20411d8e78449ca4a6d32c4c617, type: 3}
       propertyPath: m_Colors.m_SelectedColor.a
       value: 0.003921569
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565338637335754498, guid: 796ee20411d8e78449ca4a6d32c4c617, type: 3}
+      propertyPath: m_Colors.m_HighlightedColor.a
+      value: 0.039215688
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565338637335754498, guid: 796ee20411d8e78449ca4a6d32c4c617, type: 3}
+      propertyPath: m_Colors.m_HighlightedColor.b
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565338637335754498, guid: 796ee20411d8e78449ca4a6d32c4c617, type: 3}
+      propertyPath: m_Colors.m_HighlightedColor.g
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5565338637335754498, guid: 796ee20411d8e78449ca4a6d32c4c617, type: 3}
+      propertyPath: m_Colors.m_HighlightedColor.r
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 6254626150069475062, guid: 796ee20411d8e78449ca4a6d32c4c617, type: 3}
       propertyPath: m_Name

@@ -685,22 +685,6 @@ public class UIManager : MonoBehaviour
             return;
         }
 
-        //Debug.Log($"[UIManager] 开始刷新 {selectedCards.Count} 张选中卡牌的显示");
-
-        //// 刷新handArea中的NumberCardView
-        //if (handArea != null)
-        //{
-        //    var views = handArea.GetComponentsInChildren<NumberCardView>();
-
-        //    for (int i = 0; i < views.Length && i < selectedCards.Count; i++)
-        //    {
-        //        if (views[i] != null && selectedCards[i] != null)
-        //        {
-        //            views[i].Bind(selectedCards[i]);
-        //            Debug.Log($"[UIManager] 刷新手牌显示 {i}: {selectedCards[i].cardData.cardName}");
-        //        }
-        //    }
-        //}
         var allSingleViews = FindObjectsOfType<SingleNumberView>(true);
         var allCompositeViews = FindObjectsOfType<CompositeNumberView>(true);
 

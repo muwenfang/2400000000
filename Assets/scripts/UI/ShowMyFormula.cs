@@ -67,12 +67,14 @@ public class ShowMyFormula : MonoBehaviour
     /// </summary>
     private void ActivateFormulaCardDeletionButtons()
     {
+        //// 检查是否可以删除公式卡（使用约束）
+        //if (!PlayerCardInventory.Instance.CanRemoveFormulaCard())
+        //{
+        //    Debug.LogWarning($"[ShowMyFormula] 无法删除公式卡：最少需要保留 {PlayerCardInventory.Instance.minFormulaCardCount} 张");
+        //    return;
+        //}
+
         var deck = CardManager.Instance.formulaCardDeck;
-        if (deck == null || deck.Count <= 1)
-        {
-            Debug.LogWarning("[ShowMyFormula] 没有公式卡可以删除");
-            return;
-        }
 
         // 清除之前的按钮监听
         foreach (var btn in activeDeletionButtons)
@@ -81,6 +83,8 @@ public class ShowMyFormula : MonoBehaviour
                 btn.onClick.RemoveAllListeners();
         }
         activeDeletionButtons.Clear();
+
+        int activatedCount = 0;
 
         // 获取所有公式卡UI组件
         FormulaCardUI[] formulaCardUIs = contentRoot.GetComponentsInChildren<FormulaCardUI>();
@@ -93,7 +97,7 @@ public class ShowMyFormula : MonoBehaviour
             Button deleteBtn = formulaUI.GetComponent<Button>();
             if (deleteBtn == null)
             {
-                deleteBtn = formulaUI.gameObject.AddComponent<Button>();
+                deleteBtn = formulaUI.GetComponentInChildren<Button>();
             }
 
             // 清除之前的监听
@@ -103,14 +107,17 @@ public class ShowMyFormula : MonoBehaviour
             FormulaCardData formulaData = formulaUI.GetFormulaCardData();
             if (formulaData != null)
             {
-                // 添加删除回调
-                deleteBtn.onClick.AddListener(() => OnFormulaCardDeleteSelected(formulaData));
+                // 添加删除回调 - 使用局部变量捕获，避免闭包问题
+                FormulaCardData cardData = formulaData;
+                deleteBtn.onClick.AddListener(() => OnFormulaCardDeleteSelected(cardData));
 
                 // 激活按钮
                 deleteBtn.gameObject.SetActive(true);
 
                 // 记录按钮
                 activeDeletionButtons.Add(deleteBtn);
+
+                activatedCount++;
 
                 Debug.Log($"[ShowMyFormula] 激活公式卡删除按钮");
             }
@@ -140,8 +147,15 @@ public class ShowMyFormula : MonoBehaviour
     /// </summary>
     private void ExecuteFormulaCardDeletion(FormulaCardData cardToDelete)
     {
-        // 删除卡牌
-        bool deleted = CardManager.Instance.formulaCardDeck.Remove(cardToDelete);
+        // 数量判定移到点击时判断
+        if (!PlayerCardInventory.Instance.CanRemoveFormulaCard())
+        {
+            Debug.LogWarning($"[ShowMyFormula] 无法删除公式卡：最少需要保留 {PlayerCardInventory.Instance.minFormulaCardCount} 张");
+            return;
+        }
+
+        // 使用约束检查来删除卡牌
+        bool deleted = PlayerCardInventory.Instance.RemoveFormulaCard(cardToDelete);
 
         if (deleted)
         {

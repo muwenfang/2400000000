@@ -139,6 +139,10 @@ public class ShowMyNumberCard : MonoBehaviour
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.GetComponent<RectTransform>());
         }
+
+        // 每次刷新卡牌后，重新激活按钮（防止新生成的卡牌没按钮）
+        ActivateButtonsBasedOnMode();
+
     }
     void GenerateNumberCards()
     {
@@ -234,12 +238,16 @@ public class ShowMyNumberCard : MonoBehaviour
     /// </summary>
     private void ActivateNumberCardDeletionButtons()
     {
+        //// 检查是否可以删除数字卡（使用约束）
+        //if (!PlayerCardInventory.Instance.CanRemoveNumberCard())
+        //{
+        //    Debug.LogWarning($"[ShowMyNumberCard] 无法删除数字卡：最少需要保留 {PlayerCardInventory.Instance.minNumberCardCount} 张");
+        //    return;
+        //}
+
         var instances = PlayerCardInventory.Instance.GetAllNumberCards();
-        if (instances == null || instances.Count <=6)
-        {
-            Debug.LogWarning("[ShowMyNumberCard] 卡牌过少，不可继续删除");
-            return;
-        }
+
+        int activatedCount = 0;
 
         foreach (var instance in instances)
         {
@@ -253,17 +261,20 @@ public class ShowMyNumberCard : MonoBehaviour
             Button deleteBtn = cardGo.GetComponent<Button>();
             if (deleteBtn == null)
             {
-                deleteBtn = cardGo.AddComponent<Button>();
+                deleteBtn = cardGo.GetComponentInChildren<Button>(true);
             }
 
             // 清除之前的监听
             deleteBtn.onClick.RemoveAllListeners();
 
-            // 添加删除回调
-            deleteBtn.onClick.AddListener(() => OnNumberCardDeleteSelected(instance));
+            // 添加删除回调 - 使用局部变量捕获，避免闭包问题
+            NumberCardInstance cardInstance = instance;
+            deleteBtn.onClick.AddListener(() => OnNumberCardDeleteSelected(cardInstance));
 
             // 激活按钮
             deleteBtn.gameObject.SetActive(true);
+
+            activatedCount++;
 
             Debug.Log($"[ShowMyNumberCard] 激活数字删除按钮");
         }
@@ -274,6 +285,13 @@ public class ShowMyNumberCard : MonoBehaviour
     /// </summary>
     private void OnNumberCardDeleteSelected(NumberCardInstance selectedCard)
     {
+        // 把数量判定放在这里。用户点击时如果没达到条件，提示并拒绝删除。
+        if (!PlayerCardInventory.Instance.CanRemoveNumberCard())
+        {
+            Debug.LogWarning($"[ShowMyNumberCard] 无法删除数字卡：最少需要保留 {PlayerCardInventory.Instance.minNumberCardCount} 张");
+            return;
+        }
+
         if (selectedCard == null)
         {
             Debug.LogError("[ShowMyNumberCard] 选择的数字卡为空");
@@ -293,16 +311,25 @@ public class ShowMyNumberCard : MonoBehaviour
     private void ExecuteNumberCardDeletion(NumberCardInstance cardToDelete)
     {
         // 删除卡牌
-        PlayerCardInventory.Instance.RemoveNumberCard(cardToDelete);
+        bool deleted = PlayerCardInventory.Instance.RemoveNumberCard(cardToDelete);
 
-        // 通知ShopManager更新统计
-        if (ShopManager.Instance != null)
+        if (deleted)
         {
-            ShopManager.Instance.OnCardDeleted(cardToDelete);
-        }
+            Debug.Log($"[ShowMyNumberCard] 成功删除数字卡：{cardToDelete.cardData.cardName}");
 
-        // 刷新显示
-        RefreshAllCards();
+            // 通知ShopManager更新统计
+            if (ShopManager.Instance != null)
+            {
+                ShopManager.Instance.OnCardDeleted(cardToDelete);
+            }
+
+            // 刷新显示
+            RefreshAllCards();
+        }
+        else
+        {
+            Debug.LogWarning("[ShowMyNumberCard] 删除数字卡失败");
+        }
     }
     /// <summary>
     /// 通用方法：设置文本内容和颜色
