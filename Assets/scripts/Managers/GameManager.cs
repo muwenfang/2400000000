@@ -146,7 +146,7 @@ public class GameManager : MonoBehaviour
         BigInteger finalScore = (BigInteger)((decimal)baseScore * (decimal)totalMultiplier);
 
         // 逢七过效果
-        if (blessingManager != null && blessingManager.CheckJackpot7Effect(finalScore))
+        if (blessingManager != null && blessingManager.CheckJackpot7Effect(baseScore))
         {
             finalScore = BigInteger.Zero;
         }
@@ -217,7 +217,7 @@ public class GameManager : MonoBehaviour
         // 从祝福管理器获取倍率加成
         if (blessingManager != null)
         {
-            float blessingMultiplier = blessingManager.GetTotalMultiplierBonus();
+            float blessingMultiplier = blessingManager.GetFinalBlessingMultiplier();
             multiplier += blessingMultiplier;
             Debug.Log($"祝福倍率加成: {blessingMultiplier}，总倍率: {multiplier}");
         }
