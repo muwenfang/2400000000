@@ -29,6 +29,7 @@ public class ShopItem<T>
 public class ShopManager : MonoBehaviour
 {
     public static ShopManager Instance;
+    public Text refreshCostText;
 
     void Awake()
     {
@@ -95,6 +96,22 @@ public class ShopManager : MonoBehaviour
         GenerateFormulaCards();
         GenerateBlessings();
         InitializeDeletionUI();
+
+        int currentRound = GameManager.Instance.currentRound;
+        long roundSquare = (long)Mathf.Pow(currentRound, 2);
+        long powerOfTwo = (long)Mathf.Pow(2, refreshCount);
+        long refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
+        refreshCostText.text = $"刷新消耗: {refreshCost}";
+
+
+        // 如果拥有丰盈宝库祝福，刷新费用为0
+        if (BlessingManager.Instance.HasRichTreasure == 1)
+        {
+            refreshCost = 0;
+        }
+
+        refreshCostText.text = $"刷新消耗: {refreshCost}";
+
         // ---通知 UI 刷新 ---
         UIManager.Instance.RefreshShopUI();
     }
@@ -443,6 +460,7 @@ public class ShopManager : MonoBehaviour
         long powerOfTwo = (long)Mathf.Pow(2, refreshCount);
         long refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
 
+
         // 如果拥有丰盈宝库祝福，刷新费用为0
         if (BlessingManager.Instance.HasRichTreasure == 1)
         {
@@ -455,8 +473,11 @@ public class ShopManager : MonoBehaviour
             return;
         }
         GameManager.Instance.AddPoints(-refreshCost);
+
+        refreshCostText.text = $"刷新消耗: {refreshCost}";
+
         refreshCount++;//刷新次数应该每回合重置
-        
+
         OpenShop();
     }
 
