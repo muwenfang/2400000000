@@ -417,7 +417,6 @@ public class ShopManager : MonoBehaviour
         }
         PlayerCardInventory.Instance.AddFormulaCard(item.cardData);
         GameManager.Instance.AddPoints(-item.price);
-        Debug.Log("购买成功");
         CardManager.Instance.SyncDeckFromInventory();
 
         item.sold = true;
@@ -531,7 +530,7 @@ public class ShopManager : MonoBehaviour
         {
             CardSelectionManager.Instance.StartCardSelection(
                 CardSelectionManager.SelectionMode.RemoveCard,
-                OnCardDeletedCallback
+                null
             );
         }
         else

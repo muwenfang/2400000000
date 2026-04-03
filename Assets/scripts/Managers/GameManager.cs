@@ -63,7 +63,7 @@ public class GameManager : MonoBehaviour
     public void InitializeGame()
     {   
         Debug.Log("初始化游戏");
-        currentPoints = 999999999;
+        currentPoints = 9999999999999;
         currentRound = 1;
         // 确保调用了 ChangeState，这样上面的 UI 逻辑才会跑起来
         ChangeState(GameState.PlayerTurn);
@@ -143,10 +143,10 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.multiplierText.text = "×" + totalMultiplier.ToString();
 
         // 计算最终得分
-        BigInteger finalScore = (BigInteger)((decimal)baseScore * (decimal)totalMultiplier);
+        BigInteger finalScore = baseScore * new BigInteger((decimal)totalMultiplier);
 
         // 逢七过效果
-        if (blessingManager != null && blessingManager.CheckJackpot7Effect(finalScore))
+        if (blessingManager != null && blessingManager.CheckJackpot7Effect(baseScore))
         {
             finalScore = BigInteger.Zero;
         }
@@ -217,7 +217,7 @@ public class GameManager : MonoBehaviour
         // 从祝福管理器获取倍率加成
         if (blessingManager != null)
         {
-            float blessingMultiplier = blessingManager.GetTotalMultiplierBonus();
+            float blessingMultiplier = blessingManager.GetFinalBlessingMultiplier();
             multiplier += blessingMultiplier;
             Debug.Log($"祝福倍率加成: {blessingMultiplier}，总倍率: {multiplier}");
         }
