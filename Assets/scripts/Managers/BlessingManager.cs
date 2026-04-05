@@ -34,7 +34,7 @@ public class BlessingManager : MonoBehaviour
     private int CardMasterCount = 0;       //是否激活卡牌大师 
     public int HasRichTreasure = 0;        //是否激活丰盈宝库
     private BlessingData wishCoinTargetBlessing = null; //许愿币储存的祝福
-
+    public int nihilismCount = 0;       // 虚无主义数量
 
     private void Awake()
     {
@@ -65,6 +65,7 @@ public class BlessingManager : MonoBehaviour
         hasJackpot7 = false;
         wishCoinTargetBlessing = null; 
         HasRichTreasure = 0;
+        nihilismCount = 0;
     }
 
     /// <summary>
@@ -168,14 +169,20 @@ public class BlessingManager : MonoBehaviour
     {
         switch (blessingData.blessingType)
         {
+            case BlessingData.BlessingType.Nihilism:
+                // 虚无主义：数量+1，价格翻倍
+                nihilismCount++;
+                Debug.Log($"虚无主义已激活！当前数量：{nihilismCount}");
+                break;
+            
             case BlessingData.BlessingType.WishingCoin:
-                 // 许愿币：选择一个已拥有的可叠加祝福，下回合商店必出
+                // 许愿币：选择一个已拥有的可叠加祝福，下回合商店必出
                 Debug.Log("许愿币效果激活：请选择一个已拥有的可叠加祝福");
                 ActivateWishCoinSelection();
                 break;
 
             case BlessingData.BlessingType.MagicLamp:
-                 //神灯 - 获取三个随机可叠加祝福
+                //神灯 - 获取三个随机可叠加祝福
                 AddStackableBlessingsToOwned(3);
                 Debug.Log("神灯效果已激活");
                 break;
@@ -562,6 +569,7 @@ public class BlessingManager : MonoBehaviour
         hasJackpot7 = false;
         HasRichTreasure = 0;
         wishCoinTargetBlessing = null;
+        nihilismCount = 0;
     }
 
     /// <summary>

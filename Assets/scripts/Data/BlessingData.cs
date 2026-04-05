@@ -73,6 +73,20 @@ public class BlessingData : ScriptableObject
     {
         // 基础价格 * 购买次数倍数 * 价格乘数
         float calculatedPrice = basePrice  * priceMultiplier;
+        
+        // 虚无主义：自身价格翻倍
+        if (blessingType == BlessingType.Nihilism)
+        {
+        // 安全获取虚无数量，避免空引用
+            int nihilismCount = 0;
+            if (BlessingManager.Instance != null)
+            {
+                nihilismCount = BlessingManager.Instance.nihilismCount;
+            }
+        
+            calculatedPrice *= Mathf.Pow(2, nihilismCount);
+        }
+        
         return Mathf.RoundToInt(calculatedPrice);
     }
 }

@@ -238,8 +238,39 @@ public class ShopManager : MonoBehaviour
         ? BlessingManager.Instance.GetCurrentPriceMultiplier()
         : 1.0f;
 
+        bool forceNihilism = false;
+        int nihilismCount = BlessingManager.Instance.nihilismCount;
+        float nihilismChance = nihilismCount * 0.02f;
+        
         BlessingData wishBlessing = BlessingManager.Instance.GetWishCoinTargetBlessing();//许愿币效果
         int wishAdded = 0;
+        
+        if (nihilismCount > 0 && UnityEngine.Random.value < nihilismChance)
+        {
+            forceNihilism = true;
+            Debug.Log($"【虚无主义触发】概率：{nihilismChance*100}% → 全部刷新为虚无主义！");
+        }
+        
+        if (forceNihilism)
+        {
+            shopBlessings.Clear(); // 清空
+
+            BlessingData nihilism = blessingLibrary.GetBlessingByType(BlessingData.BlessingType.Nihilism);
+            int price = nihilism.CalculatePrice(BlessingManager.Instance.GetBlessingCount(nihilism.blessingId), priceMultiplier);
+
+            // 固定生成 4 个
+            for (int i = 0; i < 4; i++)
+            {
+                shopBlessings.Add(new ShopItem<BlessingData>(nihilism, price));
+            }
+
+            // 消耗许愿币
+            if (wishBlessing != null)
+                BlessingManager.Instance.ConsumeWishCoin();
+
+            return;
+        }
+        
         if (wishBlessing != null)
         {
             // 强制加入本次商品，优先占用第一个槽位
