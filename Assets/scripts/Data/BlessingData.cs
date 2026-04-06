@@ -63,7 +63,8 @@ public class BlessingData : ScriptableObject
         DialecticalViewpoint, // 辩证主义
         Empiricism,           // 经验主义  
         Utopianism,           // 空想主义
-        Pragmatism            // 实用主义
+        Pragmatism,           // 实用主义
+        LeadingCharge         // 打头阵 
     }
 
     /// <summary>
