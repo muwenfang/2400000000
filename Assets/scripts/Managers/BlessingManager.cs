@@ -35,7 +35,8 @@ public class BlessingManager : MonoBehaviour
     public int HasRichTreasure = 0;        //是否激活丰盈宝库
     private BlessingData wishCoinTargetBlessing = null; //许愿币储存的祝福
     public int nihilismCount = 0;       // 虚无主义数量
-
+    public bool hasLeadingCharge = false; // 打头阵
+    
     private void Awake()
     {
         if (Instance == null)
@@ -66,6 +67,7 @@ public class BlessingManager : MonoBehaviour
         wishCoinTargetBlessing = null; 
         HasRichTreasure = 0;
         nihilismCount = 0;
+        hasLeadingCharge = false;
     }
 
     /// <summary>
@@ -332,6 +334,11 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log("实用主义效果已激活");
                 break;
 
+            case BlessingData.BlessingType.LeadingCharge:
+                // 打头阵 - 不可叠加            
+                hasLeadingCharge = true; 
+                Debug.Log("打头阵 已激活！");
+                break;
         }
     }
 
@@ -570,6 +577,7 @@ public class BlessingManager : MonoBehaviour
         HasRichTreasure = 0;
         wishCoinTargetBlessing = null;
         nihilismCount = 0;
+        hasLeadingCharge = false;
     }
 
     /// <summary>

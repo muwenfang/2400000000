@@ -134,6 +134,19 @@ public class GameManager : MonoBehaviour
 
         // 4. 计算结果
         BigInteger baseScore = formula.CalculateResult();
+        //打头阵：原始结算结果第一位强制变9 
+        if (blessingManager != null && blessingManager.hasLeadingCharge)
+        {
+            string numStr = baseScore.ToString();
+
+            if (numStr.Length > 0)
+            {
+                // 第一位 → 9，后面保持不变
+                numStr = "9" + numStr.Substring(1);
+                baseScore = BigInteger.Parse(numStr);
+                Debug.Log($"【打头阵】原始结果修改为：{baseScore}");
+            }
+        }
 
         // 计算基础倍率（根据公式卡数量）
         float baseMultiplier = PlayerCardInventory.Instance.GetFormulaCardCount();

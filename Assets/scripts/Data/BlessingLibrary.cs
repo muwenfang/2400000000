@@ -62,20 +62,9 @@ public class BlessingLibrary : ScriptableObject
             isStackable: true
         ));
 
-        // 戒赌
-        allBlessings.Add(CreateBlessing(
-            id: 6,
-            name: "戒赌",
-            description: "将数字卡中的一个骰子变为{0}",
-            type: BlessingData.BlessingType.QuitGambling,
-            basePrice: 1000,
-            isStackable: true
-            
-        ));
-
         // 转运
         allBlessings.Add(CreateBlessing(
-            id: 7,
+            id: 6,
             name: "转运",
             description: "骰子投到1时，重投一次并将这次的结果作为该骰子的最终判定结果",
             type: BlessingData.BlessingType.LuckTurns,
@@ -87,7 +76,7 @@ public class BlessingLibrary : ScriptableObject
 
         // 许愿币
         allBlessings.Add(CreateBlessing(
-            id: 8,
+            id: 7,
             name: "许愿币",
             description: "选择一个已拥有且可叠加的祝福，下次商店刷新必定刷新出该祝福",
             type: BlessingData.BlessingType.WishingCoin,
@@ -97,7 +86,7 @@ public class BlessingLibrary : ScriptableObject
         
         // 小卡牌包
         allBlessings.Add(CreateBlessing(
-            id: 9,
+            id: 8,
             name: "小卡牌包",
             description: "立即获得3张随机数字卡",
             type: BlessingData.BlessingType.SmallCardPack,
@@ -107,7 +96,7 @@ public class BlessingLibrary : ScriptableObject
 
         // 众神归位
         allBlessings.Add(CreateBlessing(
-            id: 10,
+            id: 9,
             name: "众神归位",
             description: "每拥有一个祝福，倍率+1",
             type: BlessingData.BlessingType.AllGodsInPlace,
@@ -115,19 +104,9 @@ public class BlessingLibrary : ScriptableObject
             isStackable: true
         ));
         
-        // 高效催化
-        allBlessings.Add(CreateBlessing(
-            id: 11,
-            name: "高效催化",
-            description: "选择一个数字卡中的绿色数字使其立即+1，祝福“高效催化”的价格翻倍",
-            type: BlessingData.BlessingType.RapidActivation,
-            basePrice: 2000,
-            isStackable: true
-        ));
-
         // 理财大师
         allBlessings.Add(CreateBlessing(
-            id: 12,
+            id: 10,
             name: "理财大师",
             description: "每回合结束时额外获得已拥有点数1%的点数",
             type: BlessingData.BlessingType.FinancialMaster,
@@ -138,7 +117,7 @@ public class BlessingLibrary : ScriptableObject
         
         // 大卡牌包
         allBlessings.Add(CreateBlessing(
-            id: 13,
+            id: 11,
             name: "大卡牌包",
             description: "立即获得5张随机数字卡",
             type: BlessingData.BlessingType.BigCardPack,
@@ -148,7 +127,7 @@ public class BlessingLibrary : ScriptableObject
         
         // 老千
         allBlessings.Add(CreateBlessing(
-            id: 14,
+            id: 12,
             name: "老千",
             description: "择一张数字卡，将其替换为一张随机的数字卡",
             type: BlessingData.BlessingType.CardCheat,
@@ -157,20 +136,9 @@ public class BlessingLibrary : ScriptableObject
         
         ));
 
-        // 赌具升级
-        allBlessings.Add(CreateBlessing(
-            id: 15,
-            name: "赌具升级",
-            description: "选择一个骰子使其立即升一级，祝福“赌具升级”的价格翻倍",
-            type: BlessingData.BlessingType.GamblingGearUpgraded,
-            basePrice: 4000,
-            isStackable: true
-        
-        ));
-
         //  多多益善
         allBlessings.Add(CreateBlessing(
-            id: 16,
+            id: 13,
             name: "多多益善",
             description: "选择一张填空卡并将其复制",
             type: BlessingData.BlessingType.MoreMoreBetter,
@@ -178,21 +146,10 @@ public class BlessingLibrary : ScriptableObject
             isStackable: true,
             effectValue: 1f
         ));
-
-        //  染色
-        allBlessings.Add(CreateBlessing(
-            id: 17,
-            name: "染色",
-            description: "立即将数字卡的一个普通数字染为绿色，祝福“染色”的价格变为10倍",
-            type: BlessingData.BlessingType.Dyed,
-            basePrice: 10000,
-            isStackable: true
-            
-        ));
-
+        
         //  好事成双
         allBlessings.Add(CreateBlessing(
-            id: 18,
+            id: 14,
             name: "好事成双",
             description: "立即获得你所获得的上一个可叠加的祝福",
             type: BlessingData.BlessingType.DoubleLuck,
@@ -203,7 +160,7 @@ public class BlessingLibrary : ScriptableObject
         
         //  卡牌大师
         allBlessings.Add(CreateBlessing(
-            id: 19,
+            id: 15,
             name: "卡牌大师",
             description: "每张数字卡额外提供1倍率",
             type: BlessingData.BlessingType.CardMaster,
@@ -214,7 +171,7 @@ public class BlessingLibrary : ScriptableObject
 
         //  狂赌之渊
         allBlessings.Add(CreateBlessing(
-            id: 20,
+            id: 16,
             name: "狂赌之渊",
             description: "立即将所有绿色数字变为~20~",
             type: BlessingData.BlessingType.CompulsiveGambler,
@@ -226,7 +183,7 @@ public class BlessingLibrary : ScriptableObject
 
         //  赌为赢
         allBlessings.Add(CreateBlessing(
-            id: 21,
+            id: 17,
             name: "赌为赢",
             description: "当你的数字卡总共拥有20个骰子（及以上）时，你的骰子每判定为一次20，你获得2400000000",
             type: BlessingData.BlessingType.GambletoWin,
@@ -238,7 +195,7 @@ public class BlessingLibrary : ScriptableObject
 
         //  能量扩散
         allBlessings.Add(CreateBlessing(
-            id: 22,
+            id: 18,
             name: "能量扩散",
             description: "不参与计算的绿色数字每回合也会+1",
             type: BlessingData.BlessingType.EnergySpread,
@@ -250,7 +207,7 @@ public class BlessingLibrary : ScriptableObject
 
         //  神灯
         allBlessings.Add(CreateBlessing(
-            id: 23,
+            id: 19,
             name: "神灯",
             description: "随机获得三个可叠加祝福",
             type: BlessingData.BlessingType.MagicLamp,
@@ -261,7 +218,7 @@ public class BlessingLibrary : ScriptableObject
         
         //  友情折扣
         allBlessings.Add(CreateBlessing(
-            id: 24,
+            id: 20,
             name: "友情折扣",
             description: "所有数字卡、填空卡与祝福的价格-10%",
             type: BlessingData.BlessingType.FriendDiscount,
@@ -273,7 +230,7 @@ public class BlessingLibrary : ScriptableObject
 
         //  眷顾
         allBlessings.Add(CreateBlessing(
-            id: 25,
+            id: 21,
             name: "眷顾",
             description: "每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%",
             type: BlessingData.BlessingType.Bless,
@@ -285,7 +242,7 @@ public class BlessingLibrary : ScriptableObject
 
         //  丰盈宝库
         allBlessings.Add(CreateBlessing(
-            id: 26,
+            id: 22,
             name: "丰盈宝库",
             description: "商店刷新永久免费",
             type: BlessingData.BlessingType.RichTreasury,
@@ -297,7 +254,7 @@ public class BlessingLibrary : ScriptableObject
 
         //  唯心主义
         allBlessings.Add(CreateBlessing(
-            id: 27,
+            id: 23,
             name: "唯心主义",
             description: "所有同等级的骰子参与运算时的判定结果总是相同的",
             type: BlessingData.BlessingType.Idealism,
@@ -309,7 +266,7 @@ public class BlessingLibrary : ScriptableObject
 
         //  唯物主义
         allBlessings.Add(CreateBlessing(
-            id: 28,
+            id: 24,
             name: "唯物主义",
             description: "立即获得等同于当前已拥有祝福数量2倍的永久倍率，然后失去所有祝福",
             type: BlessingData.BlessingType.Materialism,
@@ -321,7 +278,7 @@ public class BlessingLibrary : ScriptableObject
 
         //  虚无主义
         allBlessings.Add(CreateBlessing(
-            id: 29,
+            id: 25,
             name: "虚无主义",
             description: "祝福“虚无主义”的价格翻倍；你每拥有一个“虚无主义”，商店刷新时额外有2%的概率将所有祝福刷新为“虚无主义”",
             type: BlessingData.BlessingType.Nihilism,
@@ -332,7 +289,7 @@ public class BlessingLibrary : ScriptableObject
 
         //  辩证主义
         allBlessings.Add(CreateBlessing(
-            id: 30,
+            id: 26,
             name: "辩证主义",
             description: "每回合倍率永久+1，获得24点，所有卡牌与祝福的价格+1%",
             type: BlessingData.BlessingType.DialecticalViewpoint,
@@ -344,7 +301,7 @@ public class BlessingLibrary : ScriptableObject
 
         //  经验主义
         allBlessings.Add(CreateBlessing(
-            id: 31,
+            id: 27,
             name: "经验主义",
             description: "每回合抽取数字卡时先抽取上一回合判定结果最大的数字卡",
             type: BlessingData.BlessingType.Empiricism,
@@ -356,7 +313,7 @@ public class BlessingLibrary : ScriptableObject
         
         //  空想主义
         allBlessings.Add(CreateBlessing(
-            id: 32,
+            id: 28,
             name: "空想主义",
             description: "你立即获得一张你未拥有的填空卡；如果在获得此祝福时拥有了所有类型的填空卡，立即获得2400000000点并失去所有的“空想主义”",
             type: BlessingData.BlessingType.Utopianism,
@@ -367,7 +324,7 @@ public class BlessingLibrary : ScriptableObject
         
         //  实用主义
         allBlessings.Add(CreateBlessing(
-            id: 33,
+            id: 29,
             name: "实用主义",
             description: "立即删除除价格最高的填空卡以外的所有填空卡；此后无法购买比已拥有的填空卡价格更低的填空卡，如果你成功购买了一张填空卡，立即删除你之前拥有的那张填空卡",
             type: BlessingData.BlessingType.Pragmatism,
@@ -377,6 +334,19 @@ public class BlessingLibrary : ScriptableObject
 
         ));
 
+        //  打头阵
+        allBlessings.Add(CreateBlessing(
+            id: 32,
+            name: "打头阵",
+            description: "你的计算结果的第一位强制变为9",
+            type: BlessingData.BlessingType.LeadingCharge,
+            basePrice: 100000,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+
+        ));
+
+        
         Debug.Log($" 成功初始化 {allBlessings.Count} 个祝福！");
     }
 
