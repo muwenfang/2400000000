@@ -25,6 +25,10 @@ public class BlessingManager : MonoBehaviour
     public Dictionary<BlessingData.BlessingType, int> blessingTypeCount =
         new Dictionary<BlessingData.BlessingType, int>();
 
+    // 创建现有的祝福实例列表（包含数据和购买次数）
+    public List<BlessingInstance> ownedBlessingInstance = new List<BlessingInstance>();
+
+
     [Header("祝福效果累积")]
     private float totalMultiplierBonus = 0f; // 倍率加成
     public int totalDialecticalCount = 0;   // '辩证主义'购买次数
@@ -113,6 +117,8 @@ public class BlessingManager : MonoBehaviour
             blessingTypeCount[blessingData.blessingType] = 0;
         }
         blessingTypeCount[blessingData.blessingType]++;
+
+        ownedBlessingInstance.Add(new BlessingInstance(blessingData, ownedBlessings[blessingData.blessingId]));
 
         // 应用祝福效果
         ApplyBlessingEffect(blessingData);
@@ -286,6 +292,8 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.Materialism:
                 // 唯物主义 - 不可叠加：立即获得等同于当前已拥有祝福数量2倍的永久倍率，然后失去所有祝福
+                totalMultiplierBonus + = ownedBlessingInstance.Count * 2;
+                ClearAllBlessings();
                 Debug.Log("唯物主义效果已激活");
                 break;
 
@@ -578,6 +586,7 @@ public class BlessingManager : MonoBehaviour
         wishCoinTargetBlessing = null;
         nihilismCount = 0;
         hasLeadingCharge = false;
+        ownedBlessingInstance.Clear();
     }
 
     /// <summary>
