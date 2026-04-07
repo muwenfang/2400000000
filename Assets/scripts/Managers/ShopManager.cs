@@ -96,13 +96,18 @@ public class ShopManager : MonoBehaviour
         GenerateFormulaCards();
         GenerateBlessings();
         InitializeDeletionUI();
+        InitializeRefreshCost();
 
+
+        // ---通知 UI 刷新 ---
+        UIManager.Instance.RefreshShopUI();
+    }
+    public void InitializeRefreshCost()
+    {
         int currentRound = GameManager.Instance.currentRound;
         long roundSquare = (long)Mathf.Pow(currentRound, 2);
         long powerOfTwo = (long)Mathf.Pow(2, refreshCount);
         long refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
-        refreshCostText.text = "刷新消耗: 1";
-        refreshCostText.text = $"刷新消耗: {refreshCost}";
 
 
         // 如果拥有丰盈宝库祝福，刷新费用为0
@@ -111,10 +116,7 @@ public class ShopManager : MonoBehaviour
             refreshCost = 0;
         }
 
-        refreshCostText.text = $"刷新消耗: {refreshCost}";
-
-        // ---通知 UI 刷新 ---
-        UIManager.Instance.RefreshShopUI();
+        refreshCostText.text = $"cost: {refreshCost}";
     }
     public void InitializeShop()
     {
@@ -581,6 +583,8 @@ public class ShopManager : MonoBehaviour
         {
             Debug.LogError("[ShopManager] UIManager 或 myNumberCardPanel 为空");
         }
+
+        UpdateDeletionUI();
     }
 
     /// <summary>
@@ -696,12 +700,14 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     private void UpdateDeletionUI()
     {
+        deleteCostPanel.SetActive(true);
+        deleteCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
         if (deleteCardCostText != null)
         {
             // 计算下一次删卡的消耗
             long nextCost = (long)(baseNumberCardRemoveCost * Mathf.Pow(2, totalRemovedNumberCards));
 
-            deleteCardCostText.text = $"下次删卡消耗：{nextCost}";
+            deleteCardCostText.text = $"{nextCost}";
 
             Debug.Log($"[ShopManager] 更新UI - 下次删卡消耗: {nextCost}");
         }
