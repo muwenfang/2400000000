@@ -40,7 +40,8 @@ public class BlessingManager : MonoBehaviour
     private BlessingData wishCoinTargetBlessing = null; //许愿币储存的祝福
     public int nihilismCount = 0;       // 虚无主义数量
     public bool hasLeadingCharge = false; // 打头阵
-    
+    private bool hasGambleToWin = false; // 是否拥有赌为赢祝福
+    private readonly BigInteger GambleToWinReward = 2400000000; // 赌为赢奖励的点数    
     private void Awake()
     {
         if (Instance == null)
@@ -72,6 +73,7 @@ public class BlessingManager : MonoBehaviour
         HasRichTreasure = 0;
         nihilismCount = 0;
         hasLeadingCharge = false;
+        hasGambleToWin = false; 
     }
 
     /// <summary>
@@ -177,6 +179,11 @@ public class BlessingManager : MonoBehaviour
     {
         switch (blessingData.blessingType)
         {
+            case BlessingData.BlessingType.GambletoWin:
+                hasGambleToWin = true;
+                Debug.Log("赌为赢 已激活！");
+                break;
+
             case BlessingData.BlessingType.Nihilism:
                 // 虚无主义：数量+1，价格翻倍
                 nihilismCount++;
@@ -292,7 +299,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.Materialism:
                 // 唯物主义 - 不可叠加：立即获得等同于当前已拥有祝福数量2倍的永久倍率，然后失去所有祝福
-                totalMultiplierBonus + = ownedBlessingInstance.Count * 2;
+                totalMultiplierBonus += ownedBlessingInstance.Count * 2;
                 ClearAllBlessings();
                 Debug.Log("唯物主义效果已激活");
                 break;
@@ -587,6 +594,7 @@ public class BlessingManager : MonoBehaviour
         nihilismCount = 0;
         hasLeadingCharge = false;
         ownedBlessingInstance.Clear();
+        hasGambleToWin = false;
     }
 
     /// <summary>
@@ -686,5 +694,24 @@ public class BlessingManager : MonoBehaviour
             }
         }
         return result;
+    }
+    
+    ///<summary>
+    ///赌为赢效果判定
+    ///<summary>
+    public void CheckGambleToWin(int diceResult)
+    {
+        // 未解锁赌为赢不生效
+        if (!hasGambleToWin) return;
+
+        // 骰子不是20不生效
+        if (diceResult != 20) return;
+
+        // 玩家总骰子数 < 20不生效
+        int totalDice = PlayerCardInventory.Instance.CountOwnedDiceTotalNumber();
+        if (totalDice < 20) return;
+
+        GameManager.Instance.AddPoints(GambleToWinReward);
+        Debug.Log($"【赌为赢】触发！骰子=20，总骰子数{totalDice}，获得24亿点！");
     }
 }

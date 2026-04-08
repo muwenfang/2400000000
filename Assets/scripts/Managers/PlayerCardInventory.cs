@@ -32,6 +32,48 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
         return numberCards.Count;
     }
 
+    /// <summary>
+    /// 统计玩家已拥有数字卡中骰子的总数量
+    /// </summary>
+    /// <returns>骰子总数量</returns>
+    public int CountOwnedDiceTotalNumber()
+    {
+        int totalDiceCount = 0;
+
+        // 空列表校验，避免空指针
+        if (numberCards == null || numberCards.Count == 0)
+        {
+            Debug.LogWarning("[PlayerCardInventory] 玩家未拥有任何数字卡，骰子数量为0");
+            return 0;
+        }
+
+        // 遍历所有已拥有的数字卡实例
+        foreach (var cardInstance in numberCards)
+        {
+            // 空实例/空卡牌数据校验
+            if (cardInstance == null || cardInstance.cardData == null)
+            {
+                Debug.LogWarning("[PlayerCardInventory] 检测到空的数字卡实例，跳过统计");
+                continue;
+            }
+
+            // PartA是骰子 → 计数+1
+            if (cardInstance.cardData.partA != null && cardInstance.cardData.partA.isDice)
+            {
+                totalDiceCount++;
+            }
+
+            // PartB是骰子 → 计数+1（双骰子卡牌会累计2次）
+            if (cardInstance.cardData.partB != null && cardInstance.cardData.partB.isDice)
+            {
+                totalDiceCount++;
+            }
+        }
+
+        Debug.Log($"[PlayerCardInventory] 玩家拥有的骰子总数：{totalDiceCount}");
+        return totalDiceCount;
+    }
+    
     private void Awake()
     {
         if (Instance == null)

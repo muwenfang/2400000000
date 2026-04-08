@@ -97,12 +97,16 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         {
             currentA = DiceHelper.RollDice(cardData.partA.diceSides);
             Debug.Log($"投掷骰子 {cardData.cardName} Part A: {currentA}");
+            
+            BlessingManager.Instance.CheckGambleToWin(currentA);// 赌为赢结果判定
         }
 
         if (cardData.partB != null && cardData.partB.isDice)
         {
             currentB = DiceHelper.RollDice(cardData.partB.diceSides);
             Debug.Log($"投掷骰子 {cardData.cardName} Part B: {currentB}");
+            
+            BlessingManager.Instance.CheckGambleToWin(currentB);// 赌为赢结果判定
         }
 
         // 更新递增值（+1）
