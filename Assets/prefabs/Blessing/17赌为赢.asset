@@ -20,4 +20,4 @@ MonoBehaviour:
   blessingType: 19
   effectValue: 20
   bonusPoints: 2147483647
-  refreshBehavior: 0
+  refreshBehavior: 1
