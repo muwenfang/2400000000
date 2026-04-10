@@ -364,12 +364,45 @@ public class BlessingLibrary : ScriptableObject
             description: "你的计算结果的第一位强制变为9",
             type: BlessingData.BlessingType.LeadingCharge,
             basePrice: 100000,
-            isStackable: false ,
+            isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
         ));
 
-        
+        //  平衡节制
+        allBlessings.Add(CreateBlessing(
+            id: 33,
+            name: "平衡节制",
+            description: "每次计算判定结果最大和最小的数字卡的判定结果变为所有参与计算的数字卡本轮判定结果的均值",
+            type: BlessingData.BlessingType.Temperlance,
+            basePrice: 2400,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+
+        ));
+
+        //  赌具升级
+        allBlessings.Add(CreateBlessing(
+            id: 34,
+            name: "赌具升级",
+            description: "所有数字卡中的骰子升一级",
+            type: BlessingData.BlessingType.GamblingGearUpgraded,
+            basePrice: 2000000,
+            isStackable: true
+
+        ));
+
+        //  赌神传说
+        allBlessings.Add(CreateBlessing(
+            id: 35,
+            name: "赌神传说",
+            description: "你的所有骰子的判定点数都会转化为本回合的额外临时倍率",
+            type: BlessingData.BlessingType.GamblingGodSage,
+            basePrice: 3000000,
+            isStackable: false
+
+        ));
+
         Debug.Log($" 成功初始化 {allBlessings.Count} 个祝福！");
     }
 

@@ -60,20 +60,32 @@ public class ShowMyFormula : MonoBehaviour
         {
             ActivateFormulaCardDeletionButtons();
         }
+        else
+        {
+            //不在删除模式时，禁用所有按钮
+            DeactivateAllDeletionButtons();
+        }
     }
-
+    /// <summary>
+    /// 禁用所有删除按钮（当不在删除模式时）
+    /// </summary>
+    private void DeactivateAllDeletionButtons()
+    {
+        foreach (var btn in activeDeletionButtons)
+        {
+            if (btn != null)
+            {
+                btn.gameObject.SetActive(false);
+                btn.onClick.RemoveAllListeners();
+            }
+        }
+        activeDeletionButtons.Clear();
+    }
     /// <summary>
     /// 激活公式卡的删除按钮
     /// </summary>
     private void ActivateFormulaCardDeletionButtons()
     {
-        //// 检查是否可以删除公式卡（使用约束）
-        //if (!PlayerCardInventory.Instance.CanRemoveFormulaCard())
-        //{
-        //    Debug.LogWarning($"[ShowMyFormula] 无法删除公式卡：最少需要保留 {PlayerCardInventory.Instance.minFormulaCardCount} 张");
-        //    return;
-        //}
-
         var deck = CardManager.Instance.formulaCardDeck;
 
         // 清除之前的按钮监听
@@ -93,12 +105,15 @@ public class ShowMyFormula : MonoBehaviour
         {
             if (formulaUI == null) continue;
 
+
             // 查找或添加删除按钮
             Button deleteBtn = formulaUI.GetComponent<Button>();
             if (deleteBtn == null)
             {
                 deleteBtn = formulaUI.GetComponentInChildren<Button>();
             }
+            // 搜索Button，包括被禁用的脚本
+            deleteBtn = FindButtonIncludingDisabled(formulaUI.gameObject);
 
             // 清除之前的监听
             deleteBtn.onClick.RemoveAllListeners();
@@ -107,23 +122,100 @@ public class ShowMyFormula : MonoBehaviour
             FormulaCardData formulaData = formulaUI.GetFormulaCardData();
             if (formulaData != null)
             {
-                // 添加删除回调 - 使用局部变量捕获，避免闭包问题
+                if (!deleteBtn.enabled)
+                {
+                    deleteBtn.enabled = true;
+                }
+
+                //激活Button所在的物体（关键！）
+                Transform buttonTransform = deleteBtn.transform;
+                while (buttonTransform != null)
+                {
+                    if (!buttonTransform.gameObject.activeSelf)
+                    {
+                        buttonTransform.gameObject.SetActive(true);
+                        Debug.Log($"[ShowMyFormula] 激活了物体");
+                    }
+
+                    // 检查是否到达了FormulaUI或其他容器
+                    if (buttonTransform.gameObject.GetComponent<FormulaCardUI>() != null)
+                    {
+                        //Debug.Log($"[ShowMyFormula] 已到达FormulaCardUI容器");
+                        break;
+                    }
+
+                    buttonTransform = buttonTransform.parent;
+                }
+
+                //确保Button可交互
+                if (!deleteBtn.interactable)
+                {
+                    deleteBtn.interactable = true;
+                }
+
+                //添加删除回调
                 FormulaCardData cardData = formulaData;
                 deleteBtn.onClick.AddListener(() => OnFormulaCardDeleteSelected(cardData));
-
-                // 激活按钮
-                deleteBtn.gameObject.SetActive(true);
 
                 // 记录按钮
                 activeDeletionButtons.Add(deleteBtn);
 
                 activatedCount++;
 
-                Debug.Log($"[ShowMyFormula] 激活公式卡删除按钮");
+                Debug.Log($"[ShowMyFormula] 成功激活公式卡删除按钮");
             }
+            else
+            {
+                Debug.LogError($"[ShowMyFormula] 无法获取FormulaCardData：{formulaUI.gameObject.name}");
+            }
+        
         }
     }
+    /// <summary>
+    /// 关键方法：搜索Button，包括脚本被禁用的情况
+    /// 这个方法比GetComponentInChildren更全面
+    /// </summary>
+    private Button FindButtonIncludingDisabled(GameObject parent)
+    {
+        if (parent == null) return null;
 
+        // 方案1：先在自己身上找
+        Button btn = parent.GetComponent<Button>();
+        if (btn != null)
+        {
+            Debug.Log($"[ShowMyFormula] 在'{parent.name}'本身找到Button");
+            return btn;
+        }
+
+        // 方案2：在激活的子物体中找
+        btn = parent.GetComponentInChildren<Button>(false);  // false=只找激活的
+        if (btn != null)
+        {
+            Debug.Log($"[ShowMyFormula] 在'{parent.name}'的激活子物体中找到Button");
+            return btn;
+        }
+
+        // 方案3：在所有子物体中找，包括非激活的
+        btn = parent.GetComponentInChildren<Button>(true);  // true=包括非激活的
+        if (btn != null)
+        {
+            Debug.Log($"[ShowMyFormula] 在'{parent.name}'的非激活子物体中找到Button");
+            return btn;
+        }
+
+        // 方案4：递归搜索所有后代（处理嵌套很深的情况）
+        foreach (Transform child in parent.transform)
+        {
+            btn = FindButtonIncludingDisabled(child.gameObject);
+            if (btn != null)
+            {
+                Debug.Log($"[ShowMyFormula] 在'{parent.name}'的深层子物体中找到Button");
+                return btn;
+            }
+        }
+
+        return null;
+    }
     /// <summary>
     /// 处理公式卡删除选择
     /// </summary>
@@ -278,6 +370,8 @@ public class ShowMyFormula : MonoBehaviour
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.GetComponent<RectTransform>());
         }
+        // 刷新后重新激活按钮
+        ActivateButtonsBasedOnMode();
     }
     /// <summary>
     /// 通用方法：设置文本内容和颜色
@@ -308,7 +402,8 @@ public class ShowMyFormula : MonoBehaviour
 
     void GenerateFormulaCards()
     {
-        var deck = CardManager.Instance.formulaCardDeck;
+        // 从PlayerCardInventory读取实时数据（与数字卡一致）
+        var deck = PlayerCardInventory.Instance.GetAllFormulaCards();
         var prefab = UIManager.Instance.formulaCardPrefab;
 
         if (deck == null || prefab == null) return;

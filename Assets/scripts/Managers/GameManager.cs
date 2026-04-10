@@ -279,6 +279,10 @@ public class GameManager : MonoBehaviour
         if (blessingManager != null)
         {
             float blessingMultiplier = blessingManager.GetFinalBlessingMultiplier();
+            //祝福——短视：每回合倍率-1，可叠加
+            int count = blessingManager.GetBlessingCount(BlessingData.BlessingType.ShortSight);
+            blessingMultiplier -= count;
+
             multiplier += blessingMultiplier;
             Debug.Log($"祝福倍率加成: {blessingMultiplier}，总倍率: {multiplier}");
         }

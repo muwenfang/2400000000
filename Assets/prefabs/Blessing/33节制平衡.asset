@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56b1e2f934b6fe543bb677f86e8aad86, type: 3}
-  m_Name: "27\u7ECF\u9A8C\u4E3B\u4E49"
+  m_Name: "33\u8282\u5236\u5E73\u8861"
   m_EditorClassIdentifier: 
-  blessingId: 27
-  blessingName: "\u7ECF\u9A8C\u4E3B\u4E49"
-  description: "\u6BCF\u56DE\u5408\u62BD\u53D6\u6570\u5B57\u5361\u65F6\u5148\u62BD\u53D6\u4E0A\u4E00\u56DE\u5408\u5224\u5B9A\u7ED3\u679C\u6700\u5927\u7684\u6570\u5B57\u5361"
-  basePrice: 240000
+  blessingId: 33
+  blessingName: "\u8282\u5236\u5E73\u8861"
+  description: "\u6BCF\u6B21\u8BA1\u7B97\u5224\u5B9A\u7ED3\u679C\u6700\u5927\u548C\u6700\u5C0F\u7684\u6570\u5B57\u5361\u7684\u5224\u5B9A\u7ED3\u679C\u53D8\u4E3A\u6240\u6709\u53C2\u4E0E\u8BA1\u7B97\u7684\u6570\u5B57\u5361\u672C\u8F6E\u5224\u5B9A\u7ED3\u679C\u7684\u5747\u503C"
+  basePrice: 2400
   isStackable: 0
-  blessingType: 29
+  blessingType: 34
   effectValue: 0
   bonusPoints: 0
   refreshBehavior: 1

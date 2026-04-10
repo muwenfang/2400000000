@@ -66,7 +66,7 @@ public class FormulaCardUI : MonoBehaviour
                 rt.localScale = Vector3.one;
                 rt.localPosition = new Vector3(rt.localPosition.x, rt.localPosition.y, 0); // 确保 Z 为 0
             }
-            // --- 暴力开启组件，确保显示 ---
+            // --- 开启组件，确保显示 ---
             var textComp = go.GetComponentInChildren<Text>();
             var imageComp = go.GetComponentInChildren<Image>(true);// true 表示即使被禁用了也能找到
             if (textComp != null)

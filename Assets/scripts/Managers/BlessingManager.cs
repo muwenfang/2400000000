@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -30,7 +31,7 @@ public class BlessingManager : MonoBehaviour
 
 
     [Header("祝福效果累积")]
-    private float totalMultiplierBonus = 0f; // 倍率加成
+    public float totalMultiplierBonus = 0f; // 倍率加成
     public int totalDialecticalCount = 0;   // '辩证主义'购买次数
     private float AllGodsCount = 0;          // 众神归位数量 
     private int LuckTurnsCount = 0;           //是否激活，1是激活
@@ -42,7 +43,10 @@ public class BlessingManager : MonoBehaviour
     public bool hasLeadingCharge = false; // 打头阵
     private bool hasGambleToWin = false; // 是否拥有赌为赢祝福
     public int hasEnergySpread = 0;      // 是否拥有能量扩散
+    public int hasRisingUp = 0;          // 是否拥有节节高
     private readonly BigInteger GambleToWinReward = 2400000000; // 赌为赢奖励的点数    
+    public bool hasIdealism = false;  //唯心主义
+    public Dictionary<int, int> idealismDiceResults = new Dictionary<int, int>();  //唯心主义储存不同等级骰子出目的字典   
     private void Awake()
     {
         if (Instance == null)
@@ -75,7 +79,12 @@ public class BlessingManager : MonoBehaviour
         nihilismCount = 0;
         hasLeadingCharge = false;
         hasGambleToWin = false; 
-    }
+
+        hasIdealism = false;
+
+        hasEnergySpread = 0;
+        hasRisingUp = 0;
+        }
 
     /// <summary>
     /// 购买祝福
@@ -180,6 +189,11 @@ public class BlessingManager : MonoBehaviour
     {
         switch (blessingData.blessingType)
         {
+            case BlessingData.BlessingType.Idealism:
+                hasIdealism = true;
+                Debug.Log("唯心主义 已激活！");
+                break;
+            
             case BlessingData.BlessingType.GambletoWin:
                 hasGambleToWin = true;
                 Debug.Log("赌为赢 已激活！");
@@ -310,11 +324,6 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log("戒赌效果已激活");
                 break;
 
-            case BlessingData.BlessingType.RapidActivation:
-                // 高效催化 - 可叠加：选择一个数字卡中的绿色数字使其立即+1，祝福“高效催化”的价格翻倍
-                Debug.Log("高效催化效果已激活");
-                break;
-
             case BlessingData.BlessingType.CardCheat:
                 // 老千 - 可叠加：选择一张数字卡，将其替换为一张随机的数字卡
                 Debug.Log("老千效果已激活");
@@ -323,11 +332,6 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.GamblingGearUpgraded:
                 // 赌具升级 - 可叠加：选择一个骰子使其立即升一级，祝福“赌具升级”的价格翻倍
                 Debug.Log("赌具升级效果已激活");
-                break;
-
-            case BlessingData.BlessingType.Dyed:
-                // 染色 - 可叠加：立即将数字卡的一个普通数字染为绿色，祝福“染色”的价格变为10倍
-                Debug.Log("染色效果已激活");
                 break;
 
             case BlessingData.BlessingType.CompulsiveGambler:
@@ -353,11 +357,13 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.ShortSight:
                 //短视 - 可叠加：倍率+10；每回合倍率-1
+                totalMultiplierBonus += 10;
                 Debug.Log("短视效果已激活");
                 break;
 
             case BlessingData.BlessingType.RisingUp:
                 //节节高 - 不可叠加：大于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20
+                hasRisingUp = 1;
                 Debug.Log("短视效果已激活");
                 break;
 
@@ -588,6 +594,11 @@ public class BlessingManager : MonoBehaviour
         CardManager.Instance.SyncDeckFromInventory();
     }
 
+    public int GetBlessingCount(BlessingData.BlessingType type)
+    {
+        return ownedBlessingInstance.Count(b => b.data.blessingType == type);
+    }
+
     /// <summary>
     /// 清空所有祝福
     /// </summary>
@@ -607,7 +618,9 @@ public class BlessingManager : MonoBehaviour
         hasLeadingCharge = false;
         ownedBlessingInstance.Clear();
         hasGambleToWin = false;
+        hasIdealism = false;
         hasEnergySpread = 0;
+        hasRisingUp = 0;
     }
 
     /// <summary>
@@ -727,4 +740,11 @@ public class BlessingManager : MonoBehaviour
         GameManager.Instance.AddPoints(GambleToWinReward);
         Debug.Log($"【赌为赢】触发！骰子=20，总骰子数{totalDice}，获得24亿点！");
     }
-}
+    ///<summary>
+    ///唯心主义清空每回合储存的骰子结果
+    ///<summary>
+    public void NewRound_IdealismReset()
+    {
+        idealismDiceResults.Clear();
+    }
+}       
