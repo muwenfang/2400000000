@@ -49,6 +49,13 @@ public class GameManager : MonoBehaviour
         3,8,15,24,35,46,56,66,75
     };
 
+    // ====================== 内卷模式 ======================
+    [Header("内卷模式")]
+    [Tooltip("只在最后一回合检查是否达标")]
+    public static bool isInvolutionMode = false; // 静态，全局可访问
+    private readonly int finalRound = 75;
+    // ==========================================================
+
     void Awake()
     {
         Instance = this;
@@ -60,10 +67,43 @@ public class GameManager : MonoBehaviour
         ChangeState(GameState.MainMenu);
     }
 
+    //普通模式
     public void InitializeGame()
     {   
         Debug.Log("初始化游戏");
         currentPoints = 9999999999999;
+        GameManager.isInvolutionMode = false;
+        //不是内卷模式
+        currentRound = 1;
+        // 确保调用了 ChangeState，这样上面的 UI 逻辑才会跑起来
+        ChangeState(GameState.PlayerTurn);
+        // 清空祝福系统
+        if (blessingManager != null)
+        {
+            blessingManager.ClearAllBlessings();
+        }
+        ShopManager.Instance.InitializeShop(); // 重置商店状态
+        // 初始化UI显示
+        UIManager.Instance.UpdatePointsDisplay(currentPoints);
+        UIManager.Instance.UpdateRoundDisplay(currentRound);
+
+        // 执行抽卡逻辑
+        cardManager.InitializeStarterDeck();
+
+        // 开始第一回合
+        StartPlayerTurn();
+
+        //  关键：通知 UI 刷新视觉显示
+        UIManager.Instance.RefreshGameUI();
+    }
+
+    //内卷模式
+    public void InitializeGame_invol()
+    {   
+        Debug.Log("初始化游戏");
+        currentPoints = 0;
+        GameManager.isInvolutionMode = true;
+        //是内卷模式
         currentRound = 1;
         // 确保调用了 ChangeState，这样上面的 UI 逻辑才会跑起来
         ChangeState(GameState.PlayerTurn);
@@ -101,7 +141,7 @@ public class GameManager : MonoBehaviour
         int nextTarget = GetNextStageRound();
 
         UIManager.Instance.UpdateTargetRoundDisplay(nextTarget);
-        // 抽填空计算卡和对应数量的数字卡
+        // 抽填空计算卡和对应数量的数字卡targetPoints
         cardManager.DrawCardsForTurn();
     }
 
@@ -168,6 +208,7 @@ public class GameManager : MonoBehaviour
         // 启动分步显示协程
         StartCoroutine(ShowScoreStepByStep(baseScore, totalMultiplier, finalScore));
     }
+    
     /// <summary>
     /// 分步显示得分的协程
     /// </summary>
@@ -205,19 +246,25 @@ public class GameManager : MonoBehaviour
 
         return filledCount >= requiredCount;
     }
+
     // 添加一个辅助方法，获取下一个结算回合
     public int GetNextStageRound()
     {
-        // 遍历 stageRounds 列表 (3, 8, 15...)
+        // 内卷模式
+        if (GameManager.isInvolutionMode)
+        {
+            // 内卷模式：永远只返回最后一回合75
+            return 75;
+        }
+
+        // 原有普通模式逻辑
         foreach (int roundLimit in stageRounds)
         {
-            // 如果列表里的回合数大于或等于当前回合，它就是咱们的下一个目标
             if (roundLimit >= currentRound)
-            {
+           {
                 return roundLimit;
             }
         }
-        // 如果超过了所有配置的回合，返回最后一个或显示最大值
         return stageRounds[stageRounds.Count - 1];
     }
 
@@ -238,6 +285,7 @@ public class GameManager : MonoBehaviour
 
         return multiplier;
     }
+
     public void AddPoints(BigInteger points)
     {
         // 如果是扣除点数，直接扣除
@@ -271,18 +319,45 @@ public class GameManager : MonoBehaviour
     {
         // 更新UI显示
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
-        UIManager.Instance.UpdateRoundDisplay(currentRound);// 检查阶段要求
+        UIManager.Instance.UpdateRoundDisplay(currentRound);
 
+        // ====================== 【内卷模式核心逻辑】 ======================
+        if (GameManager.isInvolutionMode)
+        {
+            Debug.Log("【内卷模式】跳过中间阶段检查，仅最后一回合判定");
+            
+            // 只在最后一回合检查
+            if (currentRound == finalRound)
+            {
+                Debug.Log($"【内卷模式】最终回合检查：目标{targetPoints}，当前{currentPoints}");
+                
+                if (currentPoints >= targetPoints)
+                {
+                    WinGame(true); // 胜利
+                }
+                else
+                {
+                    WinGame(false); // 失败
+                }
+                return; // 不进商店
+            }
 
+            // 非最后一回合：直接进商店，不做任何阶段检查
+            currentState = GameState.Shop;
+            shopManager.OpenShop();
+            ChangeState(GameState.Shop);
+            return;
+        }
+        // ==================================================================
 
+        // 原有普通模式逻辑
         // 检查是否到达阶段结算点
-        if (IsStageRound(currentRound))
+        if (IsStageRound(currentRound) && !GameManager.isInvolutionMode)
         {
             // 获取本阶段的点数要求
             stageRequirement = GetStageRequirementForRound(currentRound);
 
             Debug.Log($"第 {currentRound} 回合是阶段回合，要求点数: {stageRequirement}，当前点数: {currentPoints}");
-
 
             // 检查是否达到最终目标（第75回合）
             if (currentRound == 75 && currentPoints >= targetPoints)
@@ -295,7 +370,6 @@ public class GameManager : MonoBehaviour
             // 进行阶段检查
             if (!CheckStageRequirement())
             {
-
                // 检查失败，游戏结束
                return; // 不进入商店
             }
@@ -315,13 +389,13 @@ public class GameManager : MonoBehaviour
                     }
                 }
             }
-
-
         }
+
         currentState = GameState.Shop;
         shopManager.OpenShop();
         ChangeState(GameState.Shop);
     }
+
     /// <summary>
     /// 检查某个回合是否是阶段结算回合
     /// </summary>
@@ -329,6 +403,7 @@ public class GameManager : MonoBehaviour
     {
         return stageRounds.Contains(round);
     }
+
     /// <summary>
     /// 执行阶段检查 - 返回值表示是否通过检查
     /// </summary>
@@ -390,12 +465,14 @@ public class GameManager : MonoBehaviour
         // 4. 开始新回合
         StartPlayerTurn();
     }
+
     public void ReturnStartMenu()
     {
         //加载主菜单界面
         ChangeState(GameState.MainMenu);
         UIManager.Instance.pointstagePanel.SetActive(false);
     }
+
     void WinGame(bool isWin)//之后的panel会改，暂时先用一个。
     {
         if (isWin)
@@ -412,9 +489,8 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.pointstagePanel.SetActive(false);
             Debug.Log("游戏失败，未达到阶段要求");
         }
-
-
     }
+
     public void ChangeState(GameState newState)
     {
         // 1. 离开当前状态时的清理 (你已有的代码)
@@ -450,5 +526,4 @@ public class GameManager : MonoBehaviour
                 break;
         }
     }
-
 }

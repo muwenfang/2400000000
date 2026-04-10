@@ -25,7 +25,7 @@ public class UIManager : MonoBehaviour
 
     [Header("UI 面板引用")]
     public GameObject startMenuPanel; // 在 Inspector 中拖入主菜单面板
-    public GameObject gameUIPanel; // 游戏内UI面板
+    public GameObject gameUIPanel; // 游戏内UI面板targetRoundText
     public GameObject gameOverPanel; // 游戏结束面板
     public GameObject shopPanel; // 商店面板
     public GameObject pointstagePanel; // 点数阶段面板
@@ -204,7 +204,9 @@ public class UIManager : MonoBehaviour
     {
         if (stageRequirementText != null)
         {
-            stageRequirementText.text = $"{FormatBigNumber(requirement)}";
+            if(GameManager.isInvolutionMode)
+                stageRequirementText.text = $"{2400000000}";
+            else stageRequirementText.text = $"{FormatBigNumber(requirement)}";
         }
     }
     /// <summary>
