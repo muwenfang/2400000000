@@ -45,6 +45,8 @@ public class BlessingManager : MonoBehaviour
     public int hasEnergySpread = 0;      // 是否拥有能量扩散
     public int hasRisingUp = 0;          // 是否拥有节节高
     private readonly BigInteger GambleToWinReward = 2400000000; // 赌为赢奖励的点数    
+    public bool hasIdealism = false;  //唯心主义
+    public Dictionary<int, int> idealismDiceResults = new Dictionary<int, int>();  //唯心主义储存不同等级骰子出目的字典   
     private void Awake()
     {
         if (Instance == null)
@@ -77,9 +79,12 @@ public class BlessingManager : MonoBehaviour
         nihilismCount = 0;
         hasLeadingCharge = false;
         hasGambleToWin = false; 
+
+        hasIdealism = false;
+
         hasEnergySpread = 0;
         hasRisingUp = 0;
-    }
+        }
 
     /// <summary>
     /// 购买祝福
@@ -184,6 +189,11 @@ public class BlessingManager : MonoBehaviour
     {
         switch (blessingData.blessingType)
         {
+            case BlessingData.BlessingType.Idealism:
+                hasIdealism = true;
+                Debug.Log("唯心主义 已激活！");
+                break;
+            
             case BlessingData.BlessingType.GambletoWin:
                 hasGambleToWin = true;
                 Debug.Log("赌为赢 已激活！");
@@ -618,6 +628,7 @@ public class BlessingManager : MonoBehaviour
         hasLeadingCharge = false;
         ownedBlessingInstance.Clear();
         hasGambleToWin = false;
+        hasIdealism = false;
         hasEnergySpread = 0;
         hasRisingUp = 0;
     }
@@ -739,4 +750,11 @@ public class BlessingManager : MonoBehaviour
         GameManager.Instance.AddPoints(GambleToWinReward);
         Debug.Log($"【赌为赢】触发！骰子=20，总骰子数{totalDice}，获得24亿点！");
     }
-}
+    ///<summary>
+    ///唯心主义清空每回合储存的骰子结果
+    ///<summary>
+    public void NewRound_IdealismReset()
+    {
+        idealismDiceResults.Clear();
+    }
+}       

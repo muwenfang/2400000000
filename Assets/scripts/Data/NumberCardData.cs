@@ -95,23 +95,58 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         // 投掷骰子（如果是骰子）
         if (cardData.partA.isDice)
         {
-            currentA = DiceHelper.RollDice(cardData.partA.diceSides);
+            int sides = cardData.partA.diceSides;
+            // 唯心主义：同级骰子结果一致
+            if (BlessingManager.Instance.hasIdealism)
+            {
+                // 储存每骰过的等级的骰子
+                if (!BlessingManager.Instance.idealismDiceResults.ContainsKey(sides))
+                {
+                    int result = DiceHelper.RollDice(sides);
+                    BlessingManager.Instance.idealismDiceResults[sides] = result;
+                }
+
+                // 所有同面骰子都用全局结果
+                currentA = BlessingManager.Instance.idealismDiceResults[sides];
+            }
+            else
+            {
+                // 正常掷骰子
+                currentA = DiceHelper.RollDice(sides);
+            }
+
             Debug.Log($"投掷骰子 {cardData.cardName} Part A: {currentA}");
-            
-            BlessingManager.Instance.CheckGambleToWin(currentA);// 赌为赢结果判定
+            BlessingManager.Instance.CheckGambleToWin(currentA);
         }
 
         if (cardData.partB != null && cardData.partB.isDice)
         {
-            currentB = DiceHelper.RollDice(cardData.partB.diceSides);
+            int sides = cardData.partB.diceSides;
+
+            //唯心主义
+            if (BlessingManager.Instance.hasIdealism)
+            {
+                if (!BlessingManager.Instance.idealismDiceResults.ContainsKey(sides))
+                {
+                    int result = DiceHelper.RollDice(sides);
+                    BlessingManager.Instance.idealismDiceResults[sides] = result;
+                }
+
+                currentB = BlessingManager.Instance.idealismDiceResults[sides];
+            }
+            else
+            {
+                currentB = DiceHelper.RollDice(sides);
+            }
+
             Debug.Log($"投掷骰子 {cardData.cardName} Part B: {currentB}");
-            
-            BlessingManager.Instance.CheckGambleToWin(currentB);// 赌为赢结果判定
+            BlessingManager.Instance.CheckGambleToWin(currentB);
         }
 
         // 更新递增值（+1）
         if (cardData.partA.isIncremental)
         {
+            currentA++;
             //祝福节节高效果：大于等于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20
             if (currentA >= 9)
             {
@@ -127,6 +162,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
 
         if (cardData.partB != null && cardData.partB.isIncremental)
         {
+            currentB++;
             if (currentB >= 9)
             {
                 if (BlessingManager.Instance.hasRisingUp == 1)
@@ -141,7 +177,8 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
 
         // 标记为已结算
         isPrepared = true;
-    }
+    }    
+
 
     // 祝福:能量扩散
     public void EnergySpread()
