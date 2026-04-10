@@ -1778,9 +1778,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   blessingLibrary: {fileID: 11400000, guid: 1ec143d897bd7bd46bc61e19ec7dd011, type: 2}
+  ownedBlessingInstance: []
   totalDialecticalCount: 0
   HasRichTreasure: 0
   nihilismCount: 0
+  hasLeadingCharge: 0
+  hasEnergySpread: 0
 --- !u!4 &679115385
 Transform:
   m_ObjectHideFlags: 0
@@ -4580,7 +4583,7 @@ MonoBehaviour:
   m_ChildAlignment: 0
   m_StartCorner: 0
   m_StartAxis: 0
-  m_CellSize: {x: 1000, y: 300}
+  m_CellSize: {x: 1600, y: 300}
   m_Spacing: {x: 20, y: 30}
   m_Constraint: 0
   m_ConstraintCount: 2
@@ -5278,7 +5281,9 @@ MonoBehaviour:
   deleteCardCostText: {fileID: 152407951}
   deleteCostPanel: {fileID: 1081799470}
   totalRemovedNumberCards: 0
+  totalRemovedFormulaCards: 0
   baseNumberCardRemoveCost: 5
+  baseFormulaCardRemoveCost: 200
   baseNumberSlotUnlockCost: 10
   baseFormulaSlotUnlockCost: 20
   baseBlessingSlotUnlockCost: 2000
