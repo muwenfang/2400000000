@@ -334,6 +334,29 @@ public class BlessingLibrary : ScriptableObject
 
         ));
 
+        //  短视
+        allBlessings.Add(CreateBlessing(
+            id: 30,
+            name: "短视",
+            description: "倍率+10；每回合倍率-1",
+            type: BlessingData.BlessingType.ShortSight,
+            basePrice: 0,
+            isStackable: true
+
+        ));
+
+        //  节节高
+        allBlessings.Add(CreateBlessing(
+            id: 31,
+            name: "节节高",
+            description: "大于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20",
+            type: BlessingData.BlessingType.RisingUp,
+            basePrice: 30000,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+
+        ));
+
         //  打头阵
         allBlessings.Add(CreateBlessing(
             id: 32,
@@ -341,7 +364,7 @@ public class BlessingLibrary : ScriptableObject
             description: "你的计算结果的第一位强制变为9",
             type: BlessingData.BlessingType.LeadingCharge,
             basePrice: 100000,
-            isStackable: false,
+            isStackable: false ,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
         ));
