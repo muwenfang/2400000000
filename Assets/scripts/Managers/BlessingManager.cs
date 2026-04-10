@@ -41,6 +41,7 @@ public class BlessingManager : MonoBehaviour
     public int nihilismCount = 0;       // 虚无主义数量
     public bool hasLeadingCharge = false; // 打头阵
     private bool hasGambleToWin = false; // 是否拥有赌为赢祝福
+    public int hasEnergySpread = 0;      // 是否拥有能量扩散
     private readonly BigInteger GambleToWinReward = 2400000000; // 赌为赢奖励的点数    
     private void Awake()
     {
@@ -336,6 +337,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.EnergySpread:
                 // 能量扩散 - 不可叠加：不参与计算的绿色数字每回合也会+1
+                hasEnergySpread = 1;
                 Debug.Log("能量扩散效果已激活");
                 break;
 
@@ -595,6 +597,7 @@ public class BlessingManager : MonoBehaviour
         hasLeadingCharge = false;
         ownedBlessingInstance.Clear();
         hasGambleToWin = false;
+        hasEnergySpread = 0;
     }
 
     /// <summary>

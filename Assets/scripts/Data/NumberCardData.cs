@@ -125,6 +125,23 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         // 标记为已结算
         isPrepared = true;
     }
+
+    // 祝福:能量扩散
+    public void EnergySpread()
+    {
+        // 更新递增值（+1）
+        if (cardData.partA.isIncremental)
+        {
+            currentA++;
+            //Debug.Log($"递增卡更新：{cardData.cardName} Part A: {currentA - 1} → {currentA}");
+        }
+
+        if (cardData.partB != null && cardData.partB.isIncremental)
+        {
+            currentB++;
+            //Debug.Log($"递增卡更新：{cardData.cardName} Part B: {currentB - 1} → {currentB}");
+        }
+    }
     
     /// <summary>
     /// 获得当前卡牌的输出值（根据逻辑类型计算）
