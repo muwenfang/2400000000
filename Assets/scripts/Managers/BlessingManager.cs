@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -351,6 +352,17 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log("实用主义效果已激活");
                 break;
 
+            case BlessingData.BlessingType.ShortSight:
+                //短视 - 可叠加：倍率+10；每回合倍率-1
+                totalMultiplierBonus += 10;
+                Debug.Log("短视效果已激活");
+                break;
+
+            case BlessingData.BlessingType.RisingUp:
+                //节节高 - 不可叠加：大于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20
+                Debug.Log("短视效果已激活");
+                break;
+
             case BlessingData.BlessingType.LeadingCharge:
                 // 打头阵 - 不可叠加            
                 hasLeadingCharge = true; 
@@ -576,6 +588,11 @@ public class BlessingManager : MonoBehaviour
 
         // 同步牌堆
         CardManager.Instance.SyncDeckFromInventory();
+    }
+
+    public int GetBlessingCount(BlessingData.BlessingType type)
+    {
+        return ownedBlessingInstance.Count(b => b.data.blessingType == type);
     }
 
     /// <summary>

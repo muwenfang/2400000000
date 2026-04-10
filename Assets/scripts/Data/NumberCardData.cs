@@ -128,7 +128,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
 
     // 祝福:能量扩散
     public void EnergySpread()
-    {
+    { 
         // 更新递增值（+1）
         if (cardData.partA.isIncremental)
         {
