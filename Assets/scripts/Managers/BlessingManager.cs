@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -353,6 +354,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.ShortSight:
                 //短视 - 可叠加：倍率+10；每回合倍率-1
+                totalMultiplierBonus += 10;
                 Debug.Log("短视效果已激活");
                 break;
 
@@ -586,6 +588,11 @@ public class BlessingManager : MonoBehaviour
 
         // 同步牌堆
         CardManager.Instance.SyncDeckFromInventory();
+    }
+
+    public int GetBlessingCount(BlessingData.BlessingType type)
+    {
+        return ownedBlessingInstance.Count(b => b.data.blessingType == type);
     }
 
     /// <summary>
