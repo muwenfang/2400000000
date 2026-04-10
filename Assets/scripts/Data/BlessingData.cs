@@ -64,7 +64,9 @@ public class BlessingData : ScriptableObject
         Empiricism,           // 经验主义  
         Utopianism,           // 空想主义
         Pragmatism,           // 实用主义
-        LeadingCharge         // 打头阵 
+        LeadingCharge,        // 打头阵 
+        ShortSight,           // 短视
+        RisingUp              // 节节高
     }
 
     /// <summary>
