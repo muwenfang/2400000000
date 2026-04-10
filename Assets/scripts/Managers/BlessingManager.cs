@@ -31,7 +31,7 @@ public class BlessingManager : MonoBehaviour
 
 
     [Header("祝福效果累积")]
-    private float totalMultiplierBonus = 0f; // 倍率加成
+    public float totalMultiplierBonus = 0f; // 倍率加成
     public int totalDialecticalCount = 0;   // '辩证主义'购买次数
     private float AllGodsCount = 0;          // 众神归位数量 
     private int LuckTurnsCount = 0;           //是否激活，1是激活
