@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Numerics;
+using System.Linq;
 using UnityEngine;
 
 /// <summary>
@@ -30,7 +31,7 @@ public class BlessingManager : MonoBehaviour
 
 
     [Header("祝福效果累积")]
-    private float totalMultiplierBonus = 0f; // 倍率加成
+    public float totalMultiplierBonus = 0f; // 倍率加成
     public int totalDialecticalCount = 0;   // '辩证主义'购买次数
     private float AllGodsCount = 0;          // 众神归位数量 
     private int LuckTurnsCount = 0;           //是否激活，1是激活
@@ -41,7 +42,11 @@ public class BlessingManager : MonoBehaviour
     public int nihilismCount = 0;       // 虚无主义数量
     public bool hasLeadingCharge = false; // 打头阵
     private bool hasGambleToWin = false; // 是否拥有赌为赢祝福
+    public int hasEnergySpread = 0;      // 是否拥有能量扩散
+    public int hasRisingUp = 0;          // 是否拥有节节高
     private readonly BigInteger GambleToWinReward = 2400000000; // 赌为赢奖励的点数    
+    public bool hasIdealism = false;  //唯心主义
+    public Dictionary<int, int> idealismDiceResults = new Dictionary<int, int>();  //唯心主义储存不同等级骰子出目的字典   
     private void Awake()
     {
         if (Instance == null)
@@ -74,6 +79,12 @@ public class BlessingManager : MonoBehaviour
         nihilismCount = 0;
         hasLeadingCharge = false;
         hasGambleToWin = false; 
+<<<<<<< HEAD
+        hasIdealism = false;
+=======
+        hasEnergySpread = 0;
+        hasRisingUp = 0;
+>>>>>>> 2170e07aba6efcfe9202ea5639f1e72114943fdd
     }
 
     /// <summary>
@@ -179,6 +190,11 @@ public class BlessingManager : MonoBehaviour
     {
         switch (blessingData.blessingType)
         {
+            case BlessingData.BlessingType.Idealism:
+                hasIdealism = true;
+                Debug.Log("唯心主义 已激活！");
+                break;
+            
             case BlessingData.BlessingType.GambletoWin:
                 hasGambleToWin = true;
                 Debug.Log("赌为赢 已激活！");
@@ -336,6 +352,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.EnergySpread:
                 // 能量扩散 - 不可叠加：不参与计算的绿色数字每回合也会+1
+                hasEnergySpread = 1;
                 Debug.Log("能量扩散效果已激活");
                 break;
 
@@ -347,6 +364,18 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.Pragmatism:
                 // 实用主义 - 不可叠加：任意时刻你仅保留价值最高的填空卡并自动删除其它填空卡
                 Debug.Log("实用主义效果已激活");
+                break;
+
+            case BlessingData.BlessingType.ShortSight:
+                //短视 - 可叠加：倍率+10；每回合倍率-1
+                totalMultiplierBonus += 10;
+                Debug.Log("短视效果已激活");
+                break;
+
+            case BlessingData.BlessingType.RisingUp:
+                //节节高 - 不可叠加：大于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20
+                hasRisingUp = 1;
+                Debug.Log("短视效果已激活");
                 break;
 
             case BlessingData.BlessingType.LeadingCharge:
@@ -576,6 +605,11 @@ public class BlessingManager : MonoBehaviour
         CardManager.Instance.SyncDeckFromInventory();
     }
 
+    public int GetBlessingCount(BlessingData.BlessingType type)
+    {
+        return ownedBlessingInstance.Count(b => b.data.blessingType == type);
+    }
+
     /// <summary>
     /// 清空所有祝福
     /// </summary>
@@ -595,6 +629,12 @@ public class BlessingManager : MonoBehaviour
         hasLeadingCharge = false;
         ownedBlessingInstance.Clear();
         hasGambleToWin = false;
+<<<<<<< HEAD
+        hasIdealism = false;
+=======
+        hasEnergySpread = 0;
+        hasRisingUp = 0;
+>>>>>>> 2170e07aba6efcfe9202ea5639f1e72114943fdd
     }
 
     /// <summary>
@@ -714,4 +754,11 @@ public class BlessingManager : MonoBehaviour
         GameManager.Instance.AddPoints(GambleToWinReward);
         Debug.Log($"【赌为赢】触发！骰子=20，总骰子数{totalDice}，获得24亿点！");
     }
-}
+    ///<summary>
+    ///唯心主义清空每回合储存的骰子结果
+    ///<summary>
+    public void NewRound_IdealismReset()
+    {
+        idealismDiceResults.Clear();
+    }
+}       
