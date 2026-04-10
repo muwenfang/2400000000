@@ -324,11 +324,6 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log("戒赌效果已激活");
                 break;
 
-            case BlessingData.BlessingType.RapidActivation:
-                // 高效催化 - 可叠加：选择一个数字卡中的绿色数字使其立即+1，祝福“高效催化”的价格翻倍
-                Debug.Log("高效催化效果已激活");
-                break;
-
             case BlessingData.BlessingType.CardCheat:
                 // 老千 - 可叠加：选择一张数字卡，将其替换为一张随机的数字卡
                 Debug.Log("老千效果已激活");
@@ -337,11 +332,6 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.GamblingGearUpgraded:
                 // 赌具升级 - 可叠加：选择一个骰子使其立即升一级，祝福“赌具升级”的价格翻倍
                 Debug.Log("赌具升级效果已激活");
-                break;
-
-            case BlessingData.BlessingType.Dyed:
-                // 染色 - 可叠加：立即将数字卡的一个普通数字染为绿色，祝福“染色”的价格变为10倍
-                Debug.Log("染色效果已激活");
                 break;
 
             case BlessingData.BlessingType.CompulsiveGambler:

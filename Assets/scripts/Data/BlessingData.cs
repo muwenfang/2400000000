@@ -41,13 +41,10 @@ public class BlessingData : ScriptableObject
         WishingCoin,          // 许愿币
         SmallCardPack,        // 小卡牌包
         AllGodsInPlace,       // 众神归位
-        RapidActivation,      // 高效催化
         FinancialMaster,      // 理财大师
         BigCardPack,          // 大卡牌包
         CardCheat,            // 老千
-        GamblingGearUpgraded, // 赌具升级
         MoreMoreBetter,       // 多多益善
-        Dyed,                 // 染色
         DoubleLuck,           // 好事成双
         CardMaster,           // 卡牌大师
         CompulsiveGambler,    // 狂赌之渊
@@ -66,7 +63,10 @@ public class BlessingData : ScriptableObject
         Pragmatism,           // 实用主义
         LeadingCharge,        // 打头阵 
         ShortSight,           // 短视
-        RisingUp              // 节节高
+        RisingUp,             // 节节高
+        Temperlance,          // 节制平衡
+        GamblingGearUpgraded, // 赌具升级
+        GamblingGodSage       // 赌神传说
     }
 
     /// <summary>
