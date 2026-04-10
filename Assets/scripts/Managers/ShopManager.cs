@@ -55,7 +55,9 @@ public class ShopManager : MonoBehaviour
     public Text deleteCardCostText;          // 显示删除消耗的文本
     public GameObject deleteCostPanel;
     public int totalRemovedNumberCards = 0;
+    public int totalRemovedFormulaCards = 0;
     public int baseNumberCardRemoveCost = 5;
+    public int baseFormulaCardRemoveCost = 200;
 
     [Header("槽位解锁配置")]
     public int baseNumberSlotUnlockCost = 10; // 数字卡槽位基础解锁消耗
@@ -556,9 +558,6 @@ public class ShopManager : MonoBehaviour
         // 设置标志位
         isDeletionMode = true;
 
-        // 初始化删卡统计
-        totalRemovedNumberCards = 0;
-
         // 启动CardSelectionManager的删卡模式
         if (CardSelectionManager.Instance != null)
         {
@@ -587,46 +586,6 @@ public class ShopManager : MonoBehaviour
         UpdateDeletionUI();
     }
 
-    /// <summary>
-    /// 删卡完成的回调
-    /// 当ShowMyNumberCard或ShowMyFormula中的卡牌被选中删除时调用
-    /// </summary>
-    private void OnCardDeletedCallback(object deletedCard)
-    {
-        Debug.Log($"[ShopManager] 卡牌删除回调触发：{deletedCard}");
-
-        if (deletedCard == null)
-        {
-            Debug.LogError("[ShopManager] 删除的卡牌为空");
-            return;
-        }
-
-        // 1. 获取删卡消耗的点数
-        long deletionCost = CalculateDeletionCost(deletedCard);
-
-        // 2. 扣除点数
-        if (GameManager.Instance != null)
-        {
-            GameManager.Instance.AddPoints(-deletionCost);
-            Debug.Log($"[ShopManager] 删卡消耗 {deletionCost} 点，当前点数：{GameManager.Instance.currentPoints}");
-        }
-        else
-        {
-            Debug.LogError("[ShopManager] GameManager.Instance 为空");
-        }
-
-        // 3. 统计删除的卡牌数量（仅数字卡）
-        if (deletedCard is NumberCardInstance)
-        {
-            totalRemovedNumberCards++;
-            Debug.Log($"[ShopManager] 已删除数字卡 {totalRemovedNumberCards} 张");
-        }
-
-        // 4. 更新UI显示（删卡消耗提示）
-        UpdateDeletionUI();
-        //5.继续删除，保持在删卡模式，直到用户选择完成或取消
-        StartCardDeletion();
-    }
 
     /// <summary>
     /// 处理单张卡牌被删除的事件
@@ -649,6 +608,7 @@ public class ShopManager : MonoBehaviour
         else if (deletedCard is FormulaCardData formulaCard)
         {
             Debug.Log($"[ShopManager] 公式卡被删除：{formulaCard.Name}");
+            totalRemovedFormulaCards++;
         }
 
         // 2. 计算并扣除消耗
@@ -665,8 +625,6 @@ public class ShopManager : MonoBehaviour
 
     /// <summary>
     /// 计算单张卡牌的删除消耗
-    /// 数字卡：基础消耗 * 2^(已删除数量)，呈指数递增
-    /// 公式卡：固定消耗
     /// </summary>
     private long CalculateDeletionCost(object card)
     {
@@ -684,8 +642,8 @@ public class ShopManager : MonoBehaviour
         }
         else if (card is FormulaCardData)
         {
-            // 公式卡删除消耗：固定值
-            long cost = 50; // 可根据游戏平衡调整这个值
+            int deletedCount = totalRemovedNumberCards;
+            long cost = (long)(baseNumberCardRemoveCost * Mathf.Pow(2, deletedCount));
             Debug.Log($"[ShopManager] 公式卡删除消耗: {cost}");
             return cost;
         }
@@ -759,7 +717,6 @@ public class ShopManager : MonoBehaviour
 
         // 清除标志位和统计
         isDeletionMode = false;
-        totalRemovedNumberCards = 0;
 
         // 结束选择模式
         if (CardSelectionManager.Instance != null)
