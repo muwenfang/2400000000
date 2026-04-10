@@ -43,6 +43,7 @@ public class BlessingManager : MonoBehaviour
     public bool hasLeadingCharge = false; // 打头阵
     private bool hasGambleToWin = false; // 是否拥有赌为赢祝福
     public int hasEnergySpread = 0;      // 是否拥有能量扩散
+    public int hasRisingUp = 0;          // 是否拥有节节高
     private readonly BigInteger GambleToWinReward = 2400000000; // 赌为赢奖励的点数    
     private void Awake()
     {
@@ -76,6 +77,8 @@ public class BlessingManager : MonoBehaviour
         nihilismCount = 0;
         hasLeadingCharge = false;
         hasGambleToWin = false; 
+        hasEnergySpread = 0;
+        hasRisingUp = 0;
     }
 
     /// <summary>
@@ -360,6 +363,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.RisingUp:
                 //节节高 - 不可叠加：大于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20
+                hasRisingUp = 1;
                 Debug.Log("短视效果已激活");
                 break;
 
@@ -615,6 +619,7 @@ public class BlessingManager : MonoBehaviour
         ownedBlessingInstance.Clear();
         hasGambleToWin = false;
         hasEnergySpread = 0;
+        hasRisingUp = 0;
     }
 
     /// <summary>

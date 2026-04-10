@@ -112,13 +112,30 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         // 更新递增值（+1）
         if (cardData.partA.isIncremental)
         {
-            currentA++;
+            //祝福节节高效果：大于等于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20
+            if (currentA >= 9)
+            {
+                if (BlessingManager.Instance.hasRisingUp == 1)
+                {
+                    currentA = 1;
+                    BlessingManager.Instance.totalMultiplierBonus += 20;
+                }
+            }
+            else currentA++;
             //Debug.Log($"递增卡更新：{cardData.cardName} Part A: {currentA - 1} → {currentA}");
         }
 
         if (cardData.partB != null && cardData.partB.isIncremental)
         {
-            currentB++;
+            if (currentB >= 9)
+            {
+                if (BlessingManager.Instance.hasRisingUp == 1)
+                {
+                    currentB = 1;
+                    BlessingManager.Instance.totalMultiplierBonus += 20;
+                }
+            }
+            else currentB++;
             //Debug.Log($"递增卡更新：{cardData.cardName} Part B: {currentB - 1} → {currentB}");
         }
 
@@ -132,13 +149,29 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         // 更新递增值（+1）
         if (cardData.partA.isIncremental)
         {
-            currentA++;
+            if (currentA >= 9)
+            {
+                if (BlessingManager.Instance.hasRisingUp == 1)
+                {
+                    currentA = 1;
+                    BlessingManager.Instance.totalMultiplierBonus += 20;
+                }
+            }
+            else currentA++;
             //Debug.Log($"递增卡更新：{cardData.cardName} Part A: {currentA - 1} → {currentA}");
         }
 
         if (cardData.partB != null && cardData.partB.isIncremental)
         {
-            currentB++;
+            if (currentB >= 9)
+            {
+                if (BlessingManager.Instance.hasRisingUp == 1)
+                {
+                    currentB = 1;
+                    BlessingManager.Instance.totalMultiplierBonus += 20;
+                }
+            }
+            else currentB++;
             //Debug.Log($"递增卡更新：{cardData.cardName} Part B: {currentB - 1} → {currentB}");
         }
     }
