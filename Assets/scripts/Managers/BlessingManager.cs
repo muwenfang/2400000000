@@ -79,13 +79,12 @@ public class BlessingManager : MonoBehaviour
         nihilismCount = 0;
         hasLeadingCharge = false;
         hasGambleToWin = false; 
-<<<<<<< HEAD
+
         hasIdealism = false;
-=======
+
         hasEnergySpread = 0;
         hasRisingUp = 0;
->>>>>>> 2170e07aba6efcfe9202ea5639f1e72114943fdd
-    }
+        }
 
     /// <summary>
     /// 购买祝福
@@ -629,12 +628,9 @@ public class BlessingManager : MonoBehaviour
         hasLeadingCharge = false;
         ownedBlessingInstance.Clear();
         hasGambleToWin = false;
-<<<<<<< HEAD
         hasIdealism = false;
-=======
         hasEnergySpread = 0;
         hasRisingUp = 0;
->>>>>>> 2170e07aba6efcfe9202ea5639f1e72114943fdd
     }
 
     /// <summary>

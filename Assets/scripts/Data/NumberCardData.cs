@@ -146,9 +146,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         // 更新递增值（+1）
         if (cardData.partA.isIncremental)
         {
-<<<<<<< HEAD
             currentA++;
-=======
             //祝福节节高效果：大于等于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20
             if (currentA >= 9)
             {
@@ -160,14 +158,11 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             }
             else currentA++;
             //Debug.Log($"递增卡更新：{cardData.cardName} Part A: {currentA - 1} → {currentA}");
->>>>>>> 2170e07aba6efcfe9202ea5639f1e72114943fdd
         }
 
         if (cardData.partB != null && cardData.partB.isIncremental)
         {
-<<<<<<< HEAD
             currentB++;
-=======
             if (currentB >= 9)
             {
                 if (BlessingManager.Instance.hasRisingUp == 1)
@@ -178,15 +173,12 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             }
             else currentB++;
             //Debug.Log($"递增卡更新：{cardData.cardName} Part B: {currentB - 1} → {currentB}");
->>>>>>> 2170e07aba6efcfe9202ea5639f1e72114943fdd
         }
 
         // 标记为已结算
         isPrepared = true;
-<<<<<<< HEAD
     }    
-=======
-    }
+
 
     // 祝福:能量扩散
     public void EnergySpread()
@@ -221,7 +213,6 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         }
     }
     
->>>>>>> 2170e07aba6efcfe9202ea5639f1e72114943fdd
     /// <summary>
     /// 获得当前卡牌的输出值（根据逻辑类型计算）
     /// </summary>
