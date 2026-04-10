@@ -305,13 +305,13 @@ public class GameManager : MonoBehaviour
             }
             
             // 祝福:能量扩散
-            if (BlessingManager.Instance.HasEnergySpread == 1)
+            if (BlessingManager.Instance.hasEnergySpread == 1)
             {
-                for (int i = 0; i < PlayerCardInventory.numberCards.Count; i++)
+                for (int i = 0; i < PlayerCardInventory.Instance.numberCards.Count; i++)
                 {
-                    if (!cardManager.selectedNumberCards.Contains(PlayerCardInventory.numberCards[i]))
+                    if (!cardManager.selectedNumberCards.Contains(PlayerCardInventory.Instance.numberCards[i]))
                     {
-                        PlayerCardInventory.numberCards[i].EnergySpread();
+                        PlayerCardInventory.Instance.numberCards[i].EnergySpread();
                     }
                 }
             }
