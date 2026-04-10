@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56b1e2f934b6fe543bb677f86e8aad86, type: 3}
   m_Name: "30\u77ED\u89C6"
   m_EditorClassIdentifier: 
-  blessingId: 0
-  blessingName: 
-  description: 
+  blessingId: 31
+  blessingName: "\u77ED\u89C6"
+  description: "\u500D\u7387+10\uFF1B\u6BCF\u56DE\u5408\u500D\u7387-1"
   basePrice: 0
-  isStackable: 0
-  blessingType: 0
-  effectValue: 0
+  isStackable: 1
+  blessingType: 33
+  effectValue: -1
   bonusPoints: 0
   refreshBehavior: 0
