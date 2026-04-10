@@ -304,17 +304,17 @@ public class GameManager : MonoBehaviour
                 currentPoints -= stageRequirement; 
             }
             
-            // 祝福:能量扩散
-            if (BlessingManager.Instance.HasEnergySpread == 1)
-            {
-                for (int i = 0; i < PlayerCardInventory.numberCards.Count; i++)
-                {
-                    if (!cardManager.selectedNumberCards.Contains(PlayerCardInventory.numberCards[i]))
-                    {
-                        PlayerCardInventory.numberCards[i].EnergySpread();
-                    }
-                }
-            }
+            //// 祝福:能量扩散
+            //if (BlessingManager.Instance.HasEnergySpread == 1)
+            //{
+            //    for (int i = 0; i < PlayerCardInventory.numberCards.Count; i++)
+            //    {
+            //        if (!cardManager.selectedNumberCards.Contains(PlayerCardInventory.numberCards[i]))
+            //        {
+            //            PlayerCardInventory.numberCards[i].EnergySpread();
+            //        }
+            //    }
+            //}
 
 
         }
