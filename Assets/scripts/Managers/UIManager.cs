@@ -34,6 +34,7 @@ public class UIManager : MonoBehaviour
     public GameObject myFormulaCardPanel;// 公式卡
     public GameObject myBlessPanel;// 祝福
     public GameObject confirmationPanel;// 确认对话框
+    public GameObject PlayerDataPanel;// 玩家数据面板
 
     [Header("游戏信息显示")]
     public Text pointsText;              // 总分数
