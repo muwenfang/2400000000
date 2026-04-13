@@ -44,6 +44,7 @@ public class BlessingManager : MonoBehaviour
     private bool hasGambleToWin = false; // 是否拥有赌为赢祝福
     public int hasEnergySpread = 0;      // 是否拥有能量扩散
     public int hasRisingUp = 0;          // 是否拥有节节高
+    public int hasTemperlance = 0;       // 是否拥有平衡节制
     private readonly BigInteger GambleToWinReward = 2400000000; // 赌为赢奖励的点数    
     public bool hasIdealism = false;  //唯心主义
     public Dictionary<int, int> idealismDiceResults = new Dictionary<int, int>();  //唯心主义储存不同等级骰子出目的字典   
@@ -88,6 +89,8 @@ public class BlessingManager : MonoBehaviour
 
         hasEnergySpread = 0;
         hasRisingUp = 0;
+        hasTemperlance = 0;
+
         dialecticalPerRoundBonus = 0; 
         dialecticalAccumulatedMultiplier = 0f;        
     }
@@ -368,13 +371,19 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.RisingUp:
                 //节节高 - 不可叠加：大于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20
                 hasRisingUp = 1;
-                Debug.Log("短视效果已激活");
+                Debug.Log("节节高效果已激活");
                 break;
 
             case BlessingData.BlessingType.LeadingCharge:
                 // 打头阵 - 不可叠加            
                 hasLeadingCharge = true; 
                 Debug.Log("打头阵 已激活！");
+                break;
+
+            case BlessingData.BlessingType.Temperlance:
+                //平衡节制 - 不可叠加：每次计算判定结果最大和最小的数字卡的判定结果变为所有参与计算的数字卡本轮判定结果的均值
+                hasTemperlance = 1;
+                Debug.Log("平衡节制效果已激活");
                 break;
         }
     }
@@ -625,6 +634,7 @@ public class BlessingManager : MonoBehaviour
         hasIdealism = false;
         hasEnergySpread = 0;
         hasRisingUp = 0;
+        hasTemperlance = 0;
         dialecticalPerRoundBonus = 0;
         dialecticalAccumulatedMultiplier = 0f;
     }
