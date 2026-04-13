@@ -47,6 +47,10 @@ public class BlessingManager : MonoBehaviour
     private readonly BigInteger GambleToWinReward = 2400000000; // 赌为赢奖励的点数    
     public bool hasIdealism = false;  //唯心主义
     public Dictionary<int, int> idealismDiceResults = new Dictionary<int, int>();  //唯心主义储存不同等级骰子出目的字典   
+    public int dialecticalPerRoundBonus = 0;  // 每购买1级辩证主义，每回合+1倍率
+    public float dialecticalAccumulatedMultiplier = 0f; // 辩证主义累积的回合倍率
+    
+    
     private void Awake()
     {
         if (Instance == null)
@@ -84,7 +88,9 @@ public class BlessingManager : MonoBehaviour
 
         hasEnergySpread = 0;
         hasRisingUp = 0;
-        }
+        dialecticalPerRoundBonus = 0; 
+        dialecticalAccumulatedMultiplier = 0f;        
+    }
 
     /// <summary>
     /// 购买祝福
@@ -252,12 +258,10 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.DialecticalViewpoint:
                 // 辩证主义 - 立即应用倍率和点数
                 
-                totalMultiplierBonus++;
-                // 给予奖励点数
+                dialecticalPerRoundBonus++; // 改为记录每回合倍率基数
                 GameManager.Instance.AddPoints(blessingData.bonusPoints);
                 totalDialecticalCount++;
-                Debug.Log($"辩证主义效果已激活：倍率+{blessingData.effectValue}，" +
-                    $"额外获得{blessingData.bonusPoints}点，价格上升1%");
+                Debug.Log($"辩证主义效果已激活：每回合倍率+1，额外获得{blessingData.bonusPoints}点，价格上升1%");
                 break;
 
             case BlessingData.BlessingType.LuckTurns:
@@ -621,6 +625,8 @@ public class BlessingManager : MonoBehaviour
         hasIdealism = false;
         hasEnergySpread = 0;
         hasRisingUp = 0;
+        dialecticalPerRoundBonus = 0;
+        dialecticalAccumulatedMultiplier = 0f;
     }
 
     /// <summary>
@@ -670,9 +676,10 @@ public class BlessingManager : MonoBehaviour
         float jackpotBonus = CalculateJackpot7Bonus();
         float godsBonus = CalculateAllGodsInPlaceBonus();
         float cardMasterBonus = CalculateCardMasterBonus();
-
-        float final = baseMultiplier + jackpotBonus + godsBonus + cardMasterBonus;
-
+        float dialecticalBonus = dialecticalAccumulatedMultiplier;
+        
+        float final = baseMultiplier + jackpotBonus + godsBonus + cardMasterBonus + dialecticalBonus;
+        
         return final;
     }
 
@@ -746,5 +753,17 @@ public class BlessingManager : MonoBehaviour
     public void NewRound_IdealismReset()
     {
         idealismDiceResults.Clear();
+    }
+
+    /// <summary>
+    /// 每回合开始时叠加辩证主义倍率
+    /// </summary>
+    public void AddDialecticalPerRoundMultiplier()
+    {
+        if (dialecticalPerRoundBonus > 0)
+        {
+            dialecticalAccumulatedMultiplier += dialecticalPerRoundBonus;
+            Debug.Log($"辩证主义每回合加成：累积倍率+{dialecticalPerRoundBonus}，当前总累积{dialecticalAccumulatedMultiplier}");
+        }
     }
 }       

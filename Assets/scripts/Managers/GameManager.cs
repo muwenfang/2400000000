@@ -133,6 +133,13 @@ public class GameManager : MonoBehaviour
         ChangeState(GameState.PlayerTurn);
         Debug.Assert(currentState == GameState.PlayerTurn);
         
+        if (blessingManager != null)
+        {
+            blessingManager.AddDialecticalPerRoundMultiplier();
+            // 顺带重置唯心主义骰子结果（原有逻辑）
+            blessingManager.NewRound_IdealismReset();
+        }
+        
         // 刷新所有游戏信息UI
         UIManager.Instance.RefreshAllGameInfo();
         // 重置本回合得分
