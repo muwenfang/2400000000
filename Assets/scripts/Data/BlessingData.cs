@@ -64,7 +64,7 @@ public class BlessingData : ScriptableObject
         LeadingCharge,        // 打头阵 
         ShortSight,           // 短视
         RisingUp,             // 节节高
-        Temperlance,          // 节制平衡
+        Temperlance,          // 平衡节制
         GamblingGearUpgraded, // 赌具升级
         GamblingGodSage       // 赌神传说
     }
