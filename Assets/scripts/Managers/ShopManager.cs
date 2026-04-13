@@ -6,7 +6,7 @@ using UnityEngine.UI;
 using Random = UnityEngine.Random; // 明确指定使用 UnityEngine.Random
 using System.Numerics;
 /// <summary>
-/// 商店系统。读取database中的商品信息，读取玩家信息，处理购买逻辑
+/// 商店系统。读取database中的商品信息，读取玩家信息，处理购买逻辑Buy
 /// </summary>
 
 
@@ -453,9 +453,13 @@ public class ShopManager : MonoBehaviour
         }
         PlayerCardInventory.Instance.AddFormulaCard(item.cardData);
         GameManager.Instance.AddPoints(-item.price);
+        if(BlessingManager.Instance.ApplyPragmatism==1){
+            BlessingManager.Instance.ApplyPragmatismEffect();
+        }
         CardManager.Instance.SyncDeckFromInventory();
 
         item.sold = true;
+        
         return true;
     }
     /// <summary>

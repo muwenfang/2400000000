@@ -34,7 +34,7 @@ public class BlessingManager : MonoBehaviour
     public float totalMultiplierBonus = 0f; // 倍率加成
     public int totalDialecticalCount = 0;   // '辩证主义'购买次数
     private float AllGodsCount = 0;          // 众神归位数量 
-    private int LuckTurnsCount = 0;           //是否激活，1是激活
+    private int LuckTurnsCount = 0;           //是否激活转运，1是激活
     private bool hasJackpot7 = false;        //是否激活逢7过
     private int CardMasterCount = 0;       //是否激活卡牌大师 
     public int HasRichTreasure = 0;        //是否激活丰盈宝库
@@ -50,7 +50,7 @@ public class BlessingManager : MonoBehaviour
     public Dictionary<int, int> idealismDiceResults = new Dictionary<int, int>();  //唯心主义储存不同等级骰子出目的字典   
     public int dialecticalPerRoundBonus = 0;  // 每购买1级辩证主义，每回合+1倍率
     public float dialecticalAccumulatedMultiplier = 0f; // 辩证主义累积的回合倍率
-    
+    public int ApplyPragmatism = 0;//实用主义
     
     private void Awake()
     {
@@ -86,13 +86,14 @@ public class BlessingManager : MonoBehaviour
         hasGambleToWin = false; 
 
         hasIdealism = false;
-
+        
         hasEnergySpread = 0;
         hasRisingUp = 0;
         hasTemperlance = 0;
 
         dialecticalPerRoundBonus = 0; 
-        dialecticalAccumulatedMultiplier = 0f;        
+        dialecticalAccumulatedMultiplier = 0f;  
+        ApplyPragmatism = 0;      
     }
 
     /// <summary>
@@ -359,6 +360,8 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.Pragmatism:
                 // 实用主义 - 不可叠加：任意时刻你仅保留价值最高的填空卡并自动删除其它填空卡
+                ApplyPragmatism = 1;
+                ApplyPragmatismEffect();
                 Debug.Log("实用主义效果已激活");
                 break;
 
@@ -371,6 +374,7 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.RisingUp:
                 //节节高 - 不可叠加：大于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20
                 hasRisingUp = 1;
+                
                 Debug.Log("节节高效果已激活");
                 break;
 
@@ -775,5 +779,35 @@ public class BlessingManager : MonoBehaviour
             dialecticalAccumulatedMultiplier += dialecticalPerRoundBonus;
             Debug.Log($"辩证主义每回合加成：累积倍率+{dialecticalPerRoundBonus}，当前总累积{dialecticalAccumulatedMultiplier}");
         }
+    }
+
+    /// <summary>
+    /// 实用主义：仅保留价值最高的填空卡，删除其它填空卡
+    /// </summary>
+    public void ApplyPragmatismEffect()
+    {
+        if (PlayerCardInventory.Instance == null)
+        {
+            Debug.LogError("实用主义：PlayerCardInventory 未找到！");
+            return;
+        }
+
+        // 获取当前所有公式卡
+        List<FormulaCardData> formulaCards = PlayerCardInventory.Instance.formulaCards;
+        if (formulaCards == null || formulaCards.Count <= 1)
+            return;
+
+        // 按名称排序（保证只留一张）
+        formulaCards.Sort((a, b) => b.CardPrice.CompareTo(a.CardPrice));
+
+        // 保留最强卡，清空其他卡
+        FormulaCardData bestCard = formulaCards[0];
+        formulaCards.Clear();
+        formulaCards.Add(bestCard);
+
+        // 同步到卡牌管理器
+        CardManager.Instance.SyncDeckFromInventory();
+
+        Debug.Log($"实用主义清理完成：仅保留1张最强公式卡，已删除冗余卡");
     }
 }       
