@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Linq;
@@ -189,6 +189,13 @@ public class BlessingManager : MonoBehaviour
     {
         switch (blessingData.blessingType)
         {
+            case BlessingData.BlessingType.CardCheat:
+                //老千：选择一张数字卡替换为随机数字卡，直接打开
+                Debug.Log("老千 效果触发");
+                totalMultiplierBonus++;//测试用
+                ActivateCardCheatSelection();
+                break;
+
             case BlessingData.BlessingType.Idealism:
                 hasIdealism = true;
                 Debug.Log("唯心主义 已激活！");
@@ -324,11 +331,6 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log("戒赌效果已激活");
                 break;
 
-            case BlessingData.BlessingType.CardCheat:
-                // 老千 - 可叠加：选择一张数字卡，将其替换为一张随机的数字卡
-                Debug.Log("老千效果已激活");
-                break;
-
             case BlessingData.BlessingType.GamblingGearUpgraded:
                 // 赌具升级 - 可叠加：选择一个骰子使其立即升一级，祝福“赌具升级”的价格翻倍
                 Debug.Log("赌具升级效果已激活");
@@ -383,6 +385,32 @@ public class BlessingManager : MonoBehaviour
         return LuckTurnsCount > 0;
     }
  
+    // 老千：启动选卡流程 —— 直接打开界面，不依赖任何选卡管理器
+    private void ActivateCardCheatSelection()
+    {
+        // 直接打开数字卡
+        UIManager.Instance.OpenNumberCardDeck();
+        // 调用ShowMyNumberCard，主动给卡牌加选卡按钮
+        ShowMyNumberCard showScript = UIManager.Instance.myNumberCardPanel.GetComponent<ShowMyNumberCard>();
+        if (showScript != null)
+        {
+            showScript.ShowCardCheatButtons();
+        }
+        Debug.Log("[老千] 数字卡界面已打开！");
+    }
+
+    // 老千：替换逻辑（公开方法，给按钮调用）
+    public void ExecuteCardCheat(NumberCardInstance selectedCard)
+    {
+        // 执行替换
+        PlayerCardInventory.Instance.RemoveNumberCard(selectedCard);
+        PlayerCardInventory.Instance.AddRandomNumberCards(1);
+    
+        // 关闭界面
+        UIManager.Instance.CloseCardDeck();
+    
+        Debug.Log($"✅ 老千替换完成！");
+    }    
     /// <summary>
     /// 许愿币：打开祝福选择界面（只显示玩家已拥有的可叠加祝福）
     /// </summary>
@@ -407,6 +435,8 @@ public class BlessingManager : MonoBehaviour
     /// </summary>
     private void OnWishCoinBlessingSelected(object selectedObject)
     {
+        CardSelectionManager.Instance.EndCardSelection();
+        
         if (!(selectedObject is BlessingData selectedBlessing) || selectedBlessing == null)
         {
             Debug.LogError("许愿币选择无效！");

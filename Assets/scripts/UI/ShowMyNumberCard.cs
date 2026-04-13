@@ -231,6 +231,8 @@ public class ShowMyNumberCard : MonoBehaviour
         {
             ActivateNumberCardDeletionButtons();
         }
+        
+    
     }
 
     /// <summary>
@@ -357,4 +359,51 @@ public class ShowMyNumberCard : MonoBehaviour
             textComp.color = normalColor;
         }
     }
+    
+
+    /// <summary>
+    /// 老千专用：直接显示选卡按钮，不依赖任何选卡模式
+    /// </summary>
+    public void ShowCardCheatButtons()
+    {   
+        var instances = PlayerCardInventory.Instance.GetAllNumberCards();
+        foreach (var instance in instances)
+        {
+            if (!cardGameObjects.ContainsKey(instance)) continue;
+            GameObject cardGo = cardGameObjects[instance];
+
+        // 给卡牌加按钮
+            Button selectBtn = cardGo.GetComponent<Button>();
+            if (selectBtn == null) selectBtn = cardGo.AddComponent<Button>();
+            selectBtn.gameObject.SetActive(true);
+            selectBtn.onClick.RemoveAllListeners();
+
+            // 点击直接触发老千替换，不经过任何管理器
+            NumberCardInstance card = instance;
+            selectBtn.onClick.AddListener(() =>
+            {
+                BlessingManager.Instance.ExecuteCardCheat(card);
+                // 点击后清空所有按钮，防止残留
+                ClearAllCardButtons();
+            });
+        }
+    }
+
+    /// <summary>
+    /// 清空所有卡牌的按钮（防止干扰其他功能）
+    /// </summary>
+    private void ClearAllCardButtons()
+    {
+        foreach (var cardGo in cardGameObjects.Values)
+        {
+            Button btn = cardGo.GetComponent<Button>();
+            if (btn != null)
+            {
+                btn.onClick.RemoveAllListeners();
+                // 不销毁按钮，只禁用，避免报错
+                btn.gameObject.SetActive(false);
+            }
+        }
+    }
+
 }
