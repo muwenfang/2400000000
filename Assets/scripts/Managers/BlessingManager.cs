@@ -344,6 +344,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.CompulsiveGambler:
                 // 狂赌之渊 - 不可叠加，本回合商店不刷新：立即将所有绿色数字变为~20~
+                BlessingManager.Instance.MadGambler();
                 Debug.Log("狂赌之渊效果已激活");
                 break;
 
@@ -838,5 +839,72 @@ public class BlessingManager : MonoBehaviour
         CardManager.Instance.SyncDeckFromInventory();
 
         Debug.Log($"实用主义清理完成：仅保留1张最强公式卡，已删除冗余卡");
+    }
+    /// <summary>
+    /// 祝福：狂赌之渊
+    /// 不修改任何卡数据，只删除旧递增卡 → 生成新~20~骰子卡并加入背包
+    /// </summary>
+    public void MadGambler()
+    {
+        if (PlayerCardInventory.Instance == null) return;
+
+        // 先拿到所有卡
+        var allCards = PlayerCardInventory.Instance.GetAllNumberCards();
+        var toRemove = new List<NumberCardInstance>();
+        var toAddData = new List<NumberCardData>();
+
+        foreach (var inst in allCards)
+        {
+            if (inst == null || inst.cardData == null) continue;
+
+            NumberComponent a = inst.cardData.partA;
+            NumberComponent b = inst.cardData.partB;
+
+            bool needReplace = a.isIncremental || (b != null && b.isIncremental);
+            if (!needReplace) continue;
+
+            // 标记要删除
+            toRemove.Add(inst);
+
+            // 克隆新卡，把递增换成~20~骰子，其他完全不变
+            NumberCardData newCard = ScriptableObject.CreateInstance<NumberCardData>();
+            newCard.cardName = inst.cardData.cardName;
+            newCard.logicalType = inst.cardData.logicalType;
+            newCard.layoutType = inst.cardData.layoutType;
+
+            // 处理 PartA
+            newCard.partA = new NumberComponent();
+            newCard.partA.isIncremental = false;
+            newCard.partA.isDice = a.isIncremental ? true : a.isDice;
+            newCard.partA.diceSides = a.isIncremental ? 20 : a.diceSides;
+            newCard.partA.value = a.value;
+
+            // 处理 PartB
+            if (b != null)
+            {
+                newCard.partB = new NumberComponent();
+                newCard.partB.isIncremental = false;
+                newCard.partB.isDice = b.isIncremental ? true : b.isDice;
+                newCard.partB.diceSides = b.isIncremental ? 20 : b.diceSides;
+                newCard.partB.value = b.value;
+            }
+
+            toAddData.Add(newCard);
+            Debug.Log($"[狂赌之渊] 替换：{inst.cardData.cardName} → ~20~ 骰子版");
+        }
+
+        // 先删旧的
+        foreach (var card in toRemove)
+        {
+            PlayerCardInventory.Instance.RemoveNumberCard(card);
+        }
+
+        // 再加新的
+        foreach (var data in toAddData)
+        {
+           PlayerCardInventory.Instance.AddNumberCard(data);
+        }
+
+        Debug.Log($"[狂赌之渊] 生效完成！共替换 {toAddData.Count} 张卡");
     }
 }       
