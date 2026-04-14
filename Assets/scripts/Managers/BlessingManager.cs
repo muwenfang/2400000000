@@ -199,6 +199,11 @@ public class BlessingManager : MonoBehaviour
     {
         switch (blessingData.blessingType)
         {
+            case BlessingData.BlessingType.CardCheat:
+                ActivateCardCheatSelection();
+                Debug.Log("老千 已激活！");
+                break;
+            
             case BlessingData.BlessingType.Idealism:
                 hasIdealism = true;
                 Debug.Log("唯心主义 已激活！");
@@ -332,11 +337,6 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log("戒赌效果已激活");
                 break;
 
-            case BlessingData.BlessingType.CardCheat:
-                // 老千 - 可叠加：选择一张数字卡，将其替换为一张随机的数字卡
-                Debug.Log("老千效果已激活");
-                break;
-
             case BlessingData.BlessingType.GamblingGearUpgraded:
                 // 赌具升级 - 可叠加：选择一个骰子使其立即升一级，祝福“赌具升级”的价格翻倍
                 Debug.Log("赌具升级效果已激活");
@@ -400,6 +400,35 @@ public class BlessingManager : MonoBehaviour
         return LuckTurnsCount > 0;
     }
  
+    // 触发老千选择流程
+    private void ActivateCardCheatSelection()
+    {
+        Debug.Log("=== 老千：开始选择数字卡 ===");
+
+        CardSelectionManager.Instance.StartCardSelection(
+            CardSelectionManager.SelectionMode.CardCheat,
+            OnCardCheatSelected);
+
+        UIManager.Instance.OpenCardCheatNumberSelection();
+    }
+
+    // 选择完成回调
+    private void OnCardCheatSelected(object selectedObject)
+    {
+        CardSelectionManager.Instance.EndCardSelection();
+        UIManager.Instance.CloseCardCheatNumberSelection();
+
+        if (selectedObject is NumberCardInstance card)
+        {
+            Debug.Log("=== 老千：替换数字卡 ===");
+
+        // 删掉选中的卡
+            PlayerCardInventory.Instance.RemoveNumberCard(card);
+        // 补发一张新随机数字卡
+            PlayerCardInventory.Instance.AddRandomNumberCards(1);
+        }
+    }
+    
     /// <summary>
     /// 许愿币：打开祝福选择界面（只显示玩家已拥有的可叠加祝福）
     /// </summary>

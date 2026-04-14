@@ -17,7 +17,7 @@ MonoBehaviour:
   description: "\u5546\u5E97\u5237\u65B0\u6C38\u4E45\u514D\u8D39"
   basePrice: 20000
   isStackable: 0
-  blessingType: 24
+  blessingType: 21
   effectValue: 0
   bonusPoints: 0
   refreshBehavior: 1

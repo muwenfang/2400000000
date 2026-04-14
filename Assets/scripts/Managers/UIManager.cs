@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -34,7 +34,6 @@ public class UIManager : MonoBehaviour
     public GameObject myFormulaCardPanel;// 公式卡
     public GameObject myBlessPanel;// 祝福
     public GameObject confirmationPanel;// 确认对话框
-    public GameObject PlayerDataPanel;// 玩家数据面板
 
     [Header("游戏信息显示")]
     public Text pointsText;              // 总分数
@@ -113,20 +112,21 @@ public class UIManager : MonoBehaviour
     // 打开数字卡库
     public void OpenNumberCardDeck()
     {
-        // 只打开面板，不关闭原来的界面（Shop或Game），实现“不影响进度”
+
         myNumberCardPanel.SetActive(true);
-        myFormulaCardPanel.SetActive(false); // 互斥显示
+        myFormulaCardPanel.SetActive(false);
         myBlessPanel.SetActive(false);
-        myNumberCardPanel.transform.SetAsLastSibling(); // 确保数字卡库在其他面板之上显示
+        myNumberCardPanel.transform.SetAsLastSibling();
 
         if (myCardButton != null)
         {
             myCardButton.SetActive(true);
             myCardButton.transform.SetAsLastSibling();
         }
-        // 调用刷新逻辑 (需要 ShowMyCard 挂在面板上)
+
         var showScript = myNumberCardPanel.GetComponent<ShowMyNumberCard>();
-        if (showScript != null) showScript.RefreshAllCards();
+        if (showScript != null) 
+            showScript.RefreshAllCards(); // 👈 只保留这一句
     }
 
     // 打开公式卡库
@@ -169,6 +169,9 @@ public class UIManager : MonoBehaviour
         myNumberCardPanel.SetActive(false);
         myFormulaCardPanel.SetActive(false);
         myBlessPanel.SetActive(false);
+        if (CardSelectionManager.Instance.IsSelecting())
+            CardSelectionManager.Instance.EndCardSelection();
+        
         if(GameManager.Instance.currentState == GameManager.GameState.Shop)
             myCardButton.SetActive(false) ;
     }
@@ -757,4 +760,30 @@ public class UIManager : MonoBehaviour
         }
     }
     #endregion
+
+    // 老千：打开数字卡选择面板
+    public void OpenCardCheatNumberSelection()
+    {
+        if (myNumberCardPanel != null)
+        {
+            myNumberCardPanel.SetActive(true);
+            myNumberCardPanel.transform.SetAsLastSibling();
+
+            ShowMyNumberCard showScript = myNumberCardPanel.GetComponent<ShowMyNumberCard>();
+            if (showScript != null)
+            {
+                showScript.ShowCardsForCardCheat();
+            }
+        }
+    }
+
+    // 老千：关闭数字卡选择面板
+    public void CloseCardCheatNumberSelection()
+    {
+        if (myNumberCardPanel != null)
+        {
+            myNumberCardPanel.SetActive(false);
+        }
+    }
+
 }

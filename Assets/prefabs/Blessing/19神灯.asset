@@ -17,7 +17,7 @@ MonoBehaviour:
   description: "\u968F\u673A\u83B7\u5F97\u4E09\u4E2A\u53EF\u53E0\u52A0\u795D\u798F"
   basePrice: 500000
   isStackable: 1
-  blessingType: 21
+  blessingType: 18
   effectValue: 3
   bonusPoints: 0
   refreshBehavior: 0

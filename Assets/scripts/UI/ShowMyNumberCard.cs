@@ -357,4 +357,40 @@ public class ShowMyNumberCard : MonoBehaviour
             textComp.color = normalColor;
         }
     }
+    // 老千专用：显示数字卡并自动给每张卡加按钮（许愿币同款逻辑）
+    public void ShowCardsForCardCheat()
+    {
+        // 清空旧卡片
+        foreach (Transform child in contentRoot)
+            Destroy(child.gameObject);
+        cardGameObjects.Clear();
+
+        // 正常生成数字卡
+        GenerateNumberCards();
+
+        // 给每张卡自己加按钮（核心逻辑，和许愿币一样）
+        foreach (var pair in cardGameObjects)
+        {
+            NumberCardInstance card = pair.Key;
+            GameObject cardObj = pair.Value;
+
+            // 获取或添加 Button
+            Button btn = cardObj.GetComponent<Button>();
+            if (btn == null)
+                btn = cardObj.AddComponent<Button>();
+
+            // 清除旧监听，避免重复
+            btn.onClick.RemoveAllListeners();
+
+            // 点击后直接提交选择
+            btn.onClick.AddListener(() =>
+            {
+                CardSelectionManager.Instance.OnCardSelected(card);
+            });
+        }
+
+        // 刷新UI布局
+        LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);
+    }
+
 }
