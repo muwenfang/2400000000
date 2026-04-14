@@ -51,6 +51,7 @@ public class BlessingManager : MonoBehaviour
     public int dialecticalPerRoundBonus = 0;  // 每购买1级辩证主义，每回合+1倍率
     public float dialecticalAccumulatedMultiplier = 0f; // 辩证主义累积的回合倍率
     public int ApplyPragmatism = 0;//实用主义
+    public bool hasGodOfGambler = false;//赌神传说
     
     private void Awake()
     {
@@ -93,7 +94,8 @@ public class BlessingManager : MonoBehaviour
 
         dialecticalPerRoundBonus = 0; 
         dialecticalAccumulatedMultiplier = 0f;  
-        ApplyPragmatism = 0;      
+        ApplyPragmatism = 0;    
+        hasGodOfGambler = false;  
     }
 
     /// <summary>
@@ -390,6 +392,12 @@ public class BlessingManager : MonoBehaviour
                 //平衡节制 - 不可叠加：每次计算判定结果最大和最小的数字卡的判定结果变为所有参与计算的数字卡本轮判定结果的均值
                 hasTemperlance = 1;
                 Debug.Log("平衡节制效果已激活");
+                break;
+
+            case BlessingData.BlessingType.GamblingGodSage:
+                //赌神传说  你的所有骰子的判定点数都会转化为本回合的额外临时倍率
+                BlessingManager.Instance.hasGodOfGambler = true;
+                Debug.Log("赌神传说效果已激活");
                 break;
         }
     }
@@ -992,4 +1000,37 @@ public class BlessingManager : MonoBehaviour
             default: return currentSides;
         }
     }
+    /// <summary>
+/// 祝福：赌神传说 —— 本回合所有骰子点数 → 额外临时倍率
+/// </summary>
+public int GetGodOfGamblerTempMultiplier()
+{
+    if (!hasGodOfGambler) return 0;
+
+    int totalDiceValue = 0;
+
+    // 遍历本回合使用的所有数字卡
+    if (CardManager.Instance != null)
+    {
+        foreach (var card in CardManager.Instance.selectedNumberCards)
+        {
+            if (card == null || card.cardData == null) continue;
+
+            // PartA 是骰子 → 加当前掷出值
+            if (card.cardData.partA != null && card.cardData.partA.isDice)
+            {
+                totalDiceValue += card.currentA;
+            }
+
+            // PartB 是骰子 → 加当前掷出值
+            if (card.cardData.partB != null && card.cardData.partB.isDice)
+            {
+                totalDiceValue += card.currentB;
+            }
+        }
+    }
+
+    Debug.Log($"【赌神传说】本回合骰子总点数 = {totalDiceValue} → 临时倍率 +{totalDiceValue}");
+    return totalDiceValue;
+}
 }       

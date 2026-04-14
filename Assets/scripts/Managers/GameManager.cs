@@ -74,6 +74,7 @@ public class GameManager : MonoBehaviour
         currentPoints = 100000000;
         GameManager.isInvolutionMode = false;
         //不是内卷模式
+        blessingManager.hasGodOfGambler = false;
         currentRound = 1;
         // 确保调用了 ChangeState，这样上面的 UI 逻辑才会跑起来
         ChangeState(GameState.PlayerTurn);
@@ -101,9 +102,10 @@ public class GameManager : MonoBehaviour
     public void InitializeGame_invol()
     {   
         Debug.Log("初始化游戏");
-        currentPoints = 0;
+        currentPoints = 100000000000;
         GameManager.isInvolutionMode = true;
         //是内卷模式
+        blessingManager.hasGodOfGambler = false;
         currentRound = 1;
         // 确保调用了 ChangeState，这样上面的 UI 逻辑才会跑起来
         ChangeState(GameState.PlayerTurn);
@@ -289,14 +291,15 @@ public class GameManager : MonoBehaviour
             //祝福——短视：每回合倍率-1，可叠加
             int count = blessingManager.GetBlessingCount(BlessingData.BlessingType.ShortSight);
             blessingMultiplier -= count;
-
+            //赌神传说
+            blessingMultiplier += blessingManager.GetGodOfGamblerTempMultiplier();
             multiplier += blessingMultiplier;
             Debug.Log($"祝福倍率加成: {blessingMultiplier}，总倍率: {multiplier}");
         }
 
         return multiplier;
     }
-
+    
     public void AddPoints(BigInteger points)
     {
         // 如果是扣除点数，直接扣除
@@ -352,7 +355,17 @@ public class GameManager : MonoBehaviour
                 }
                 return; // 不进商店
             }
-
+            // 祝福:能量扩散
+            if (BlessingManager.Instance.hasEnergySpread == 1)
+            {
+                for (int i = 0; i < PlayerCardInventory.Instance.numberCards.Count; i++)
+                {
+                    if (!cardManager.selectedNumberCards.Contains(PlayerCardInventory.Instance.numberCards[i]))
+                    {
+                        PlayerCardInventory.Instance.numberCards[i].EnergySpread();
+                    }
+                }
+            }
             // 非最后一回合：直接进商店，不做任何阶段检查
             currentState = GameState.Shop;
             shopManager.OpenShop();
