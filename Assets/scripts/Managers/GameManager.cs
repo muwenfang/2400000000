@@ -71,7 +71,7 @@ public class GameManager : MonoBehaviour
     public void InitializeGame()
     {   
         Debug.Log("初始化游戏");
-        currentPoints = 9999999999999;
+        currentPoints = 100000000;
         GameManager.isInvolutionMode = false;
         //不是内卷模式
         currentRound = 1;
@@ -384,9 +384,11 @@ public class GameManager : MonoBehaviour
                // 检查失败，游戏结束
                return; // 不进入商店
             }
-            else   // 检查通过，扣除阶段要求的点数
+            else   // 检查通过，扣除阶段要求的点数，这里要刷新UI
             { 
                 currentPoints -= stageRequirement; 
+                // 刷新点数 UI 显示
+                UIManager.Instance.UpdatePointsDisplay(GameManager.Instance.currentPoints);
             }
             
             // 祝福:能量扩散
