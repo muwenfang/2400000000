@@ -339,6 +339,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.GamblingGearUpgraded:
                 // 赌具升级 - 可叠加：选择一个骰子使其立即升一级，祝福“赌具升级”的价格翻倍
+                BlessingManager.Instance.UpgradeDiceEquipment();
                 Debug.Log("赌具升级效果已激活");
                 break;
 
@@ -906,5 +907,89 @@ public class BlessingManager : MonoBehaviour
         }
 
         Debug.Log($"[狂赌之渊] 生效完成！共替换 {toAddData.Count} 张卡");
+    }
+    /// <summary>
+    /// 祝福：赌具升级
+    /// 所有骰子按 4→6→8→12→20 升一级，20不再升
+    /// 不修改原卡，只删旧卡+添加新卡，商店完全不变
+    /// </summary>
+    public void UpgradeDiceEquipment()
+    {
+        if (PlayerCardInventory.Instance == null) return;
+
+        var allCards = PlayerCardInventory.Instance.GetAllNumberCards();
+        var toRemove = new List<NumberCardInstance>();
+        var toAddData = new List<NumberCardData>();
+
+        foreach (var inst in allCards)
+        {
+            if (inst == null || inst.cardData == null) continue;
+
+            NumberComponent a = inst.cardData.partA;
+            NumberComponent b = inst.cardData.partB;
+
+            // 判断这张卡有没有骰子
+            bool hasDiceA = a != null && a.isDice;
+            bool hasDiceB = b != null && b.isDice;
+            if (!hasDiceA && !hasDiceB) continue;
+
+            toRemove.Add(inst);
+
+            // 克隆一张新卡，不影响原卡与商店
+            NumberCardData newCard = ScriptableObject.CreateInstance<NumberCardData>();
+            newCard.cardName = inst.cardData.cardName;
+            newCard.logicalType = inst.cardData.logicalType;
+            newCard.layoutType = inst.cardData.layoutType;
+
+            // 升级 PartA 骰子
+            newCard.partA = new NumberComponent();
+            newCard.partA.isIncremental = a.isIncremental;
+            newCard.partA.isDice = a.isDice;
+            newCard.partA.value = a.value;
+            newCard.partA.diceSides = a.isDice ? UpgradeDiceLevel(a.diceSides) : a.diceSides;
+
+            // 升级 PartB 骰子
+            if (b != null)
+            {
+                newCard.partB = new NumberComponent();
+                newCard.partB.isIncremental = b.isIncremental;
+                newCard.partB.isDice = b.isDice;
+                newCard.partB.value = b.value;
+               newCard.partB.diceSides = b.isDice ? UpgradeDiceLevel(b.diceSides) : b.diceSides;
+            }
+
+            toAddData.Add(newCard);
+            Debug.Log($"[赌具升级] 升级卡牌：{inst.cardData.cardName}");
+        }
+
+        // 先删旧卡
+        foreach (var card in toRemove)
+        {
+            PlayerCardInventory.Instance.RemoveNumberCard(card);
+        }
+
+        // 再加新卡
+        foreach (var data in toAddData)
+        {
+            PlayerCardInventory.Instance.AddNumberCard(data);
+        }
+
+        Debug.Log($"[赌具升级] 完成！共升级骰子卡：{toAddData.Count} 张");
+    }
+
+    /// <summary>
+    /// 骰子等级升级规则：4→6→8→12→20，20不变
+    /// </summary>
+    private int UpgradeDiceLevel(int currentSides)
+    {
+        switch (currentSides)
+        {
+            case 4: return 6;
+            case 6: return 8;
+            case 8: return 12;
+            case 12: return 20;
+            case 20: return 20;
+            default: return currentSides;
+        }
     }
 }       
