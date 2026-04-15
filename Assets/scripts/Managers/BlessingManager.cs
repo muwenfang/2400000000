@@ -52,6 +52,7 @@ public class BlessingManager : MonoBehaviour
     public float dialecticalAccumulatedMultiplier = 0f; // 辩证主义累积的回合倍率
     public int ApplyPragmatism = 0;//实用主义
     public bool hasGodOfGambler = false;//赌神传说
+    public FormulaCardLibrary formulaCardLibrary;
     
     private void Awake()
     {
@@ -243,7 +244,7 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.AllGodsInPlace:
                 // 众神归位 - 效果每回合可能要重新检测祝福数量
                 AllGodsCount++;
-                
+
                 Debug.Log("众神归位效果已激活");
                 break;
 
@@ -359,6 +360,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.Utopianism:
                 // 空想主义 - 可叠加：立即获得一张未拥有的填空卡；如果获得此祝福时拥有了全部种类的填空卡，你立即获得2400000000点并失去所有“空想主义”
+                ApplyUtopianismEffect();
                 Debug.Log("空想主义效果已激活");
                 break;
 
@@ -1001,36 +1003,123 @@ public class BlessingManager : MonoBehaviour
         }
     }
     /// <summary>
-/// 祝福：赌神传说 —— 本回合所有骰子点数 → 额外临时倍率
-/// </summary>
-public int GetGodOfGamblerTempMultiplier()
-{
-    if (!hasGodOfGambler) return 0;
-
-    int totalDiceValue = 0;
-
-    // 遍历本回合使用的所有数字卡
-    if (CardManager.Instance != null)
+    /// 祝福：赌神传说 —— 本回合所有骰子点数 → 额外临时倍率
+    /// </summary>
+    public int GetGodOfGamblerTempMultiplier()
     {
-        foreach (var card in CardManager.Instance.selectedNumberCards)
+        if (!hasGodOfGambler) return 0;
+
+        int totalDiceValue = 0;
+
+        // 遍历本回合使用的所有数字卡
+        if (CardManager.Instance != null)
         {
-            if (card == null || card.cardData == null) continue;
-
-            // PartA 是骰子 → 加当前掷出值
-            if (card.cardData.partA != null && card.cardData.partA.isDice)
+            foreach (var card in CardManager.Instance.selectedNumberCards)
             {
-                totalDiceValue += card.currentA;
-            }
+               if (card == null || card.cardData == null) continue;
 
-            // PartB 是骰子 → 加当前掷出值
-            if (card.cardData.partB != null && card.cardData.partB.isDice)
-            {
-                totalDiceValue += card.currentB;
+               // PartA 是骰子 → 加当前掷出值
+               if (card.cardData.partA != null && card.cardData.partA.isDice)
+               {
+                    totalDiceValue += card.currentA;
+               }
+
+                // PartB 是骰子 → 加当前掷出值
+                if (card.cardData.partB != null && card.cardData.partB.isDice)
+                {
+                    totalDiceValue += card.currentB;
+                }
             }
+        }
+
+        Debug.Log($"【赌神传说】本回合骰子总点数 = {totalDiceValue} → 临时倍率 +{totalDiceValue}");
+        return totalDiceValue;
+    }
+    
+    /// <summary>
+    /// 祝福：空想主义
+    /// 立即获得一张未拥有的填空卡；
+    /// 若已拥有全部种类，获得2400000000点并移除所有“空想主义”
+    /// </summary>
+    public void ApplyUtopianismEffect()
+    {
+        if (PlayerCardInventory.Instance == null)
+        {
+            Debug.LogError("空想主义：PlayerCardInventory 不存在");
+            return;
+        }
+
+        // 直接用 ShopManager 里的公式卡库（你已配置好）
+        if (ShopManager.Instance == null || ShopManager.Instance.formulaCardLibrary == null)
+        {
+            Debug.LogError("空想主义：ShopManager 或公式卡库 missing");
+            return;
+        }
+
+        FormulaCardLibrary formulaLib = ShopManager.Instance.formulaCardLibrary;
+
+        // 1. 收集玩家已有的公式卡 ID
+        HashSet<int> ownedIds = new HashSet<int>();
+        foreach (var card in PlayerCardInventory.Instance.formulaCards)
+        {
+            if (card != null)
+                ownedIds.Add(card.FormulaCardId);
+        }
+
+        // 2. 找出未拥有的卡
+        List<FormulaCardData> missing = new List<FormulaCardData>();
+        foreach (var card in formulaLib.allCards)
+        {
+            if (card != null && !ownedIds.Contains(card.FormulaCardId))
+                missing.Add(card);
+        }
+
+        // 3. 发奖
+        if (missing.Count > 0)
+        {
+            int r = UnityEngine.Random.Range(0, missing.Count);
+            PlayerCardInventory.Instance.AddFormulaCard(missing[r]);
+
+            if (CardManager.Instance != null)
+                CardManager.Instance.SyncDeckFromInventory();
+
+            Debug.Log($"【空想主义】获得：{missing[r].Name}");
+        }
+        else
+        {
+            // 已集齐 → 24亿 + 清空空想主义
+            if (GameManager.Instance != null)
+                GameManager.Instance.AddPoints(2400000000);
+
+            RemoveAllUtopianism();
+            Debug.Log("【空想主义】已集齐全部公式卡！获得 24 亿点！");
         }
     }
 
-    Debug.Log($"【赌神传说】本回合骰子总点数 = {totalDiceValue} → 临时倍率 +{totalDiceValue}");
-    return totalDiceValue;
-}
+    /// <summary>
+    /// 清空所有空想主义祝福
+    /// </summary>
+    private void RemoveAllUtopianism()
+    {
+        List<int> toRemove = new List<int>();
+
+        foreach (var kvp in ownedBlessings)
+        {
+            BlessingData data = blessingLibrary.GetBlessingById(kvp.Key);
+            if (data != null && data.blessingType == BlessingData.BlessingType.Utopianism)
+                toRemove.Add(kvp.Key);
+        }
+
+        foreach (int id in toRemove)
+        {
+            ownedBlessings.Remove(id);
+            blessingsEverPurchased.Remove(id);
+        }
+
+        if (blessingTypeCount.ContainsKey(BlessingData.BlessingType.Utopianism))
+            blessingTypeCount[BlessingData.BlessingType.Utopianism] = 0;
+
+        ownedBlessingInstance.RemoveAll(i =>
+            i.data != null && i.data.blessingType == BlessingData.BlessingType.Utopianism);
+    }
 }       
