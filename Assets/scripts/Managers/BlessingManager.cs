@@ -1049,7 +1049,7 @@ public class BlessingManager : MonoBehaviour
             return;
         }
 
-        // 直接用 ShopManager 里的公式卡库（你已配置好）
+        // 直接用 ShopManager 里的公式卡库
         if (ShopManager.Instance == null || ShopManager.Instance.formulaCardLibrary == null)
         {
             Debug.LogError("空想主义：ShopManager 或公式卡库 missing");
