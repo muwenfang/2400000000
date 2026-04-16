@@ -2023,7 +2023,13 @@ MonoBehaviour:
   hasLeadingCharge: 0
   hasEnergySpread: 0
   hasRisingUp: 0
+  hasTemperlance: 0
   hasIdealism: 0
+  dialecticalPerRoundBonus: 0
+  dialecticalAccumulatedMultiplier: 0
+  ApplyPragmatism: 0
+  hasGodOfGambler: 0
+  formulaCardLibrary: {fileID: 0}
 --- !u!4 &679115385
 Transform:
   m_ObjectHideFlags: 0
@@ -3411,7 +3417,6 @@ MonoBehaviour:
   myFormulaCardPanel: {fileID: 496826560}
   myBlessPanel: {fileID: 896898551}
   confirmationPanel: {fileID: 7053959220092451206}
-  PlayerDataPanel: {fileID: 1096663483}
   pointsText: {fileID: 1329721519}
   roundText: {fileID: 1329721520}
   stageRequirementText: {fileID: 1329721521}
@@ -3538,7 +3543,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1096663484
 RectTransform:
   m_ObjectHideFlags: 0

@@ -419,4 +419,46 @@ public class ShowMyFormula : MonoBehaviour
             if (view != null) view.Bind(data);
         }
     }
+
+    // 多多益善：显示公式卡并添加按钮
+    public void ShowCardsForMoreMoreBetter()
+    {
+        // 清空旧卡片
+        foreach (Transform child in contentRoot)
+            Destroy(child.gameObject);
+
+        // 生成卡片
+        GenerateFormulaCards();
+
+        // 获取所有卡片UI
+        FormulaCardUI[] cards = contentRoot.GetComponentsInChildren<FormulaCardUI>();
+
+        foreach (FormulaCardUI cardUI in cards)
+        {
+            // 获取卡片数据
+            FormulaCardData data = cardUI.GetFormulaCardData();
+            if (data == null) continue;
+
+            // 找按钮（用你项目里现成的方法）
+            Button btn = FindButtonIncludingDisabled(cardUI.gameObject);
+            if (btn == null) continue;
+
+            // 启用按钮
+            btn.gameObject.SetActive(true);
+            btn.interactable = true;
+            btn.enabled = true;
+
+            // 清除旧事件
+            btn.onClick.RemoveAllListeners();
+
+            // 绑定点击：直接选择这张公式卡
+            btn.onClick.AddListener(() =>
+            {
+                CardSelectionManager.Instance.OnCardSelected(data);
+            });
+        }
+
+        // 刷新UI
+        LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);
+    }
 }

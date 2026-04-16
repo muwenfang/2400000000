@@ -255,7 +255,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.MoreMoreBetter:
                 // 多多益善 - 复制一张填空卡（需要玩家选择）
-                //[todo]
+                ActivateMoreMoreBetter();
                 Debug.Log("多多益善效果已激活，等待玩家选择填空卡");
                 break;
 
@@ -412,6 +412,33 @@ public class BlessingManager : MonoBehaviour
         return LuckTurnsCount > 0;
     }
  
+    // 多多益善：选择一张公式卡进行复制
+    private void ActivateMoreMoreBetter()
+    {
+        Debug.Log("=== 多多益善：选择要复制的公式卡 ===");
+
+        CardSelectionManager.Instance.StartCardSelection(
+            CardSelectionManager.SelectionMode.MoreMoreBetter,
+            OnMoreMoreBetterSelected);
+
+        UIManager.Instance.OpenMoreMoreBetterSelection();
+    }
+
+    // 多多益善的回调
+    private void OnMoreMoreBetterSelected(object selectedObject)
+    {
+        CardSelectionManager.Instance.EndCardSelection();
+        UIManager.Instance.CloseMoreMoreBetterSelection();
+
+        // 适配你项目：用 FormulaCardData
+        if (selectedObject is FormulaCardData formulaData)
+        {
+            Debug.Log("=== 多多益善：复制公式卡成功 ===");
+            PlayerCardInventory.Instance.AddFormulaCard(formulaData);
+            ForcePragmatismCleanup();// 强制触发实用主义防止bug
+        }
+    }
+    
     // 触发老千选择流程
     private void ActivateCardCheatSelection()
     {
@@ -1122,4 +1149,17 @@ public class BlessingManager : MonoBehaviour
         ownedBlessingInstance.RemoveAll(i =>
             i.data != null && i.data.blessingType == BlessingData.BlessingType.Utopianism);
     }
+    
+    /// <summary>
+    /// 通用：强制触发实用主义，防止添加填空卡出bug
+    /// </summary>
+    public void ForcePragmatismCleanup()
+    {
+        // 只有激活实用主义才清理
+        if (ApplyPragmatism == 1)
+        {
+            ApplyPragmatismEffect();
+        }
+    }
+
 }       

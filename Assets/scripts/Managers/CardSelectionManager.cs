@@ -16,7 +16,8 @@ public class CardSelectionManager : MonoBehaviour
         None,           // 无模式
         CardCheat,      // 老千祝福：只能选择数字卡
         RemoveCard,     // 删除卡牌：可以选择数字卡和公式卡
-        WishCoinSelect  // 许愿币祝福：只能选择祝福
+        WishCoinSelect, // 许愿币祝福：只能选择祝福
+        MoreMoreBetter  // 多多益善：只能选择公式卡 
     }
 
     private SelectionMode currentMode;

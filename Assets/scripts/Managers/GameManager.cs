@@ -14,6 +14,11 @@ public class GameManager : MonoBehaviour
     public enum GameState { MainMenu, PlayerTurn, Calculation, Shop, GameOver, GameLose }
     public GameState currentState;
 
+    // 游戏模式
+    public enum GameMode { Normal = 0, Involution = 1 }
+    [Header("游戏模式")]
+    public GameMode currentGameMode = GameMode.Normal;
+
     // 玩家数据
     [Header("玩家数据")]
     public BigInteger currentPoints = 0; // 使用BigInteger处理大数
@@ -28,7 +33,12 @@ public class GameManager : MonoBehaviour
     public ShopManager shopManager;
 
     // 记录上一回合最大的数字卡
-    public NumberCardInstance lastRoundMaxCard; 
+    public NumberCardInstance lastRoundMaxCard;
+    // 记录本局的统计数据
+    [Header("本局统计数据")]
+    private BigInteger roundMaxNumberCardValue = 0; // 本局数字卡最大值
+    private float roundMaxMultiplier = 0f; // 本局最高倍率
+    private BigInteger roundMaxCalculationValue = 0; // 本局最高单轮计算值
 
     [Header("结算动画配置")]
     [Tooltip("显示本回合得分的停留时间（秒）")]
@@ -68,14 +78,20 @@ public class GameManager : MonoBehaviour
     }
 
     //普通模式
-    public void InitializeGame()
+    public void InitializeGame(int gameMode = 0)
     {   
         Debug.Log("初始化游戏");
+        // 重置本局统计数据
+        ResetRoundStatistics();
+
         currentPoints = 100000000;
+
+        currentRound = 1;
+
         GameManager.isInvolutionMode = false;
         //不是内卷模式
         blessingManager.hasGodOfGambler = false;
-        currentRound = 1;
+
         // 确保调用了 ChangeState，这样上面的 UI 逻辑才会跑起来
         ChangeState(GameState.PlayerTurn);
         // 清空祝福系统
@@ -94,14 +110,24 @@ public class GameManager : MonoBehaviour
         // 开始第一回合
         StartPlayerTurn();
 
-        //  关键：通知 UI 刷新视觉显示
+        // 通知 UI 刷新视觉显示
         UIManager.Instance.RefreshGameUI();
     }
-
+    /// <summary>
+    /// 重置本局统计数据
+    /// </summary>
+    private void ResetRoundStatistics()
+    {
+        roundMaxNumberCardValue = 0;
+        roundMaxMultiplier = 0f;
+        roundMaxCalculationValue = 0;
+    }
     //内卷模式
     public void InitializeGame_invol()
     {   
         Debug.Log("初始化游戏");
+        ResetRoundStatistics();
+
         currentPoints = 100000000000;
         GameManager.isInvolutionMode = true;
         //是内卷模式
@@ -201,6 +227,12 @@ public class GameManager : MonoBehaviour
         float baseMultiplier = PlayerCardInventory.Instance.GetFormulaCardCount();
         float blessingBonusMultiplier = GetCurrentMultiplier();
         float totalMultiplier = baseMultiplier + blessingBonusMultiplier;
+
+        // 记录本局最高倍率
+        if (totalMultiplier > roundMaxMultiplier)
+        {
+            roundMaxMultiplier = totalMultiplier;
+        }
 
         // 更新UI
         UIManager.Instance.multiplierText.text = "×" + totalMultiplier.ToString();
@@ -338,12 +370,10 @@ public class GameManager : MonoBehaviour
         // ====================== 【内卷模式核心逻辑】 ======================
         if (GameManager.isInvolutionMode)
         {
-            Debug.Log("【内卷模式】跳过中间阶段检查，仅最后一回合判定");
-            
             // 只在最后一回合检查
             if (currentRound == finalRound)
             {
-                Debug.Log($"【内卷模式】最终回合检查：目标{targetPoints}，当前{currentPoints}");
+                Debug.Log($"【内卷模式】最终回合检查");
                 
                 if (currentPoints >= targetPoints)
                 {
@@ -446,7 +476,7 @@ public class GameManager : MonoBehaviour
 
         BigInteger requiredPoints = stagePointRequirements[stageIndex];
 
-        // 【关键】检查点数是否足够
+        // 检查点数是否足够
         if (currentPoints < requiredPoints)
         {
             Debug.LogWarning($"阶段检查失败！回合{currentRound}: 需要{requiredPoints}点，当前{currentPoints}点");
@@ -503,6 +533,20 @@ public class GameManager : MonoBehaviour
     {
         if (isWin)
         {
+            if (DataSavingManager.Instance != null)
+            {
+                // 获取本局统计数据
+                int formulaCardCount = PlayerCardInventory.Instance.GetFormulaCardCount();
+
+                DataSavingManager.Instance.OnGameWin(
+                    gameMode: (int)currentGameMode,
+                    finalPoints: currentPoints,
+                    maxMultiplier: roundMaxMultiplier,
+                    formulaCardCount: formulaCardCount,
+                    numberCardMaxValue: roundMaxNumberCardValue
+                );
+            }
+
             currentState = GameState.GameOver;
             // 显示游戏结束界面
             UIManager.Instance.ShowPanel(UIManager.Instance.gameOverPanel);

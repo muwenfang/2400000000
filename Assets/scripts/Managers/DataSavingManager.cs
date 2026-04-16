@@ -5,6 +5,10 @@ using UnityEngine;
 
 /// <summary>
 /// 数据保存管理器 - 负责玩家数据的保存和加载
+/// 关键修复：
+/// 1. 使用 BigInteger 进行所有数值比较
+/// 2. 只在存储时将 BigInteger 转换为 string
+/// 3. 确保所有数据类型一致
 /// </summary>
 public class DataSavingManager : MonoBehaviour
 {
@@ -67,7 +71,7 @@ public class DataSavingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 保存玩家数据
+    /// 保存玩家数据到文件
     /// </summary>
     private void SaveDataToFile()
     {
@@ -75,118 +79,170 @@ public class DataSavingManager : MonoBehaviour
         {
             string json = JsonUtility.ToJson(currentSavingData, true);
             System.IO.File.WriteAllText(savePath, json);
-            Debug.Log("数据保存成功！");
         }
         catch (System.Exception e)
         {
-            Debug.LogError($"数据保存失败：{e.Message}");
+            Debug.LogError($"数据保存失败：{e.Message}\n{e.StackTrace}");
         }
     }
 
     /// <summary>
     /// 游戏胜利时调用 - 更新游戏数据
+    /// 这是数据更新的唯一入口
     /// </summary>
     /// <param name="gameMode">游戏模式（0=普通模式，1=内卷模式）</param>
-    /// <param name="finalPoints">最终点数</param>
+    /// <param name="finalPoints">最终点数（使用 BigInteger 避免溢出）</param>
     /// <param name="maxMultiplier">本局最大倍率</param>
     /// <param name="formulaCardCount">拥有的公式卡数量</param>
     /// <param name="numberCardMaxValue">本局数字卡最大值</param>
     public void OnGameWin(int gameMode, BigInteger finalPoints, float maxMultiplier, int formulaCardCount, BigInteger numberCardMaxValue)
     {
-        Debug.Log($"=== 游戏胜利，更新数据 ===");
-        Debug.Log($"游戏模式：{(gameMode == 0 ? "普通" : "内卷")}");
+        Debug.Log($"\n========== 游戏胜利，开始数据更新 ==========");
         Debug.Log($"最终点数：{finalPoints}");
+        Debug.Log($"最大倍率：{maxMultiplier}x");
+        Debug.Log($"最大数字卡值：{numberCardMaxValue}");
 
-        if (gameMode == 0) // 普通模式
+        // 根据游戏模式更新对应的数据
+        if (gameMode == 0)
         {
             UpdateNormalModeData(finalPoints, maxMultiplier, formulaCardCount, numberCardMaxValue);
         }
-        else if (gameMode == 1) // 内卷模式
+        else if (gameMode == 1)
         {
-            UpdateHardModeData(finalPoints, maxMultiplier, formulaCardCount, numberCardMaxValue);
+            UpdateInvolutionModeData(finalPoints, maxMultiplier, formulaCardCount, numberCardMaxValue);
         }
 
-        // 增加通关次数
+        // 更新通关次数
         currentSavingData.accomplishTimes++;
+        Debug.Log($"通关次数 +1");
 
-        // 更新最大点数（全局）
-        if (finalPoints > new BigInteger(currentSavingData.MaxPoint))
+        // 【关键】更新全局最高点数 - 使用 BigInteger 比较
+        BigInteger currentMaxPoint = SavingData.StringToBigInteger(currentSavingData.MaxPoint);
+        if (finalPoints > currentMaxPoint)
         {
-            currentSavingData.MaxPoint = int.Parse(finalPoints.ToString().Length > 9 ? "999999999" : finalPoints.ToString());
-            Debug.Log($"更新全局最大点数：{currentSavingData.MaxPoint}");
+            currentSavingData.MaxPoint = finalPoints.ToString();
+            Debug.Log($"更新全局最高点数：{currentSavingData.MaxPoint}");
+        }
+        else
+        {
+            Debug.Log($"本局点数 {finalPoints} 未超过历史最高 {currentMaxPoint}，不更新");
         }
 
-        // 保存数据
+        // 保存数据到文件
         SaveDataToFile();
 
-        Debug.Log("=== 数据更新完成 ===");
+        Debug.Log("========== 数据更新完成 ==========\n");
     }
 
     /// <summary>
     /// 更新普通模式数据
+    /// 【关键】使用 BigInteger 进行比较，确保精度不丢失
     /// </summary>
     private void UpdateNormalModeData(BigInteger finalPoints, float maxMultiplier, int formulaCardCount, BigInteger numberCardMaxValue)
     {
-        // 更新最大点数
-        if (finalPoints > currentSavingData.TotalPointsN)
+        Debug.Log("\n【普通模式数据更新】");
+
+        // 1. 比较和更新最大点数
+        BigInteger currentMaxPointsN = SavingData.StringToBigInteger(currentSavingData.TotalPointsN);
+        if (finalPoints > currentMaxPointsN)
         {
-            currentSavingData.TotalPointsN = finalPoints;
-            Debug.Log($"普通模式最大点数：{currentSavingData.TotalPointsN}");
+            currentSavingData.TotalPointsN = finalPoints.ToString();
+            Debug.Log($"更新普通模式最大点数：{currentSavingData.TotalPointsN}");
+        }
+        else
+        {
+            Debug.Log($"普通模式最大点数未更新（当前：{finalPoints}，历史：{currentMaxPointsN}）");
         }
 
-        // 更新最大倍率
+        // 2. 比较和更新最大倍率
         if (maxMultiplier > currentSavingData.RateN)
         {
             currentSavingData.RateN = maxMultiplier;
-            Debug.Log($"普通模式最大倍率：{currentSavingData.RateN}");
+            Debug.Log($"更新普通模式最大倍率：{currentSavingData.RateN}x");
+        }
+        else
+        {
+            Debug.Log($"普通模式最大倍率未更新（当前：{maxMultiplier}，历史：{currentSavingData.RateN}）");
         }
 
-        // 更新最大数字卡点数
-        if (numberCardMaxValue > currentSavingData.NumbercardPointN)
+        // 3. 比较和更新最大数字卡点数
+        BigInteger currentMaxNumbercardPointN = SavingData.StringToBigInteger(currentSavingData.NumbercardPointN);
+        if (numberCardMaxValue > currentMaxNumbercardPointN)
         {
-            currentSavingData.NumbercardPointN = numberCardMaxValue;
-            Debug.Log($"普通模式最大数字卡点数：{currentSavingData.NumbercardPointN}");
+            currentSavingData.NumbercardPointN = numberCardMaxValue.ToString();
+            Debug.Log($"更新普通模式最大数字卡点数：{currentSavingData.NumbercardPointN}");
+        }
+        else
+        {
+            Debug.Log($"普通模式最大数字卡未更新（当前：{numberCardMaxValue}，历史：{currentMaxNumbercardPointN}）");
         }
 
-        // 更新最大结算点数（这里可以是最终点数或其他计算值）
-        if (finalPoints > currentSavingData.CalculationPointN)
+        // 4. 比较和更新最大结算点数（使用最终点数作为结算值）
+        BigInteger currentMaxCalculationPointN = SavingData.StringToBigInteger(currentSavingData.CalculationPointN);
+        if (finalPoints > currentMaxCalculationPointN)
         {
-            currentSavingData.CalculationPointN = finalPoints;
-            Debug.Log($"普通模式最大结算点数：{currentSavingData.CalculationPointN}");
+            currentSavingData.CalculationPointN = finalPoints.ToString();
+            Debug.Log($"更新普通模式最大结算点数：{currentSavingData.CalculationPointN}");
+        }
+        else
+        {
+            Debug.Log($"普通模式最大结算点未更新（当前：{finalPoints}，历史：{currentMaxCalculationPointN}）");
         }
     }
 
     /// <summary>
     /// 更新内卷模式数据
+    /// 【关键】使用 BigInteger 进行比较，确保精度不丢失
     /// </summary>
-    private void UpdateHardModeData(BigInteger finalPoints, float maxMultiplier, int formulaCardCount, BigInteger numberCardMaxValue)
+    private void UpdateInvolutionModeData(BigInteger finalPoints, float maxMultiplier, int formulaCardCount, BigInteger numberCardMaxValue)
     {
-        // 更新最大点数
-        if (finalPoints > currentSavingData.TotalPointsI)
+        Debug.Log("\n【内卷模式数据更新】");
+
+        // 1. 比较和更新最大点数
+        BigInteger currentMaxPointsI = SavingData.StringToBigInteger(currentSavingData.TotalPointsI);
+        if (finalPoints > currentMaxPointsI)
         {
-            currentSavingData.TotalPointsI = finalPoints;
-            Debug.Log($"内卷模式最大点数：{currentSavingData.TotalPointsI}");
+            currentSavingData.TotalPointsI = finalPoints.ToString();
+            Debug.Log($"✓ 更新内卷模式最大点数：{currentSavingData.TotalPointsI}");
+        }
+        else
+        {
+            Debug.Log($"内卷模式最大点数未更新（当前：{finalPoints}，历史：{currentMaxPointsI}）");
         }
 
-        // 更新最大倍率
+        // 2. 比较和更新最大倍率
         if (maxMultiplier > currentSavingData.RateI)
         {
             currentSavingData.RateI = maxMultiplier;
-            Debug.Log($"内卷模式最大倍率：{currentSavingData.RateI}");
+            Debug.Log($"更新内卷模式最大倍率：{currentSavingData.RateI}x");
+        }
+        else
+        {
+            Debug.Log($"内卷模式最大倍率未更新（当前：{maxMultiplier}，历史：{currentSavingData.RateI}）");
         }
 
-        // 更新最大数字卡点数
-        if (numberCardMaxValue > currentSavingData.NumbercardPointI)
+        // 3. 比较和更新最大数字卡点数
+        BigInteger currentMaxNumbercardPointI = SavingData.StringToBigInteger(currentSavingData.NumbercardPointI);
+        if (numberCardMaxValue > currentMaxNumbercardPointI)
         {
-            currentSavingData.NumbercardPointI = numberCardMaxValue;
-            Debug.Log($"内卷模式最大数字卡点数：{currentSavingData.NumbercardPointI}");
+            currentSavingData.NumbercardPointI = numberCardMaxValue.ToString();
+            Debug.Log($"更新内卷模式最大数字卡点数：{currentSavingData.NumbercardPointI}");
+        }
+        else
+        {
+            Debug.Log($"内卷模式最大数字卡未更新（当前：{numberCardMaxValue}，历史：{currentMaxNumbercardPointI}）");
         }
 
-        // 更新最大结算点数
-        if (finalPoints > currentSavingData.CalculationPointI)
+        // 4. 比较和更新最大结算点数（使用最终点数作为结算值）
+        BigInteger currentMaxCalculationPointI = SavingData.StringToBigInteger(currentSavingData.CalculationPointI);
+        if (finalPoints > currentMaxCalculationPointI)
         {
-            currentSavingData.CalculationPointI = finalPoints;
-            Debug.Log($"内卷模式最大结算点数：{currentSavingData.CalculationPointI}");
+            currentSavingData.CalculationPointI = finalPoints.ToString();
+            Debug.Log($"更新内卷模式最大结算点数：{currentSavingData.CalculationPointI}");
+        }
+        else
+        {
+            Debug.Log($"内卷模式最大结算点未更新（当前：{finalPoints}，历史：{currentMaxCalculationPointI}）");
         }
     }
 
@@ -195,18 +251,33 @@ public class DataSavingManager : MonoBehaviour
     /// </summary>
     public SavingData GetCurrentData()
     {
+        if (currentSavingData == null)
+        {
+            Debug.LogWarning("当前数据为空，创建新实例");
+            currentSavingData = new SavingData();
+        }
         return currentSavingData;
     }
 
     /// <summary>
     /// 获取指定模式的最高点数
+    /// 返回 BigInteger 类型，避免精度丢失
     /// </summary>
     public BigInteger GetHighestScore(int gameMode)
     {
         if (gameMode == 0)
-            return currentSavingData.TotalPointsN;
+            return SavingData.StringToBigInteger(currentSavingData.TotalPointsN);
         else
-            return currentSavingData.TotalPointsI;
+            return SavingData.StringToBigInteger(currentSavingData.TotalPointsI);
+    }
+
+    /// <summary>
+    /// 获取全局最高分
+    /// 返回 BigInteger 类型
+    /// </summary>
+    public BigInteger GetGlobalHighestScore()
+    {
+        return SavingData.StringToBigInteger(currentSavingData.MaxPoint);
     }
 
     /// <summary>
@@ -218,15 +289,30 @@ public class DataSavingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 清除所有数据（谨慎使用）
+    /// 清除所有数据（谨慎使用！）
     /// </summary>
     public void ClearAllData()
     {
-        if (System.IO.File.Exists(savePath))
+        try
         {
-            System.IO.File.Delete(savePath);
-            currentSavingData = new SavingData();
-            Debug.Log("所有数据已清除");
+            if (System.IO.File.Exists(savePath))
+            {
+                System.IO.File.Delete(savePath);
+                currentSavingData = new SavingData();
+                Debug.LogWarning(" 所有数据已清除");
+            }
         }
+        catch (System.Exception e)
+        {
+            Debug.LogError($"清除数据失败：{e.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 调试方法：获取存档文件路径
+    /// </summary>
+    public string GetSavePath()
+    {
+        return savePath;
     }
 }

@@ -1,3 +1,4 @@
+
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
@@ -784,6 +785,29 @@ public class UIManager : MonoBehaviour
         {
             myNumberCardPanel.SetActive(false);
         }
+    }
+
+    // 多多益善：打开公式卡选择界面
+    public void OpenMoreMoreBetterSelection()
+    {
+        if (myFormulaCardPanel != null)
+        {
+            myFormulaCardPanel.SetActive(true);
+            myFormulaCardPanel.transform.SetAsLastSibling();
+
+            ShowMyFormula show = myFormulaCardPanel.GetComponent<ShowMyFormula>();
+            if (show != null)
+            {
+                show.ShowCardsForMoreMoreBetter();
+            }
+        }
+    }
+
+    // 关闭多多益善界面
+    public void CloseMoreMoreBetterSelection()
+    {
+        if (myFormulaCardPanel != null)
+            myFormulaCardPanel.SetActive(false);
     }
 
 }
