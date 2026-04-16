@@ -617,7 +617,14 @@ public class ShopManager : MonoBehaviour
 
         // 2. 计算并扣除消耗
         long cost = CalculateDeletionCost(deletedCard);
-        if (GameManager.Instance != null)
+
+        if(cost > GameManager.Instance.currentPoints)
+        {
+            Debug.LogWarning($"点数不足，无法删除卡牌。需要 {cost} 点，但只有 {GameManager.Instance.currentPoints} 点");
+            return;
+        }
+
+        else if (GameManager.Instance != null)
         {
             GameManager.Instance.AddPoints(-cost);
             Debug.Log($"[ShopManager] 扣除 {cost} 点，当前点数：{GameManager.Instance.currentPoints}");
