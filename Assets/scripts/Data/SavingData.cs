@@ -60,5 +60,22 @@ public class SavingData
         Debug.LogWarning($"无法解析字符串为 BigInteger: {value}，返回0");
         return BigInteger.Zero;
     }
+    /// <summary>
+    /// 比较两个 string 类型的 BigInteger（用于决定是否更新数据）
+    /// </summary>
+    public static bool IsBigIntegerGreater(BigInteger newValue, string oldValueStr)
+    {
+        BigInteger oldValue = StringToBigInteger(oldValueStr);
+        return newValue > oldValue;
+    }
 
+    /// <summary>
+    /// 比较两个 string 类型的 BigInteger
+    /// </summary>
+    public static bool IsBigIntegerGreaterString(string newValueStr, string oldValueStr)
+    {
+        BigInteger newValue = StringToBigInteger(newValueStr);
+        BigInteger oldValue = StringToBigInteger(oldValueStr);
+        return newValue > oldValue;
+    }
 }
