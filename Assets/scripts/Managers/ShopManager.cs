@@ -67,6 +67,10 @@ public class ShopManager : MonoBehaviour
     public int formulaSlotUnlockTimes = 0; // 公式卡已解锁次数
     public int blessingSlotUnlockTimes = 0;
 
+    [Header("冷却配置")]
+    [SerializeField] private float purchaseCooldown = 0.3f;    // 购买冷却
+    [SerializeField] private float unlockCooldown = 0.4f;      // 解锁冷却
+
     [Tooltip("公式卡库 - 拖入 FormulaCardLibrary 资源")]
     public FormulaCardLibrary formulaCardLibrary;
 
@@ -82,14 +86,14 @@ public class ShopManager : MonoBehaviour
     public List<ShopItem<FormulaCardData>> shopFormulaCards = new();
     public List<ShopItem<BlessingData>> shopBlessings = new();
 
-    // 新增标志位：当前是否处于删卡模式
+    // 当前是否处于删卡模式
     public bool isDeletionMode = false;
 
     
     /// <summary>
     /// 本回合已在当前商店刷新中显示过的祝福ID（用于CurrentRoundOnly类型）
     /// </summary>
-    private HashSet<int> currentRoundDisplayedBlessings = new HashSet<int>();
+    private HashSet<int> currentRoundPurchasedBlessings = new HashSet<int>();
 
 
     public void OpenShop()
@@ -128,6 +132,8 @@ public class ShopManager : MonoBehaviour
         numberCardCount = 3;
         formulaCardCount = 1;
         blessingCardCount = 2;
+
+        ResetCurrentRoundBlessings();
         OpenShop();
     }
     /// <summary>
@@ -316,15 +322,7 @@ public class ShopManager : MonoBehaviour
                     int randomIndex = Random.Range(0, availableBlessings.Count);
                     selectedBlessing = availableBlessings[randomIndex];
 
-                    // 移除已选中的祝福（除非是 AlwaysRefresh 类型）
-                    // CurrentRoundOnly 和 NeverRefresh 类型在本次刷新中只能出现一次
-                    if (selectedBlessing.refreshBehavior != BlessingData.RefreshBehavior.AlwaysRefresh)
-                    {
-                        availableBlessings.RemoveAt(randomIndex);
-                        currentRoundDisplayedBlessings.Add(selectedBlessing.blessingId);
-                        Debug.Log($"[ShopManager] 祝福 '{selectedBlessing.blessingName}' 已在本次刷新中显示，标记为已显示");
-                    }
-
+                    availableBlessings.RemoveAt(randomIndex);
                     // 计算价格
                     int currentCount = BlessingManager.Instance.GetBlessingCount(selectedBlessing.blessingId);
                     int price = selectedBlessing.CalculatePrice(currentCount, priceMultiplier);
@@ -375,7 +373,7 @@ public class ShopManager : MonoBehaviour
 
                 case BlessingData.RefreshBehavior.CurrentRoundOnly:
                     // 仅当本次刷新中未显示过时可用
-                    isAvailable = !currentRoundDisplayedBlessings.Contains(blessing.blessingId);
+                    isAvailable = !currentRoundPurchasedBlessings.Contains(blessing.blessingId);
                     break;
             }
 
@@ -397,7 +395,7 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     private void ResetCurrentRoundBlessings()
     {
-        currentRoundDisplayedBlessings.Clear();
+        currentRoundPurchasedBlessings.Clear();
         Debug.Log("[ShopManager] 本回合已显示的祝福记录已清空");
     }
 
@@ -485,6 +483,12 @@ public class ShopManager : MonoBehaviour
         if (purchaseSuccess)
         {
             item.sold = true;
+
+            if (item.cardData.refreshBehavior == BlessingData.RefreshBehavior.CurrentRoundOnly)
+            {
+                currentRoundPurchasedBlessings.Add(item.cardData.blessingId);
+            }
+
             // 刷新商店显示
             UIManager.Instance.RefreshShopUI();
         }
@@ -515,7 +519,7 @@ public class ShopManager : MonoBehaviour
 
         refreshCostText.text = $"刷新消耗: {refreshCost}";
 
-        refreshCount++;//刷新次数应该每回合重置
+        refreshCount++;
 
         OpenShop();
     }
@@ -532,6 +536,8 @@ public class ShopManager : MonoBehaviour
         {
             item.sold = false;
         }
+        // 每次离开商店时，重置当回合展示过的记录
+        ResetCurrentRoundBlessings();
 
         //重置刷新次数
         refreshCount = 0;
@@ -632,6 +638,8 @@ public class ShopManager : MonoBehaviour
 
         // 3. 更新UI
         UpdateDeletionUI();
+        UIManager.Instance.UpdatePointsDisplay(GameManager.Instance.currentPoints);
+
     }
 
     /// <summary>
@@ -766,6 +774,14 @@ public class ShopManager : MonoBehaviour
         long powerOfTwo = (long)Mathf.Pow(2, formulaSlotUnlockTimes);
         return 2000 * powerOfTwo;
     }
+    /// <summary>
+    /// 计算祝福卡槽位解锁消耗
+    /// </summary>
+    public long CalculateBlessingSlotUnlockCost()
+    {
+        long powerOfTwo = (long)Mathf.Pow(25, blessingSlotUnlockTimes);
+        return baseBlessingSlotUnlockCost * powerOfTwo;
+    }
 
     /// <summary>
     /// 获取下一个可解锁的数字卡槽位编号
@@ -789,6 +805,13 @@ public class ShopManager : MonoBehaviour
     /// <returns>解锁成功返回true，失败返回false</returns>
     public bool TryUnlockNumberSlot()
     {
+        // 冷却检查：防止连续快速点击
+        if (CooldownManager.Instance != null &&
+            CooldownManager.Instance.IsInCooldown(CooldownManager.CooldownType.SlotUnlock))
+        {
+            Debug.LogWarning($"[ShopManager] 槽位解锁操作在冷却中，剩余时间: {CooldownManager.Instance.GetRemainingTime(CooldownManager.CooldownType.SlotUnlock):F2}秒");
+            return false;
+        }
         // 判定1：是否已达到最大槽位
         if (numberCardCount >= MaxnumberCardCount)
         {
@@ -819,22 +842,30 @@ public class ShopManager : MonoBehaviour
         // 只刷新UI，不改变卡牌数值
         UIManager.Instance.RefreshShopUI();
 
+        // 开始冷却，防止连续点击
+        if (CooldownManager.Instance != null)
+        {
+            CooldownManager.Instance.StartCooldown(
+                CooldownManager.CooldownType.SlotUnlock,
+                unlockCooldown
+            );
+        }
         return true;
     }
-    /// <summary>
-    /// 计算祝福卡槽位解锁消耗
-    /// </summary>
-    public long CalculateBlessingSlotUnlockCost()
-    {
-        long powerOfTwo = (long)Mathf.Pow(25, blessingSlotUnlockTimes);
-        return baseBlessingSlotUnlockCost * powerOfTwo;
-    }
+
     /// <summary>
     /// 尝试解锁公式卡槽位
     /// </summary>
     /// <returns>解锁成功返回true，失败返回false</returns>
     public bool TryUnlockFormulaSlot()
     {
+        // 冷却检查：防止连续快速点击
+        if (CooldownManager.Instance != null &&
+            CooldownManager.Instance.IsInCooldown(CooldownManager.CooldownType.SlotUnlock))
+        {
+            Debug.LogWarning($"[ShopManager] 槽位解锁操作在冷却中，剩余时间: {CooldownManager.Instance.GetRemainingTime(CooldownManager.CooldownType.SlotUnlock):F2}秒");
+            return false;
+        }
         // 判定1：是否已达到最大槽位
         if (formulaCardCount >= MaxformulaCardCount)
         {
@@ -864,6 +895,15 @@ public class ShopManager : MonoBehaviour
         // 只刷新UI，不改变卡牌数值
         UIManager.Instance.RefreshShopUI();
 
+        // 开始冷却，防止连续点击
+        if (CooldownManager.Instance != null)
+        {
+            CooldownManager.Instance.StartCooldown(
+                CooldownManager.CooldownType.SlotUnlock,
+                unlockCooldown
+            );
+        }
+
         return true;
     }
     /// <summary>
@@ -871,6 +911,13 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     public bool TryUnlockBlessingSlot()
     {
+        // 冷却检查：防止连续快速点击
+        if (CooldownManager.Instance != null &&
+            CooldownManager.Instance.IsInCooldown(CooldownManager.CooldownType.SlotUnlock))
+        {
+            Debug.LogWarning($"[ShopManager] 槽位解锁操作在冷却中，剩余时间: {CooldownManager.Instance.GetRemainingTime(CooldownManager.CooldownType.SlotUnlock):F2}秒");
+            return false;
+        }
         // 判定1：是否已达到最大槽位
         if (blessingCardCount >= MaxBlessingCardCount)
         {
@@ -900,6 +947,15 @@ public class ShopManager : MonoBehaviour
 
         // 刷新 UI
         UIManager.Instance.RefreshShopUI();
+
+        // 开始冷却，防止连续点击
+        if (CooldownManager.Instance != null)
+        {
+            CooldownManager.Instance.StartCooldown(
+                CooldownManager.CooldownType.SlotUnlock,
+                unlockCooldown
+            );
+        }
 
         return true;
     }
@@ -1007,4 +1063,38 @@ public class ShopManager : MonoBehaviour
 
         Debug.Log($"祝福槽位{slotIndex}：{randomBlessing.blessingName}，价格 {price}");
     }
+
+    #region
+    // ===== 刷新商店的冷却配置 =====
+    public void SetCooldownDuration(float newPurchaseCooldown, float newUnlockCooldown)
+    {
+        purchaseCooldown = Mathf.Max(0.1f, newPurchaseCooldown);
+        unlockCooldown = Mathf.Max(0.1f, newUnlockCooldown);
+
+        if (CooldownManager.Instance != null)
+        {
+            CooldownManager.Instance.SetCooldownDuration(
+                CooldownManager.CooldownType.ShopPurchase,
+                purchaseCooldown
+            );
+            CooldownManager.Instance.SetCooldownDuration(
+                CooldownManager.CooldownType.SlotUnlock,
+                unlockCooldown
+            );
+        }
+
+        Debug.Log($"[ShopManager] 已更新冷却配置 - 购买冷却: {purchaseCooldown}秒, 解锁冷却: {unlockCooldown}秒");
+    }
+
+    // ===== 重置所有冷却（场景切换时） =====
+    public void ResetAllCooldowns()
+    {
+        if (CooldownManager.Instance != null)
+        {
+            CooldownManager.Instance.ResetCooldown(CooldownManager.CooldownType.ShopPurchase);
+            CooldownManager.Instance.ResetCooldown(CooldownManager.CooldownType.SlotUnlock);
+            Debug.Log("[ShopManager] 已重置所有冷却");
+        }
+    }
+    #endregion 
 }

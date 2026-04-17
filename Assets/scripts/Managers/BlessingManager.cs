@@ -78,6 +78,7 @@ public class BlessingManager : MonoBehaviour
     {
         ownedBlessings.Clear();
         blessingTypeCount.Clear();
+        blessingsEverPurchased.Clear();
         totalMultiplierBonus = 0f;
         totalDialecticalCount = 0;
         AllGodsCount = 0;
@@ -91,7 +92,7 @@ public class BlessingManager : MonoBehaviour
         hasGambleToWin = false; 
 
         hasIdealism = false;
-        
+      
         hasEnergySpread = 0;
         hasRisingUp = 0;
         hasTemperlance = 0;
@@ -695,6 +696,7 @@ public class BlessingManager : MonoBehaviour
     {
         ownedBlessings.Clear();
         blessingTypeCount.Clear();
+        blessingsEverPurchased.Clear();
         totalMultiplierBonus = 0f;
         totalDialecticalCount = 0;
         AllGodsCount = 0;
@@ -732,27 +734,6 @@ public class BlessingManager : MonoBehaviour
         }
         return result;
     }
-
-    /// <summary>
-    /// 调试：打印当前祝福状态
-    /// </summary>
-    [ContextMenu("Print Blessing Status")]
-    public void PrintBlessingStatus()
-    {
-        Debug.Log("=== 祝福状态 ===");
-        foreach (var kvp in ownedBlessings)
-        {
-            BlessingData blessing = blessingLibrary.GetBlessingById(kvp.Key);
-            if (blessing != null)
-            {
-                Debug.Log($"{blessing.blessingName}：{kvp.Value}次");
-            }
-        }
-        Debug.Log($"总倍率加成：{totalMultiplierBonus}");
-        Debug.Log($"价格乘数：{GetCurrentPriceMultiplier()}");
-        Debug.Log($"转运祝福激活状态：{(IsLuckTurnsActive() ? "已激活" : "未激活")}");
-    }
-
 
     /// <summary>
     /// 获取最终总祝福倍率

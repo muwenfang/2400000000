@@ -7,14 +7,10 @@ using UnityEngine.UI;
 /// </summary>
 public interface NumberCardLayoutView
 {
-    /// <summary>
     /// 绑定静态卡牌数据（仅显示初始值）
-    /// </summary>
     void Bind(NumberCardData data);
 
-    /// <summary>
     /// 绑定卡牌实例（显示当前值，支持颜色）
-    /// </summary>
     void BindInstance(NumberCardInstance instance);
 }
 public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
@@ -31,7 +27,7 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     [Header("卡牌数据")]
     private NumberCardInstance cardInstance;
 
-    // 【关键】记录当前卡牌在哪
+    //记录当前卡牌在哪
     public FormulaSlot currentSlot;
     public bool isPlacedInSlot = false;
     private int originalSiblingIndex; // 记录原始层级索引
@@ -39,6 +35,10 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
     //由槽位决定最终要返回到哪个父物体（解决 OnEndDrag 与 OnDrop 的执行顺序冲突）
     public Transform desiredDropParent;
+
+    [Header("拖动冷却配置")]
+    [SerializeField] private float dragCooldown = 0.1f;  // 拖动操作的冷却时间
+    private float lastDragTime = -1f;  // 上次拖动的时间
 
     [Header("UI 显示引用")]
     public Text textA;       // 对应 PartA 的数值显示
@@ -101,8 +101,28 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         return cardInstance;
     }
 
+    /// <summary>
+    /// 检查是否可以开始拖动（冷却保护）
+    /// </summary>
+    private bool CanStartDrag()
+    {
+        // 检查拖动冷却
+        if (Time.time - lastDragTime < dragCooldown)
+        {
+            Debug.LogWarning($"[PlayerController] 拖动操作在冷却中，剩余时间: {(dragCooldown - (Time.time - lastDragTime)):F2}秒");
+            return false;
+        }
+        return true;
+    }
+
     public void OnBeginDrag(PointerEventData eventData)
     {
+        // 冷却检查：防止快速重复拖动
+        if (!CanStartDrag())
+        {
+            return;
+        }
+
         // 1. 如果是从槽位里拖出来的，通知槽位清空数据
         if (currentSlot != null)
         {
@@ -177,7 +197,23 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         transform.SetParent(slot, false);
         rectTransform.anchoredPosition = Vector2.zero;
     }
+    /// <summary>
+    /// 设置拖动冷却时间
+    /// </summary>
+    public void SetDragCooldown(float cooldownSeconds)
+    {
+        dragCooldown = Mathf.Max(0.05f, cooldownSeconds);
+        Debug.Log($"[PlayerController] 已设置拖动冷却时间为: {dragCooldown}秒");
+    }
 
+    /// <summary>
+    /// 重置拖动冷却
+    /// </summary>
+    public void ResetDragCooldown()
+    {
+        lastDragTime = -1f;
+        Debug.Log("[PlayerController] 已重置拖动冷却");
+    }
 }
 
 

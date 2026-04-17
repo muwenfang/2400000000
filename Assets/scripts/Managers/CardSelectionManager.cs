@@ -23,6 +23,9 @@ public class CardSelectionManager : MonoBehaviour
     private SelectionMode currentMode;
     private Action<object> selectionCallback;  // 选择完成后的回调
 
+    [Header("冷却配置")]
+    [SerializeField] private float selectionCooldown = 0.1f;  // 单位：秒
+
     private void Awake()
     {
         if (Instance == null)
@@ -51,6 +54,13 @@ public class CardSelectionManager : MonoBehaviour
     /// </summary>
     public void OnCardSelected(object selectedCard)
     {
+        // 冷却检查：防止连续快速点击
+        if (CooldownManager.Instance != null &&
+            CooldownManager.Instance.IsInCooldown(CooldownManager.CooldownType.CardSelection))
+        {
+            Debug.LogWarning($"[CardSelectionManager] 卡牌选择操作在冷却中");
+            return;
+        }
         if (selectedCard == null)
         {
             Debug.LogError("[CardSelectionManager] 选择的卡牌为空");
@@ -61,6 +71,15 @@ public class CardSelectionManager : MonoBehaviour
 
         // 触发回调
         selectionCallback?.Invoke(selectedCard);
+
+        // 开始冷却，防止连续点击
+        if (CooldownManager.Instance != null)
+        {
+            CooldownManager.Instance.StartCooldown(
+                CooldownManager.CooldownType.CardSelection,
+                selectionCooldown
+            );
+        }
 
         //如果不是删卡模式才自动结束；删卡模式允许连续点击
         if (currentMode != SelectionMode.RemoveCard)
@@ -76,6 +95,7 @@ public class CardSelectionManager : MonoBehaviour
         Debug.Log("[CardSelectionManager] 关闭卡牌选择模式");
         currentMode = SelectionMode.None;
         selectionCallback = null;
+
     }
 
     /// <summary>
@@ -108,5 +128,25 @@ public class CardSelectionManager : MonoBehaviour
     public bool IsDeletionMode()
     {
         return currentMode == SelectionMode.RemoveCard;
+    }
+    /// <summary>
+    /// 强制重置冷却（用于特殊情况）
+    /// </summary>
+    public void ResetSelectionCooldown()
+    {
+        if (CooldownManager.Instance != null)
+        {
+            CooldownManager.Instance.ResetCooldown(CooldownManager.CooldownType.CardSelection);
+            Debug.Log("[CardSelectionManager] 已重置卡牌选择冷却");
+        }
+    }
+
+    /// <summary>
+    /// 设置选择冷却时间
+    /// </summary>
+    public void SetSelectionCooldown(float cooldownSeconds)
+    {
+        selectionCooldown = Mathf.Max(0.1f, cooldownSeconds);
+        Debug.Log($"[CardSelectionManager] 已设置选择冷却时间为: {selectionCooldown}秒");
     }
 }

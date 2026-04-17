@@ -51,20 +51,6 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler
         PlayerController existingCardController = null;
         foreach (Transform child in transform)
         {
-            //if (child.GetComponent<PlayerController>() != null)
-            //{
-            //    Debug.LogWarning("槽位已有卡牌，将拖拽卡退回手牌区。");
-
-            //    // 不直接 SetParent（会被 OnEndDrag 覆盖），改为告知 PlayerController 在 OnEndDrag 时回到手牌区
-            //    Transform handArea = CardManager.Instance.handCardParent;
-            //    draggedCard.desiredDropParent = handArea;
-
-            //    draggedCard.isPlacedInSlot = false;
-            //    draggedCard.currentSlot = null;
-            //    var cg = draggedCard.GetComponent<CanvasGroup>();
-            //    if (cg != null) cg.blocksRaycasts = true;
-            //    return;
-            //}
             var pc = child.GetComponent<PlayerController>();
             if (pc != null)
             {
@@ -108,9 +94,6 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler
             Debug.LogWarning("卡牌已在其他槽位（数据层），拒绝重复放置。");
             // 如果卡已经在其他槽位，也把拖拽卡退回手牌（保持一致性）
             Transform handArea = CardManager.Instance.handCardParent;
-            //draggedCard.transform.SetParent(handArea, false);
-            //draggedCard.transform.localPosition = Vector3.zero;
-            //draggedCard.transform.localScale = Vector3.one;
             draggedCard.desiredDropParent = handArea;
 
             draggedCard.isPlacedInSlot = false;
