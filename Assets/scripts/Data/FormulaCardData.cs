@@ -233,6 +233,36 @@ public static class FormulaCalculator
         // 1. 提取卡牌值
         var values = numbers.ConvertAll(n => n.GetOutPutValue());
 
+        //祝福平衡节制：每次计算判定结果最大和最小的数字卡的判定结果变为所有参与计算的数字卡本轮判定结果的均值（向下取整）
+        if (BlessingManager.Instance.hasTemperlance == 1)
+        {
+            BigInteger sum = 0;
+            BigInteger average = 0;
+            foreach (var value in values)
+            {
+                sum += value;
+            }
+            average = (sum / values.Count) ;
+
+            int maxIndex = 0;
+            int minIndex = 0;
+            for (int i = 1; i < values.Count; i++)
+            {
+                if (values[i] > values[maxIndex])
+                {
+                    maxIndex = i;
+                }
+                else if (values[i] < values[minIndex])
+                {
+                    minIndex = i;
+                }
+            }
+
+            values[maxIndex] = average;
+            values[minIndex] = average;
+        }
+
+
         // 2. 验证 Pattern 中 # 的数量
         int hashCount = CountHashes(formula.Pattern);
         if (hashCount != values.Count)
