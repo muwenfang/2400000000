@@ -67,6 +67,10 @@ public class ShopManager : MonoBehaviour
     public int formulaSlotUnlockTimes = 0; // 公式卡已解锁次数
     public int blessingSlotUnlockTimes = 0;
 
+    [Header("冷却配置")]
+    [SerializeField] private float purchaseCooldown = 0.3f;    // 购买冷却
+    [SerializeField] private float unlockCooldown = 0.4f;      // 解锁冷却
+
     [Tooltip("公式卡库 - 拖入 FormulaCardLibrary 资源")]
     public FormulaCardLibrary formulaCardLibrary;
 
@@ -770,6 +774,14 @@ public class ShopManager : MonoBehaviour
         long powerOfTwo = (long)Mathf.Pow(2, formulaSlotUnlockTimes);
         return baseFormulaSlotUnlockCost * powerOfTwo;
     }
+    /// <summary>
+    /// 计算祝福卡槽位解锁消耗
+    /// </summary>
+    public long CalculateBlessingSlotUnlockCost()
+    {
+        long powerOfTwo = (long)Mathf.Pow(25, blessingSlotUnlockTimes);
+        return baseBlessingSlotUnlockCost * powerOfTwo;
+    }
 
     /// <summary>
     /// 获取下一个可解锁的数字卡槽位编号
@@ -793,6 +805,13 @@ public class ShopManager : MonoBehaviour
     /// <returns>解锁成功返回true，失败返回false</returns>
     public bool TryUnlockNumberSlot()
     {
+        // 冷却检查：防止连续快速点击
+        if (CooldownManager.Instance != null &&
+            CooldownManager.Instance.IsInCooldown(CooldownManager.CooldownType.SlotUnlock))
+        {
+            Debug.LogWarning($"[ShopManager] 槽位解锁操作在冷却中，剩余时间: {CooldownManager.Instance.GetRemainingTime(CooldownManager.CooldownType.SlotUnlock):F2}秒");
+            return false;
+        }
         // 判定1：是否已达到最大槽位
         if (numberCardCount >= MaxnumberCardCount)
         {
@@ -823,22 +842,30 @@ public class ShopManager : MonoBehaviour
         // 只刷新UI，不改变卡牌数值
         UIManager.Instance.RefreshShopUI();
 
+        // 开始冷却，防止连续点击
+        if (CooldownManager.Instance != null)
+        {
+            CooldownManager.Instance.StartCooldown(
+                CooldownManager.CooldownType.SlotUnlock,
+                unlockCooldown
+            );
+        }
         return true;
     }
-    /// <summary>
-    /// 计算祝福卡槽位解锁消耗
-    /// </summary>
-    public long CalculateBlessingSlotUnlockCost()
-    {
-        long powerOfTwo = (long)Mathf.Pow(25, blessingSlotUnlockTimes);
-        return baseBlessingSlotUnlockCost * powerOfTwo;
-    }
+
     /// <summary>
     /// 尝试解锁公式卡槽位
     /// </summary>
     /// <returns>解锁成功返回true，失败返回false</returns>
     public bool TryUnlockFormulaSlot()
     {
+        // 冷却检查：防止连续快速点击
+        if (CooldownManager.Instance != null &&
+            CooldownManager.Instance.IsInCooldown(CooldownManager.CooldownType.SlotUnlock))
+        {
+            Debug.LogWarning($"[ShopManager] 槽位解锁操作在冷却中，剩余时间: {CooldownManager.Instance.GetRemainingTime(CooldownManager.CooldownType.SlotUnlock):F2}秒");
+            return false;
+        }
         // 判定1：是否已达到最大槽位
         if (formulaCardCount >= MaxformulaCardCount)
         {
@@ -868,6 +895,15 @@ public class ShopManager : MonoBehaviour
         // 只刷新UI，不改变卡牌数值
         UIManager.Instance.RefreshShopUI();
 
+        // 开始冷却，防止连续点击
+        if (CooldownManager.Instance != null)
+        {
+            CooldownManager.Instance.StartCooldown(
+                CooldownManager.CooldownType.SlotUnlock,
+                unlockCooldown
+            );
+        }
+
         return true;
     }
     /// <summary>
@@ -875,6 +911,13 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     public bool TryUnlockBlessingSlot()
     {
+        // 冷却检查：防止连续快速点击
+        if (CooldownManager.Instance != null &&
+            CooldownManager.Instance.IsInCooldown(CooldownManager.CooldownType.SlotUnlock))
+        {
+            Debug.LogWarning($"[ShopManager] 槽位解锁操作在冷却中，剩余时间: {CooldownManager.Instance.GetRemainingTime(CooldownManager.CooldownType.SlotUnlock):F2}秒");
+            return false;
+        }
         // 判定1：是否已达到最大槽位
         if (blessingCardCount >= MaxBlessingCardCount)
         {
@@ -904,6 +947,15 @@ public class ShopManager : MonoBehaviour
 
         // 刷新 UI
         UIManager.Instance.RefreshShopUI();
+
+        // 开始冷却，防止连续点击
+        if (CooldownManager.Instance != null)
+        {
+            CooldownManager.Instance.StartCooldown(
+                CooldownManager.CooldownType.SlotUnlock,
+                unlockCooldown
+            );
+        }
 
         return true;
     }
@@ -1011,4 +1063,38 @@ public class ShopManager : MonoBehaviour
 
         Debug.Log($"祝福槽位{slotIndex}：{randomBlessing.blessingName}，价格 {price}");
     }
+
+    #region
+    // ===== 刷新商店的冷却配置 =====
+    public void SetCooldownDuration(float newPurchaseCooldown, float newUnlockCooldown)
+    {
+        purchaseCooldown = Mathf.Max(0.1f, newPurchaseCooldown);
+        unlockCooldown = Mathf.Max(0.1f, newUnlockCooldown);
+
+        if (CooldownManager.Instance != null)
+        {
+            CooldownManager.Instance.SetCooldownDuration(
+                CooldownManager.CooldownType.ShopPurchase,
+                purchaseCooldown
+            );
+            CooldownManager.Instance.SetCooldownDuration(
+                CooldownManager.CooldownType.SlotUnlock,
+                unlockCooldown
+            );
+        }
+
+        Debug.Log($"[ShopManager] 已更新冷却配置 - 购买冷却: {purchaseCooldown}秒, 解锁冷却: {unlockCooldown}秒");
+    }
+
+    // ===== 重置所有冷却（场景切换时） =====
+    public void ResetAllCooldowns()
+    {
+        if (CooldownManager.Instance != null)
+        {
+            CooldownManager.Instance.ResetCooldown(CooldownManager.CooldownType.ShopPurchase);
+            CooldownManager.Instance.ResetCooldown(CooldownManager.CooldownType.SlotUnlock);
+            Debug.Log("[ShopManager] 已重置所有冷却");
+        }
+    }
+    #endregion 
 }
