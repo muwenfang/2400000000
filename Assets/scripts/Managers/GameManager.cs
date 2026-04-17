@@ -63,7 +63,7 @@ public class GameManager : MonoBehaviour
     [Header("内卷模式")]
     [Tooltip("只在最后一回合检查是否达标")]
     public static bool isInvolutionMode = false; // 静态，全局可访问
-    private readonly int finalRound = 75;
+    private readonly int finalRound = 60;
     // ==========================================================
 
     void Awake()
@@ -294,8 +294,8 @@ public class GameManager : MonoBehaviour
         // 内卷模式
         if (GameManager.isInvolutionMode)
         {
-            // 内卷模式：永远只返回最后一回合75
-            return 75;
+            // 内卷模式：永远只返回最后一回合60
+            return 60;
         }
 
         // 原有普通模式逻辑
@@ -413,8 +413,8 @@ public class GameManager : MonoBehaviour
 
             Debug.Log($"第 {currentRound} 回合是阶段回合，要求点数: {stageRequirement}，当前点数: {currentPoints}");
 
-            // 检查是否达到最终目标（第75回合）
-            if (currentRound == 75 && currentPoints >= targetPoints)
+            // 检查是否达到最终目标（第60回合）
+            if (currentRound == 60 && currentPoints >= targetPoints)
             {
                 // 游戏胜利
                 Debug.Log("游戏胜利！达到最终目标");

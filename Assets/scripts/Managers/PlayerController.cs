@@ -31,7 +31,7 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     [Header("卡牌数据")]
     private NumberCardInstance cardInstance;
 
-    // 【关键】记录当前卡牌在哪
+    //记录当前卡牌在哪
     public FormulaSlot currentSlot;
     public bool isPlacedInSlot = false;
     private int originalSiblingIndex; // 记录原始层级索引
