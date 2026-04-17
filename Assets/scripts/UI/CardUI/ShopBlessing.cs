@@ -1,4 +1,5 @@
 ﻿using System;
+using BigInteger = System.Numerics.BigInteger;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -300,7 +301,7 @@ public class BlessingInShop : MonoBehaviour
         if (unlockCostText == null)
             return;
 
-        long unlockCost = ShopManager.Instance.CalculateBlessingSlotUnlockCost();
+        BigInteger unlockCost = ShopManager.Instance.CalculateBlessingSlotUnlockCost();
         unlockCostText.text = $"{unlockCost}";
 
         // 根据点数情况改变颜色

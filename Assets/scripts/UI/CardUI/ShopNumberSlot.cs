@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using BigInteger = System.Numerics.BigInteger;
 
 /// <summary>
 /// 数字卡商店槽位UI组件
@@ -267,7 +268,7 @@ public class ShopNumberCardSlot : MonoBehaviour
     {
         if (unlockCostText == null) return;
 
-        long unlockCost = ShopManager.Instance.CalculateNumberSlotUnlockCost();
+        BigInteger unlockCost = ShopManager.Instance.CalculateNumberSlotUnlockCost();
         unlockCostText.text = $"{unlockCost}";
 
         // 根据点数情况改变颜色

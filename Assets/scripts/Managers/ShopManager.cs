@@ -56,16 +56,16 @@ public class ShopManager : MonoBehaviour
     public GameObject deleteCostPanel;
     public int totalRemovedNumberCards = 0;
     public int totalRemovedFormulaCards = 0;
-    public int baseNumberCardRemoveCost = 5;
-    public int baseFormulaCardRemoveCost = 200;
+    public BigInteger baseNumberCardRemoveCost = 5;
+    public BigInteger baseFormulaCardRemoveCost = 200;
 
     [Header("槽位解锁配置")]
-    public int baseNumberSlotUnlockCost = 20; // 数字卡槽位基础解锁消耗
-    public int baseFormulaSlotUnlockCost = 5000; // 公式卡槽位基础解锁消耗
-    public int baseBlessingSlotUnlockCost = 2000; //祝福卡槽位基础解锁消耗
+    public BigInteger baseNumberSlotUnlockCost = 20; // 数字卡槽位基础解锁消耗
+    public BigInteger baseFormulaSlotUnlockCost = 5000; // 公式卡槽位基础解锁消耗
+    public BigInteger baseBlessingSlotUnlockCost = 2000; //祝福卡槽位基础解锁消耗
+    public int blessingSlotUnlockTimes = 0;
     public int numberSlotUnlockTimes = 0; // 数字卡已解锁次数
     public int formulaSlotUnlockTimes = 0; // 公式卡已解锁次数
-    public int blessingSlotUnlockTimes = 0;
 
     [Header("冷却配置")]
     [SerializeField] private float purchaseCooldown = 0.3f;    // 购买冷却
@@ -109,21 +109,19 @@ public class ShopManager : MonoBehaviour
         UIManager.Instance.RefreshShopUI();
     }
     public void InitializeRefreshCost()
-    {
-        int currentRound = GameManager.Instance.currentRound;
-        long roundSquare = (long)Mathf.Pow(currentRound, 2);
-        long powerOfTwo = (long)Mathf.Pow(2, refreshCount);
-        long refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
+{
+    int currentRound = GameManager.Instance.currentRound;
+    BigInteger roundSquare = (BigInteger)currentRound * currentRound;
+    BigInteger powerOfTwo = 1;
+    for (int i = 0; i < refreshCount; i++) powerOfTwo *= 2;
+    BigInteger refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
+    // 如果拥有丰盈宝库祝福，刷新费用为0
+    if (BlessingManager.Instance.HasRichTreasure == 1)
+        refreshCost = 0;
 
+    refreshCostText.text = "cost: " + FormatBigNumber(refreshCost);
+}
 
-        // 如果拥有丰盈宝库祝福，刷新费用为0
-        if (BlessingManager.Instance.HasRichTreasure == 1)
-        {
-            refreshCost = 0;
-        }
-
-        refreshCostText.text = $"cost: {refreshCost}";
-    }
     public void InitializeShop()
     {
         numberSlotUnlockTimes = 0; // 数字卡已解锁次数
@@ -497,32 +495,27 @@ public class ShopManager : MonoBehaviour
     }
     //商店刷新
     public void RefreshShop()
+{
+    int currentRound = GameManager.Instance.currentRound;
+    BigInteger roundSquare = (BigInteger)currentRound * currentRound;
+    BigInteger powerOfTwo = 1;
+    for (int i = 0; i < refreshCount; i++) powerOfTwo *= 2;
+    BigInteger refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
+// 如果拥有丰盈宝库祝福，刷新费用为0
+    if (BlessingManager.Instance.HasRichTreasure == 1)
+        refreshCost = 0;
+
+    if (GameManager.Instance.currentPoints < refreshCost)
     {
-        int currentRound = GameManager.Instance.currentRound;
-        long roundSquare = (long)Mathf.Pow(currentRound, 2);
-        long powerOfTwo = (long)Mathf.Pow(2, refreshCount);
-        long refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
-
-
-        // 如果拥有丰盈宝库祝福，刷新费用为0
-        if (BlessingManager.Instance.HasRichTreasure == 1)
-        {
-            refreshCost = 0;
-        }
-
-        if (GameManager.Instance.currentPoints < refreshCost)
-        {
-            Debug.Log("点数不足，无法刷新");
-            return;
-        }
-        GameManager.Instance.AddPoints(-refreshCost);
-
-        refreshCostText.text = $"刷新消耗: {refreshCost}";
-
-        refreshCount++;
-
-        OpenShop();
+        Debug.Log("点数不足");
+        return;
     }
+
+    GameManager.Instance.AddPoints(-refreshCost);
+    refreshCostText.text = "cost: " + FormatBigNumber(refreshCost);
+    refreshCount++;
+    OpenShop();
+}
 
     public void CloseShop() 
     {
@@ -622,7 +615,7 @@ public class ShopManager : MonoBehaviour
         }
 
         // 2. 计算并扣除消耗
-        long cost = CalculateDeletionCost(deletedCard);
+        BigInteger cost = CalculateDeletionCost(deletedCard);
 
         if(cost > GameManager.Instance.currentPoints)
         {
@@ -645,55 +638,55 @@ public class ShopManager : MonoBehaviour
     /// <summary>
     /// 计算单张卡牌的删除消耗
     /// </summary>
-    private long CalculateDeletionCost(object card)
-    {
-        if (card is NumberCardInstance)
-        {
-            // 数字卡删除消耗：基础消耗 + 已删除数量 * 递增值
+    private BigInteger CalculateDeletionCost(object card)
+{
+    if (card is NumberCardInstance)
+    {// 数字卡删除消耗：基础消耗 + 已删除数量 * 递增值
             // 示例：第1张数字卡消耗 5，第2张消耗 10，第3张消耗 20，以此类推
-            int deletedCount = totalRemovedNumberCards;
-            long cost = (long)(baseNumberCardRemoveCost * Mathf.Pow(2, deletedCount));
+        BigInteger cost = baseNumberCardRemoveCost;
+        for (int i = 0; i < totalRemovedNumberCards; i++)
+            cost *= 2;
 
-            Debug.Log($"[ShopManager] 计算数字卡删除消耗: " +
-                      $"基础{baseNumberCardRemoveCost} * 2^{deletedCount} = {cost}");
-
-            return cost;
-        }
-        else if (card is FormulaCardData)
-        {
-            int deletedCount = totalRemovedNumberCards;
-            long cost = (long)(baseNumberCardRemoveCost * Mathf.Pow(2, deletedCount));
-            Debug.Log($"[ShopManager] 公式卡删除消耗: {cost}");
-            return cost;
-        }
-
-        Debug.LogWarning("[ShopManager] 未知的卡牌类型");
-        return 0;
+        Debug.Log($"[ShopManager] 计算数字卡删除消耗: 基础{baseNumberCardRemoveCost} * 2^{totalRemovedNumberCards} = {cost}");
+        return cost;
     }
+    else if (card is FormulaCardData)
+    {
+        BigInteger cost = baseFormulaCardRemoveCost;
+        for (int i = 0; i < totalRemovedFormulaCards; i++)
+            cost *= 2;
+
+        Debug.Log($"[ShopManager] 公式卡删除消耗: {cost}");
+        return cost;
+    }
+
+    Debug.LogWarning("[ShopManager] 未知的卡牌类型");
+    return 0;
+}
+
 
     /// <summary>
     /// 更新删卡UI显示
     /// 显示下一次删卡的消耗提示
     /// </summary>
     private void UpdateDeletionUI()
-    {
-        deleteCostPanel.SetActive(true);
-        deleteCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
-        if (deleteCardCostText != null)
-        {
-            // 计算下一次删卡的消耗
-            long nextCost = (long)(baseNumberCardRemoveCost * Mathf.Pow(2, totalRemovedNumberCards));
+{
+    deleteCostPanel.SetActive(true);
+    deleteCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
+    if (deleteCardCostText != null){
+        BigInteger nextCost = baseNumberCardRemoveCost;
+    for (int i = 0; i < totalRemovedNumberCards; i++)
+        nextCost *= 2;
 
-            deleteCardCostText.text = $"{nextCost}";
-
-            Debug.Log($"[ShopManager] 更新UI - 下次删卡消耗: {nextCost}");
-        }
-        else
+    deleteCardCostText.text = FormatBigNumber(nextCost);
+    Debug.Log($"[ShopManager] 更新UI - 下次删卡消耗: {nextCost}");
+    }
+    else
         {
             Debug.LogWarning("[ShopManager] deleteCardCostText 未绑定");
         }
-    }
-
+}
+    
     /// <summary>
     /// 结束删卡模式
     /// 返回商店主界面
@@ -754,18 +747,18 @@ public class ShopManager : MonoBehaviour
     /// <summary>
     /// 计算数字卡槽位解锁消耗
     /// </summary>
-    public long CalculateNumberSlotUnlockCost()
-    {
-        long finalNumberSlotUnlockCost = 0 ;
-        if (numberSlotUnlockTimes == 0)
-            finalNumberSlotUnlockCost = 20;
-        else if (numberSlotUnlockTimes == 1)
-            finalNumberSlotUnlockCost = 500;
-        else if (numberSlotUnlockTimes == 2)
-            finalNumberSlotUnlockCost = 10000;
-        return finalNumberSlotUnlockCost;
-    }
-
+    public BigInteger CalculateNumberSlotUnlockCost()
+{
+    BigInteger finalNumberSlotUnlockCost = 0;
+    if (numberSlotUnlockTimes == 0)
+        finalNumberSlotUnlockCost = 20;
+    else if (numberSlotUnlockTimes == 1)
+        finalNumberSlotUnlockCost = 500;
+    else if (numberSlotUnlockTimes == 2)
+        finalNumberSlotUnlockCost = 10000;
+    return finalNumberSlotUnlockCost;
+}
+/*
     /// <summary>
     /// 计算公式卡槽位解锁消耗
     /// </summary>
@@ -774,14 +767,14 @@ public class ShopManager : MonoBehaviour
         long powerOfTwo = (long)Mathf.Pow(2, formulaSlotUnlockTimes);
         return 2000 * powerOfTwo;
     }
-    /// <summary>
-    /// 计算祝福卡槽位解锁消耗
-    /// </summary>
-    public long CalculateBlessingSlotUnlockCost()
-    {
-        long powerOfTwo = (long)Mathf.Pow(25, blessingSlotUnlockTimes);
-        return baseBlessingSlotUnlockCost * powerOfTwo;
-    }
+*/
+    public BigInteger CalculateFormulaSlotUnlockCost()
+{
+    BigInteger cost = 2000;
+    for (int i = 0; i < formulaSlotUnlockTimes; i++)
+        cost *= 2;
+    return cost;
+}
 
     /// <summary>
     /// 获取下一个可解锁的数字卡槽位编号
@@ -820,7 +813,7 @@ public class ShopManager : MonoBehaviour
         }
 
         // 判定2：计算消耗并校验点数
-        long unlockCost = CalculateNumberSlotUnlockCost();
+        BigInteger unlockCost = CalculateNumberSlotUnlockCost();
         if (GameManager.Instance.currentPoints < unlockCost)
         {
             Debug.LogWarning($"数字卡槽位解锁失败：点数不足，需要{unlockCost}，当前{GameManager.Instance.currentPoints}");
@@ -854,6 +847,16 @@ public class ShopManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 计算祝福卡槽位解锁消耗
+    /// </summary>
+    public BigInteger CalculateBlessingSlotUnlockCost()
+{
+    BigInteger cost = baseBlessingSlotUnlockCost;
+    for (int i = 0; i < blessingSlotUnlockTimes; i++)
+        cost *= 25;
+    return cost;
+}
+    /// <summary>
     /// 尝试解锁公式卡槽位
     /// </summary>
     /// <returns>解锁成功返回true，失败返回false</returns>
@@ -874,7 +877,7 @@ public class ShopManager : MonoBehaviour
         }
 
         // 判定2：计算消耗并校验点数
-        long unlockCost = CalculateFormulaSlotUnlockCost();
+        BigInteger unlockCost = CalculateFormulaSlotUnlockCost();
         if (GameManager.Instance.currentPoints < unlockCost)
         {
             Debug.LogWarning($"公式卡槽位解锁失败：点数不足，需要{unlockCost}，当前{GameManager.Instance.currentPoints}");
@@ -926,7 +929,7 @@ public class ShopManager : MonoBehaviour
         }
 
         // 判定2：计算消耗并校验点数
-        long unlockCost = CalculateBlessingSlotUnlockCost();
+        BigInteger unlockCost = CalculateBlessingSlotUnlockCost();
         if (GameManager.Instance.currentPoints < unlockCost)
         {
             Debug.LogWarning($"祝福卡槽位解锁失败：点数不足，需要{unlockCost}，当前{GameManager.Instance.currentPoints}");
@@ -1097,4 +1100,28 @@ public class ShopManager : MonoBehaviour
         }
     }
     #endregion 
+    private string FormatBigNumber(BigInteger number)
+{
+    BigInteger threshold = 1000000000;
+
+    if (BigInteger.Abs(number) >= threshold)
+    {
+        string numStr = number.ToString();
+        bool isNegative = numStr.StartsWith("-");
+        if (isNegative) numStr = numStr.Substring(1);
+
+        int len = numStr.Length;
+        string digits = numStr.Substring(0, System.Math.Min(3, len));
+        while (digits.Length < 3) digits += "0";
+
+        string decimalPart = digits[0] + "." + digits.Substring(1);
+        int exponent = len - 1;
+        string result = $"{decimalPart}e{exponent}";
+        return isNegative ? "-" + result : result;
+    }
+    else
+    {
+        return number.ToString();
+    }
+}
 }
