@@ -78,7 +78,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 7,
             name: "许愿币",
-            description: "选择一个已拥有且可叠加的祝福，下次商店刷新必定刷新出该祝福",
+            description: "祝福“许愿币”的价格+1000；选择一个你已拥有且可叠加的祝福，下次商店刷新必定刷新出该祝福",
             type: BlessingData.BlessingType.WishingCoin,
             basePrice: 1000,
             isStackable: true
@@ -131,7 +131,7 @@ public class BlessingLibrary : ScriptableObject
             name: "老千",
             description: "择一张数字卡，将其替换为一张随机的数字卡",
             type: BlessingData.BlessingType.CardCheat,
-            basePrice: 2500,
+            basePrice: 3000,
             isStackable: true
         
         ));
@@ -164,7 +164,7 @@ public class BlessingLibrary : ScriptableObject
             name: "卡牌大师",
             description: "每张数字卡额外提供1倍率",
             type: BlessingData.BlessingType.CardMaster,
-            basePrice: 5000000,
+            basePrice: 3000000,
             isStackable: true
             
         ));
@@ -246,7 +246,7 @@ public class BlessingLibrary : ScriptableObject
             name: "丰盈宝库",
             description: "商店刷新永久免费",
             type: BlessingData.BlessingType.RichTreasury,
-            basePrice: 20000,
+            basePrice: 50000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -351,7 +351,7 @@ public class BlessingLibrary : ScriptableObject
             name: "节节高",
             description: "大于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20",
             type: BlessingData.BlessingType.RisingUp,
-            basePrice: 30000,
+            basePrice: 50000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -363,7 +363,7 @@ public class BlessingLibrary : ScriptableObject
             name: "打头阵",
             description: "你的计算结果的第一位强制变为9",
             type: BlessingData.BlessingType.LeadingCharge,
-            basePrice: 100000,
+            basePrice: 20000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -385,7 +385,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 34,
             name: "赌具升级",
-            description: "所有数字卡中的骰子升一级",
+            description: "所有数字卡中的骰子升一级，祝福“赌具升级”的价格翻倍",
             type: BlessingData.BlessingType.GamblingGearUpgraded,
             basePrice: 2000000,
             isStackable: true
@@ -398,7 +398,7 @@ public class BlessingLibrary : ScriptableObject
             name: "赌神传说",
             description: "你的所有骰子的判定点数都会转化为本回合的额外临时倍率",
             type: BlessingData.BlessingType.GamblingGodSage,
-            basePrice: 3000000,
+            basePrice: 5000000,
             isStackable: false
 
         ));

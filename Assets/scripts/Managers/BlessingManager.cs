@@ -39,6 +39,7 @@ public class BlessingManager : MonoBehaviour
     private int CardMasterCount = 0;       //是否激活卡牌大师 
     public int HasRichTreasure = 0;        //是否激活丰盈宝库
     private BlessingData wishCoinTargetBlessing = null; //许愿币储存的祝福
+    public int wishCoinPurchaseCount = 0; // 许愿币购买次数（每次+1000价格）    // 许愿币购买次数
     public int nihilismCount = 0;       // 虚无主义数量
     public bool hasLeadingCharge = false; // 打头阵
     private bool hasGambleToWin = false; // 是否拥有赌为赢祝福
@@ -54,6 +55,8 @@ public class BlessingManager : MonoBehaviour
     public bool hasGodOfGambler = false;//赌神传说
     public FormulaCardLibrary formulaCardLibrary;
     
+
+
     private void Awake()
     {
         if (Instance == null)
@@ -92,7 +95,7 @@ public class BlessingManager : MonoBehaviour
         hasEnergySpread = 0;
         hasRisingUp = 0;
         hasTemperlance = 0;
-
+        wishCoinPurchaseCount = 0;
         dialecticalPerRoundBonus = 0; 
         dialecticalAccumulatedMultiplier = 0f;  
         ApplyPragmatism = 0;    
@@ -175,12 +178,12 @@ public class BlessingManager : MonoBehaviour
     }
 
     public int CalculateBlessingPrice(BlessingData data)
-
     {
         int purchaseCount = GetBlessingCount(data.blessingId);
         float calculatedPrice;
         int currentPrice = data.basePrice;
         float priceMultiplier = GetCurrentPriceMultiplier();
+
         switch (data.blessingType)
         {
             case BlessingData.BlessingType.Raise:
@@ -226,6 +229,7 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.WishingCoin:
                 // 许愿币：选择一个已拥有的可叠加祝福，下回合商店必出
                 Debug.Log("许愿币效果激活：请选择一个已拥有的可叠加祝福");
+                wishCoinPurchaseCount++;
                 ActivateWishCoinSelection();
                 break;
 
@@ -255,7 +259,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.MoreMoreBetter:
                 // 多多益善 - 复制一张填空卡（需要玩家选择）
-                //[todo]
+                ActivateMoreMoreBetter();
                 Debug.Log("多多益善效果已激活，等待玩家选择填空卡");
                 break;
 
@@ -412,6 +416,33 @@ public class BlessingManager : MonoBehaviour
         return LuckTurnsCount > 0;
     }
  
+    // 多多益善：选择一张公式卡进行复制
+    private void ActivateMoreMoreBetter()
+    {
+        Debug.Log("=== 多多益善：选择要复制的公式卡 ===");
+
+        CardSelectionManager.Instance.StartCardSelection(
+            CardSelectionManager.SelectionMode.MoreMoreBetter,
+            OnMoreMoreBetterSelected);
+
+        UIManager.Instance.OpenMoreMoreBetterSelection();
+    }
+
+    // 多多益善的回调
+    private void OnMoreMoreBetterSelected(object selectedObject)
+    {
+        CardSelectionManager.Instance.EndCardSelection();
+        UIManager.Instance.CloseMoreMoreBetterSelection();
+
+        // 适配你项目：用 FormulaCardData
+        if (selectedObject is FormulaCardData formulaData)
+        {
+            Debug.Log("=== 多多益善：复制公式卡成功 ===");
+            PlayerCardInventory.Instance.AddFormulaCard(formulaData);
+            ForcePragmatismCleanup();// 强制触发实用主义防止bug
+        }
+    }
+    
     // 触发老千选择流程
     private void ActivateCardCheatSelection()
     {
@@ -441,7 +472,7 @@ public class BlessingManager : MonoBehaviour
         }
     }
     
-    /// <summary>
+    /// <summary>Price
     /// 许愿币：打开祝福选择界面（只显示玩家已拥有的可叠加祝福）
     /// </summary>
     private void ActivateWishCoinSelection()
@@ -682,6 +713,7 @@ public class BlessingManager : MonoBehaviour
         hasTemperlance = 0;
         dialecticalPerRoundBonus = 0;
         dialecticalAccumulatedMultiplier = 0f;
+        wishCoinPurchaseCount = 0;
     }
 
     /// <summary>
@@ -823,7 +855,7 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 实用主义：仅保留价值最高的填空卡，删除其它填空卡
+    /// 实用主义：仅保留价值最高的填空卡，删除其它填空卡CalculateBlessingPrice
     /// </summary>
     public void ApplyPragmatismEffect()
     {
@@ -1122,4 +1154,17 @@ public class BlessingManager : MonoBehaviour
         ownedBlessingInstance.RemoveAll(i =>
             i.data != null && i.data.blessingType == BlessingData.BlessingType.Utopianism);
     }
+    
+    /// <summary>
+    /// 通用：强制触发实用主义，防止添加填空卡出bug
+    /// </summary>
+    public void ForcePragmatismCleanup()
+    {
+        // 只有激活实用主义才清理
+        if (ApplyPragmatism == 1)
+        {
+            ApplyPragmatismEffect();
+        }
+    }
+
 }       
