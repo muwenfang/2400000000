@@ -151,7 +151,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 14,
             name: "好事成双",
-            description: "立即获得你所获得的上一个可叠加的祝福",
+            description: "立即获得所获得的上一个可叠加的祝福",
             type: BlessingData.BlessingType.DoubleLuck,
             basePrice: 24000,
             isStackable: true
@@ -185,7 +185,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 17,
             name: "赌为赢",
-            description: "当你的数字卡总共拥有20个骰子（及以上）时，你的骰子每判定为一次20，你获得2400000000",
+            description: "当数字卡总共拥有20个骰子（及以上）时，你的骰子每判定为一次20，获得2400000000",
             type: BlessingData.BlessingType.GambletoWin,
             basePrice: 240000,
             isStackable: false,
@@ -315,7 +315,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 28,
             name: "空想主义",
-            description: "你立即获得一张你未拥有的填空卡；如果在获得此祝福时拥有了所有类型的填空卡，立即获得2400000000点并失去所有的“空想主义”",
+            description: "立即获得一张未拥有的填空卡；如果在获得此祝福时拥有了所有类型的填空卡，立即获得2400000000点并失去所有的“空想主义”",
             type: BlessingData.BlessingType.Utopianism,
             basePrice: 240000,
             isStackable: true
@@ -361,7 +361,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 32,
             name: "打头阵",
-            description: "你的计算结果的第一位强制变为9",
+            description: "计算结果的第一位强制变为9",
             type: BlessingData.BlessingType.LeadingCharge,
             basePrice: 20000,
             isStackable: false,
@@ -396,14 +396,12 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 35,
             name: "赌神传说",
-            description: "你的所有骰子的判定点数都会转化为本回合的额外临时倍率",
+            description: "所有骰子的判定点数都会转化为本回合的额外临时倍率",
             type: BlessingData.BlessingType.GamblingGodSage,
             basePrice: 5000000,
             isStackable: false
 
         ));
-
-        Debug.Log($" 成功初始化 {allBlessings.Count} 个祝福！");
     }
 
     /// <summary>

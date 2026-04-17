@@ -555,7 +555,7 @@ public class GameManager : MonoBehaviour
         else { 
             currentState = GameState.GameLose;
             // 显示游戏失败界面
-            UIManager.Instance.ShowPanel(UIManager.Instance.gameOverPanel);
+            UIManager.Instance.ShowPanel(UIManager.Instance.loseGamePanel);
             UIManager.Instance.pointstagePanel.SetActive(false);
             Debug.Log("游戏失败，未达到阶段要求");
         }

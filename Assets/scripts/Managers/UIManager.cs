@@ -1,5 +1,9 @@
+<<<<<<< HEAD
+﻿using System.Collections;
+=======
 
 using System.Collections;
+>>>>>>> 72ed6df1a14f95f7c433b7419fe75bc3eb9fbe29
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -28,13 +32,14 @@ public class UIManager : MonoBehaviour
     public GameObject startMenuPanel; // 在 Inspector 中拖入主菜单面板
     public GameObject gameUIPanel; // 游戏内UI面板targetRoundText
     public GameObject gameOverPanel; // 游戏结束面板
+    public GameObject loseGamePanel; // 失败面板
     public GameObject shopPanel; // 商店面板
     public GameObject pointstagePanel; // 点数阶段面板
     public GameObject myCardButton;// 我的卡牌按钮面板
     public GameObject myNumberCardPanel;// 数字卡
     public GameObject myFormulaCardPanel;// 公式卡
     public GameObject myBlessPanel;// 祝福
-    public GameObject confirmationPanel;// 确认对话框
+    //public GameObject confirmationPanel;// 确认对话框
 
     [Header("游戏信息显示")]
     public Text pointsText;              // 总分数
@@ -75,16 +80,7 @@ public class UIManager : MonoBehaviour
     }
     public void ShowPanel(GameObject panelToShow)
     {
-        // 隐藏所有面板
-        if (startMenuPanel != null) startMenuPanel.SetActive(false);
-        if (gameUIPanel != null) gameUIPanel.SetActive(false);
-        if (gameOverPanel != null) gameOverPanel.SetActive(false);
-        if (shopPanel != null) shopPanel.SetActive(false);
-        if (myCardButton != null) myCardButton.SetActive(false);
-        if (myNumberCardPanel != null) myNumberCardPanel.SetActive(false);
-        if (myFormulaCardPanel != null) myFormulaCardPanel.SetActive(false);
-        if (myBlessPanel != null) myBlessPanel.SetActive(false);
-
+        HideAllPanel();
         // 激活目标
         panelToShow.SetActive(true);
         // 强制把这个面板排到最前面
@@ -108,6 +104,20 @@ public class UIManager : MonoBehaviour
         }
 
         Debug.Log($"已激活并置顶面板: {panelToShow.name}");
+    }
+    public void HideAllPanel()
+    {
+        // 隐藏所有面板
+        if (startMenuPanel != null) startMenuPanel.SetActive(false);
+        if (gameUIPanel != null) gameUIPanel.SetActive(false);
+        if (gameOverPanel != null) gameOverPanel.SetActive(false);
+        if (loseGamePanel != null) loseGamePanel.SetActive(false);
+        if (shopPanel != null) shopPanel.SetActive(false);
+        if (myCardButton != null) myCardButton.SetActive(false);
+        if (myNumberCardPanel != null) myNumberCardPanel.SetActive(false);
+        if (myFormulaCardPanel != null) myFormulaCardPanel.SetActive(false);
+        if (myBlessPanel != null) myBlessPanel.SetActive(false);
+
     }
     #region 展示卡牌库
     // 打开数字卡库

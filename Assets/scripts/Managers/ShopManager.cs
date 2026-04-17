@@ -82,14 +82,14 @@ public class ShopManager : MonoBehaviour
     public List<ShopItem<FormulaCardData>> shopFormulaCards = new();
     public List<ShopItem<BlessingData>> shopBlessings = new();
 
-    // 新增标志位：当前是否处于删卡模式
+    // 当前是否处于删卡模式
     public bool isDeletionMode = false;
 
     
     /// <summary>
     /// 本回合已在当前商店刷新中显示过的祝福ID（用于CurrentRoundOnly类型）
     /// </summary>
-    private HashSet<int> currentRoundDisplayedBlessings = new HashSet<int>();
+    private HashSet<int> currentRoundPurchasedBlessings = new HashSet<int>();
 
 
     public void OpenShop()
@@ -128,6 +128,8 @@ public class ShopManager : MonoBehaviour
         numberCardCount = 2;
         formulaCardCount = 1;
         blessingCardCount = 2;
+
+        ResetCurrentRoundBlessings();
         OpenShop();
     }
     /// <summary>
@@ -316,15 +318,7 @@ public class ShopManager : MonoBehaviour
                     int randomIndex = Random.Range(0, availableBlessings.Count);
                     selectedBlessing = availableBlessings[randomIndex];
 
-                    // 移除已选中的祝福（除非是 AlwaysRefresh 类型）
-                    // CurrentRoundOnly 和 NeverRefresh 类型在本次刷新中只能出现一次
-                    if (selectedBlessing.refreshBehavior != BlessingData.RefreshBehavior.AlwaysRefresh)
-                    {
-                        availableBlessings.RemoveAt(randomIndex);
-                        currentRoundDisplayedBlessings.Add(selectedBlessing.blessingId);
-                        Debug.Log($"[ShopManager] 祝福 '{selectedBlessing.blessingName}' 已在本次刷新中显示，标记为已显示");
-                    }
-
+                    availableBlessings.RemoveAt(randomIndex);
                     // 计算价格
                     int currentCount = BlessingManager.Instance.GetBlessingCount(selectedBlessing.blessingId);
                     int price = selectedBlessing.CalculatePrice(currentCount, priceMultiplier);
@@ -375,7 +369,7 @@ public class ShopManager : MonoBehaviour
 
                 case BlessingData.RefreshBehavior.CurrentRoundOnly:
                     // 仅当本次刷新中未显示过时可用
-                    isAvailable = !currentRoundDisplayedBlessings.Contains(blessing.blessingId);
+                    isAvailable = !currentRoundPurchasedBlessings.Contains(blessing.blessingId);
                     break;
             }
 
@@ -397,7 +391,7 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     private void ResetCurrentRoundBlessings()
     {
-        currentRoundDisplayedBlessings.Clear();
+        currentRoundPurchasedBlessings.Clear();
         Debug.Log("[ShopManager] 本回合已显示的祝福记录已清空");
     }
 
@@ -485,6 +479,12 @@ public class ShopManager : MonoBehaviour
         if (purchaseSuccess)
         {
             item.sold = true;
+
+            if (item.cardData.refreshBehavior == BlessingData.RefreshBehavior.CurrentRoundOnly)
+            {
+                currentRoundPurchasedBlessings.Add(item.cardData.blessingId);
+            }
+
             // 刷新商店显示
             UIManager.Instance.RefreshShopUI();
         }
@@ -532,6 +532,8 @@ public class ShopManager : MonoBehaviour
         {
             item.sold = false;
         }
+        // 每次离开商店时，重置当回合展示过的记录
+        ResetCurrentRoundBlessings();
 
         //重置刷新次数
         refreshCount = 0;
