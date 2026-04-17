@@ -89,7 +89,16 @@ public class BlessingData : ScriptableObject
         
             calculatedPrice *= Mathf.Pow(2, nihilismCount);
         }
-        
+        // 许愿币：每购买一次价格+1000
+        if (blessingType == BlessingType.WishingCoin)
+        {
+            calculatedPrice += purchaseCount * 1000;
+        }
+        // 赌具升级：
+        if (blessingType == BlessingType.GamblingGearUpgraded)
+        {
+            calculatedPrice *= Mathf.Pow(2, purchaseCount);
+        }
         return Mathf.RoundToInt(calculatedPrice);
     }
 }

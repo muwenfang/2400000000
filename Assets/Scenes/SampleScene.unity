@@ -2019,6 +2019,7 @@ MonoBehaviour:
   totalMultiplierBonus: 0
   totalDialecticalCount: 0
   HasRichTreasure: 0
+  wishCoinPurchaseCount: 0
   nihilismCount: 0
   hasLeadingCharge: 0
   hasEnergySpread: 0
@@ -3661,6 +3662,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   currentState: 0
+  currentGameMode: 0
   currentRound: 1
   roundsPerStage: 0
   cardManager: {fileID: 866494024}
@@ -4375,6 +4377,10 @@ PrefabInstance:
     - target: {fileID: 3200897846057908240, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_IsActive
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 3296693888847372070, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 3296693888847372070, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Target
