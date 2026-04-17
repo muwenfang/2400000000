@@ -42,7 +42,7 @@ public class ShopManager : MonoBehaviour
     public int MaxformulaCardCount = 2;
     public int MaxBlessingCardCount = 4;
     // 当前能购买的数量
-    public int numberCardCount = 2;
+    public int numberCardCount = 3;
     public int formulaCardCount = 1;
     public int blessingCardCount = 2;
 
@@ -125,7 +125,7 @@ public class ShopManager : MonoBehaviour
         numberSlotUnlockTimes = 0; // 数字卡已解锁次数
         formulaSlotUnlockTimes = 0; // 公式卡已解锁次数
         blessingSlotUnlockTimes = 0;
-        numberCardCount = 2;
+        numberCardCount = 3;
         formulaCardCount = 1;
         blessingCardCount = 2;
         OpenShop();
@@ -750,7 +750,7 @@ public class ShopManager : MonoBehaviour
     {
         long finalNumberSlotUnlockCost = 0 ;
         if (numberSlotUnlockTimes == 0)
-            finalNumberSlotUnlockCost = baseNumberSlotUnlockCost;
+            finalNumberSlotUnlockCost = 20;
         else if (numberSlotUnlockTimes == 1)
             finalNumberSlotUnlockCost = 500;
         else if (numberSlotUnlockTimes == 2)
@@ -764,7 +764,7 @@ public class ShopManager : MonoBehaviour
     public long CalculateFormulaSlotUnlockCost()
     {
         long powerOfTwo = (long)Mathf.Pow(2, formulaSlotUnlockTimes);
-        return baseFormulaSlotUnlockCost * powerOfTwo;
+        return 2000 * powerOfTwo;
     }
 
     /// <summary>
