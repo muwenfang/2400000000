@@ -34,6 +34,7 @@ public class UIManager : MonoBehaviour
     public GameObject myNumberCardPanel;// 数字卡
     public GameObject myFormulaCardPanel;// 公式卡
     public GameObject myBlessPanel;// 祝福
+    public GameObject PlayerDataPanel;// 玩家数据面板
     //public GameObject confirmationPanel;// 确认对话框
 
     [Header("游戏信息显示")]
@@ -112,7 +113,7 @@ public class UIManager : MonoBehaviour
         if (myNumberCardPanel != null) myNumberCardPanel.SetActive(false);
         if (myFormulaCardPanel != null) myFormulaCardPanel.SetActive(false);
         if (myBlessPanel != null) myBlessPanel.SetActive(false);
-
+        if (PlayerDataPanel != null) PlayerDataPanel.SetActive(false);
     }
     #region 展示卡牌库
     // 打开数字卡库

@@ -238,13 +238,6 @@ public class ShowMyNumberCard : MonoBehaviour
     /// </summary>
     private void ActivateNumberCardDeletionButtons()
     {
-        //// 检查是否可以删除数字卡（使用约束）
-        //if (!PlayerCardInventory.Instance.CanRemoveNumberCard())
-        //{
-        //    Debug.LogWarning($"[ShowMyNumberCard] 无法删除数字卡：最少需要保留 {PlayerCardInventory.Instance.minNumberCardCount} 张");
-        //    return;
-        //}
-
         var instances = PlayerCardInventory.Instance.GetAllNumberCards();
 
         int activatedCount = 0;

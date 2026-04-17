@@ -42,7 +42,7 @@ public class ShopManager : MonoBehaviour
     public int MaxformulaCardCount = 2;
     public int MaxBlessingCardCount = 4;
     // 当前能购买的数量
-    public int numberCardCount = 2;
+    public int numberCardCount = 3;
     public int formulaCardCount = 1;
     public int blessingCardCount = 2;
 
@@ -125,7 +125,7 @@ public class ShopManager : MonoBehaviour
         numberSlotUnlockTimes = 0; // 数字卡已解锁次数
         formulaSlotUnlockTimes = 0; // 公式卡已解锁次数
         blessingSlotUnlockTimes = 0;
-        numberCardCount = 2;
+        numberCardCount = 3;
         formulaCardCount = 1;
         blessingCardCount = 2;
 
@@ -515,7 +515,7 @@ public class ShopManager : MonoBehaviour
 
         refreshCostText.text = $"刷新消耗: {refreshCost}";
 
-        refreshCount++;//刷新次数应该每回合重置
+        refreshCount++;
 
         OpenShop();
     }
@@ -634,6 +634,8 @@ public class ShopManager : MonoBehaviour
 
         // 3. 更新UI
         UpdateDeletionUI();
+        UIManager.Instance.UpdatePointsDisplay(GameManager.Instance.currentPoints);
+
     }
 
     /// <summary>
