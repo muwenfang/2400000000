@@ -56,7 +56,7 @@ public class GameManager : MonoBehaviour
     //阶段回合数
     public List<int> stageRounds = new List<int>()
     {
-        3,8,15,24,35,46,56,66,75
+        4,10,18,26,33,40,47,54,60
     };
 
     // ====================== 内卷模式 ======================
