@@ -60,9 +60,9 @@ public class ShopManager : MonoBehaviour
     public int baseFormulaCardRemoveCost = 200;
 
     [Header("槽位解锁配置")]
-    public int baseNumberSlotUnlockCost = 10; // 数字卡槽位基础解锁消耗
-    public int baseFormulaSlotUnlockCost = 20; // 公式卡槽位基础解锁消耗
-    public int baseBlessingSlotUnlockCost = 2000;
+    public int baseNumberSlotUnlockCost = 20; // 数字卡槽位基础解锁消耗
+    public int baseFormulaSlotUnlockCost = 5000; // 公式卡槽位基础解锁消耗
+    public int baseBlessingSlotUnlockCost = 2000; //祝福卡槽位基础解锁消耗
     public int numberSlotUnlockTimes = 0; // 数字卡已解锁次数
     public int formulaSlotUnlockTimes = 0; // 公式卡已解锁次数
     public int blessingSlotUnlockTimes = 0;
@@ -748,8 +748,14 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     public long CalculateNumberSlotUnlockCost()
     {
-        long powerOfTwo = (long)Mathf.Pow(2, numberSlotUnlockTimes);
-        return baseNumberSlotUnlockCost * powerOfTwo;
+        long finalNumberSlotUnlockCost ;
+        if (numberSlotUnlockTimes == 0)
+            finalNumberSlotUnlockCost = baseNumberSlotUnlockCost;
+        else if (numberSlotUnlockTimes == 1)
+            finalNumberSlotUnlockCost = 500;
+        else if (numberSlotUnlockTimes == 2)
+            finalNumberSlotUnlockCost = 10000;
+        return finalNumberSlotUnlockCost;
     }
 
     /// <summary>
