@@ -748,7 +748,7 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     public long CalculateNumberSlotUnlockCost()
     {
-        long finalNumberSlotUnlockCost ;
+        long finalNumberSlotUnlockCost = 0 ;
         if (numberSlotUnlockTimes == 0)
             finalNumberSlotUnlockCost = baseNumberSlotUnlockCost;
         else if (numberSlotUnlockTimes == 1)
