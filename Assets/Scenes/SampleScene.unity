@@ -3709,7 +3709,7 @@ MonoBehaviour:
   myNumberCardPanel: {fileID: 1329721518}
   myFormulaCardPanel: {fileID: 496826560}
   myBlessPanel: {fileID: 896898551}
-  confirmationPanel: {fileID: 7053959220092451206}
+  PlayerDataPanel: {fileID: 0}
   pointsText: {fileID: 1329721519}
   roundText: {fileID: 1329721520}
   stageRequirementText: {fileID: 1329721521}

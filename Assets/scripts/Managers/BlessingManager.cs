@@ -114,8 +114,10 @@ public class BlessingManager : MonoBehaviour
             return false;
         }
 
-        // 计算当前祝福的价格（考虑已购买次数）
-        int finalPrice = CalculateBlessingPrice(blessingData);
+        // 计算当前祝福的价格（和商店显示逻辑保持一致）
+        int purchaseCount = GetBlessingCount(blessingData.blessingId);
+        float multiplier = GetCurrentPriceMultiplier();
+        int finalPrice = blessingData.CalculatePrice(purchaseCount, multiplier);
 
         // 检查点数是否足够
         if (GameManager.Instance.currentPoints < finalPrice)
@@ -151,7 +153,21 @@ public class BlessingManager : MonoBehaviour
 
         // 应用祝福效果
         ApplyBlessingEffect(blessingData);
+        // 刷新商店显示
+        // 购买成功后，强制重新计算商店里所有祝福的价格
+        foreach (var shopItem in ShopManager.Instance.shopBlessings)
+        {
+            if (shopItem.cardData != null)
+            {
+                int count = BlessingManager.Instance.GetBlessingCount(shopItem.cardData.blessingId);
+                float mult = BlessingManager.Instance.GetCurrentPriceMultiplier();
+                shopItem.price = shopItem.cardData.CalculatePrice(count, mult);
+            }
+        }
 
+        // 再刷新UI
+        UIManager.Instance.RefreshShopUI();
+        
         return true;
     }
     /// <summary>
@@ -177,27 +193,6 @@ public class BlessingManager : MonoBehaviour
         }
         return totalCount;
     }
-
-    public int CalculateBlessingPrice(BlessingData data)
-    {
-        int purchaseCount = GetBlessingCount(data.blessingId);
-        float calculatedPrice;
-        int currentPrice = data.basePrice;
-        float priceMultiplier = GetCurrentPriceMultiplier();
-
-        switch (data.blessingType)
-        {
-            case BlessingData.BlessingType.Raise:
-                currentPrice += purchaseCount * 500;
-                calculatedPrice = currentPrice * priceMultiplier;
-                return Mathf.RoundToInt(calculatedPrice);
-
-            default:
-                calculatedPrice = currentPrice * priceMultiplier;
-                return Mathf.RoundToInt(calculatedPrice);
-        }
-    }
-
 
     /// <summary>
     /// 应用祝福效果
@@ -232,6 +227,7 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log("许愿币效果激活：请选择一个已拥有的可叠加祝福");
                 wishCoinPurchaseCount++;
                 ActivateWishCoinSelection();
+                UIManager.Instance.RefreshShopUI();
                 break;
 
             case BlessingData.BlessingType.MagicLamp:

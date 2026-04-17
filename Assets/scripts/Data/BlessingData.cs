@@ -99,8 +99,20 @@ public class BlessingData : ScriptableObject
         {
             calculatedPrice *= Mathf.Pow(2, purchaseCount);
         }
-        return Mathf.RoundToInt(calculatedPrice);
-    }
+        // 倍投：每次购买后价格翻倍
+        if (blessingType == BlessingType.DoubleDown)
+        {
+            calculatedPrice *= Mathf.Pow(2, purchaseCount);
+        }
+
+        // 加注：每次购买后，价格 +500
+        if (blessingType == BlessingType.Raise) 
+        {
+            calculatedPrice += purchaseCount * 500;
+        }
+        
+            return Mathf.RoundToInt(calculatedPrice);
+        }
 }
 
 /// <summary>
