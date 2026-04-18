@@ -303,18 +303,21 @@ public class ShowMyNumberCard : MonoBehaviour
     /// </summary>
     private void ExecuteNumberCardDeletion(NumberCardInstance cardToDelete)
     {
+        // --- 核心修改：先问商店能不能删 ---
+        if (ShopManager.Instance != null)
+        {
+            // 如果商店拦截（没钱或冷却），直接返回，不执行移除
+            if (!ShopManager.Instance.OnCardDeleted(cardToDelete))
+            {
+                return;
+            }
+        }
         // 删除卡牌
         bool deleted = PlayerCardInventory.Instance.RemoveNumberCard(cardToDelete);
 
         if (deleted)
         {
             Debug.Log($"[ShowMyNumberCard] 成功删除数字卡：{cardToDelete.cardData.cardName}");
-
-            // 通知ShopManager更新统计
-            if (ShopManager.Instance != null)
-            {
-                ShopManager.Instance.OnCardDeleted(cardToDelete);
-            }
 
             // 刷新显示
             RefreshAllCards();

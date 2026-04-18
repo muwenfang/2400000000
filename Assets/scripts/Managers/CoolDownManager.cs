@@ -53,8 +53,8 @@ public class CooldownManager : MonoBehaviour
     // 冷却时间配置（秒）
     [SerializeField] private float cardSelectionCooldown = 0.1f;
     [SerializeField] private float shopPurchaseCooldown = 0.2f;
-    [SerializeField] private float slotUnlockCooldown = 0.3f;
-    [SerializeField] private float cardDeletionCooldown = 0.2f;
+    [SerializeField] private float slotUnlockCooldown = 0.1f;
+    [SerializeField] private float cardDeletionCooldown = 0.06f;
     [SerializeField] private float generalCooldown = 0.1f;
 
     private void Awake()

@@ -246,17 +246,19 @@ public class ShowMyFormula : MonoBehaviour
             return;
         }
 
+        // --- 先问商店能不能删 ---
+        if (ShopManager.Instance != null)
+        {
+            if (!ShopManager.Instance.OnCardDeleted(cardToDelete))
+            {
+                return;
+            }
+        }
         // 使用约束检查来删除卡牌
         bool deleted = PlayerCardInventory.Instance.RemoveFormulaCard(cardToDelete);
 
         if (deleted)
         {
-            // 通知ShopManager更新统计
-            if (ShopManager.Instance != null)
-            {
-                ShopManager.Instance.OnCardDeleted(cardToDelete);
-            }
-
             // 刷新显示
             RefreshAllCards();
         }
