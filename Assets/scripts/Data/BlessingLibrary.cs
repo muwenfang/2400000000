@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEditor.Timeline;
 using UnityEngine;
 using static BlessingData;
@@ -56,7 +56,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 5,
             name: "加注",
-            description: "倍率+1，祝福“加注”的价格+300",
+            description: "倍率+1，祝福“加注”的价格+500",
             type: BlessingData.BlessingType.Raise,
             basePrice: 500,
             isStackable: true
@@ -142,7 +142,7 @@ public class BlessingLibrary : ScriptableObject
             name: "多多益善",
             description: "选择一张填空卡并将其复制",
             type: BlessingData.BlessingType.MoreMoreBetter,
-            basePrice: 500,
+            basePrice: 5000,
             isStackable: true,
             effectValue: 1f
         ));
@@ -151,7 +151,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 14,
             name: "好事成双",
-            description: "立即获得所获得的上一个可叠加的祝福",
+            description: "立即获得你所获得的上一个可叠加的祝福",
             type: BlessingData.BlessingType.DoubleLuck,
             basePrice: 24000,
             isStackable: true
@@ -185,7 +185,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 17,
             name: "赌为赢",
-            description: "当数字卡总共拥有20个骰子（及以上）时，你的骰子每判定为一次20，获得2400000000",
+            description: "当你的数字卡总共拥有20个骰子（及以上）时，你的骰子每判定为一次20，你获得2400000000",
             type: BlessingData.BlessingType.GambletoWin,
             basePrice: 240000,
             isStackable: false,
@@ -199,7 +199,7 @@ public class BlessingLibrary : ScriptableObject
             name: "能量扩散",
             description: "不参与计算的绿色数字每回合也会+1",
             type: BlessingData.BlessingType.EnergySpread,
-            basePrice: 1000000,
+            basePrice: 2000000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -220,9 +220,9 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 20,
             name: "友情折扣",
-            description: "所有数字卡、填空卡与祝福的价格-10%",
+            description: "你每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%（最多-80%)",
             type: BlessingData.BlessingType.FriendDiscount,
-            basePrice: 250000,
+            basePrice: 10000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -315,7 +315,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 28,
             name: "空想主义",
-            description: "立即获得一张未拥有的填空卡；如果在获得此祝福时拥有了所有类型的填空卡，立即获得2400000000点并失去所有的“空想主义”",
+            description: "你立即获得一张你未拥有的填空卡；如果在获得此祝福时拥有了所有类型的填空卡，立即获得2400000000点并失去所有的“空想主义”",
             type: BlessingData.BlessingType.Utopianism,
             basePrice: 240000,
             isStackable: true
@@ -361,7 +361,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 32,
             name: "打头阵",
-            description: "计算结果的第一位强制变为9",
+            description: "你的计算结果的第一位强制变为9",
             type: BlessingData.BlessingType.LeadingCharge,
             basePrice: 20000,
             isStackable: false,
@@ -396,12 +396,14 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 35,
             name: "赌神传说",
-            description: "所有骰子的判定点数都会转化为本回合的额外临时倍率",
+            description: "你的所有骰子的判定点数都会转化为本回合的额外临时倍率",
             type: BlessingData.BlessingType.GamblingGodSage,
             basePrice: 5000000,
             isStackable: false
 
         ));
+
+        Debug.Log($" 成功初始化 {allBlessings.Count} 个祝福！");
     }
 
     /// <summary>
