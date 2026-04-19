@@ -54,8 +54,9 @@ public class BlessingManager : MonoBehaviour
     public int ApplyPragmatism = 0;//实用主义
     public bool hasGodOfGambler = false;//赌神传说
     public FormulaCardLibrary formulaCardLibrary;
-    
-
+    public float globalPriceDiscountPercent = 0f;    // 友情折扣
+    public float blessDiscountPerBlessing = 0f;      // 眷顾
+    public float maxBlessDiscountPercent = 80f;      // 眷顾上限
 
     private void Awake()
     {
@@ -155,13 +156,34 @@ public class BlessingManager : MonoBehaviour
         ApplyBlessingEffect(blessingData);
         // 刷新商店显示
         // 购买成功后，强制重新计算商店里所有祝福的价格
-        foreach (var shopItem in ShopManager.Instance.shopBlessings)
+        float currentMultiplier = GetCurrentPriceMultiplier();
+
+        // 1. 刷新数字卡价格
+        foreach (var item in ShopManager.Instance.shopNumberCards)
         {
-            if (shopItem.cardData != null)
+            if (item.cardData != null)
             {
-                int count = BlessingManager.Instance.GetBlessingCount(shopItem.cardData.blessingId);
-                float mult = BlessingManager.Instance.GetCurrentPriceMultiplier();
-                shopItem.price = shopItem.cardData.CalculatePrice(count, mult);
+                long originalPrice = item.cardData.GetNumberCardPrice(item.cardData.cardData);
+                item.price = (long)(originalPrice * currentMultiplier);
+            }
+        }
+
+        // 2. 刷新公式卡价格
+        foreach (var item in ShopManager.Instance.shopFormulaCards)
+        {
+            if (item.cardData != null)
+            {
+                item.price = (long)(item.cardData.CardPrice * currentMultiplier);
+            }
+        }
+
+        // 3. 刷新祝福价格
+        foreach (var item in ShopManager.Instance.shopBlessings)
+        {
+            if (item.cardData != null)
+            {    
+                int count = GetBlessingCount(item.cardData.blessingId);
+                item.price = item.cardData.CalculatePrice(count, currentMultiplier);
             }
         }
 
@@ -308,14 +330,15 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.FriendDiscount:
-                // 友情折扣 - 不可叠加：所有数字卡、填空卡与祝福的价格-10%
-                totalMultiplierBonus += blessingData.effectValue;
-                Debug.Log("友情折扣效果已激活");
+                // 友情折扣 - 所有商品价格下降10%
+                globalPriceDiscountPercent = 10f; // 固定 10% 折扣
+                Debug.Log("友情折扣效果已激活：所有商品价格 -10%");
                 break;
 
             case BlessingData.BlessingType.Bless:
-                // 眷顾 - 不可叠加：你每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%
-                Debug.Log("眷顾效果已激活");
+                // 眷顾：每拥有一个祝福，所有价格-1%
+                blessDiscountPerBlessing = 1f;
+                Debug.Log("眷顾效果已激活：每个祝福使所有商品价格-1%");
                 break;
 
             case BlessingData.BlessingType.RichTreasury:
@@ -624,18 +647,28 @@ public class BlessingManager : MonoBehaviour
         }
     }   
 
-    
     /// <summary>
-    /// 获取当前价格乘数（用于计算商品价格）
-    /// 辩证主义：所有卡牌与祝福的价格+1%
+    /// 获取对所有商品的价格折扣
     /// </summary>
     public float GetCurrentPriceMultiplier()
     {
-         // 辩证主义：每级 +1% 价格（加法叠加）
+        // 1. 辩证主义：每级 +1% 价格
         int dialecticCount = GetBlessingTypeCount(BlessingData.BlessingType.DialecticalViewpoint);
-        float multiplier = 1f + (dialecticCount * 0.01f); 
-        
-        
+        float multiplier = 1f + (dialecticCount * 0.01f);
+
+        // 2. 友情折扣（固定10%）不可叠加
+        float friendDiscount = globalPriceDiscountPercent;
+
+        // 3. 眷顾折扣：每个祝福-1%，上限80%
+        int totalBlessings = GetTotalBlessingCount();
+        float blessDiscount = totalBlessings * blessDiscountPerBlessing;
+        blessDiscount = Mathf.Min(blessDiscount, maxBlessDiscountPercent); // 封顶80%
+
+        // 4. 总折扣：加算
+        float totalDiscount = friendDiscount + blessDiscount;
+
+        // 5. 最终价格乘数
+        multiplier *= (1f - totalDiscount / 100f);
         return multiplier;
     }
 
