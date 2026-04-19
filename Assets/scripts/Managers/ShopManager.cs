@@ -786,7 +786,7 @@ public class ShopManager : MonoBehaviour
     {
         long finalNumberSlotUnlockCost = 0 ;
         if (numberSlotUnlockTimes == 0)
-            finalNumberSlotUnlockCost = baseNumberSlotUnlockCost;
+            finalNumberSlotUnlockCost = 20;
         else if (numberSlotUnlockTimes == 1)
             finalNumberSlotUnlockCost = 500;
         else if (numberSlotUnlockTimes == 2)
@@ -800,7 +800,7 @@ public class ShopManager : MonoBehaviour
     public long CalculateFormulaSlotUnlockCost()
     {
         long powerOfTwo = (long)Mathf.Pow(2, formulaSlotUnlockTimes);
-        return baseFormulaSlotUnlockCost * powerOfTwo;
+        return 5000 * powerOfTwo;
     }
     /// <summary>
     /// 计算祝福卡槽位解锁消耗
