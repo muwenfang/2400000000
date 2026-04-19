@@ -114,6 +114,7 @@ public class UIManager : MonoBehaviour
         if (myFormulaCardPanel != null) myFormulaCardPanel.SetActive(false);
         if (myBlessPanel != null) myBlessPanel.SetActive(false);
         if (PlayerDataPanel != null) PlayerDataPanel.SetActive(false);
+        if (pointstagePanel != null) pointstagePanel.SetActive(false);
     }
     #region 展示卡牌库
     // 打开数字卡库
@@ -768,6 +769,7 @@ public class UIManager : MonoBehaviour
     }
     #endregion
 
+    #region 老千
     // 老千：打开数字卡选择面板
     public void OpenCardCheatNumberSelection()
     {
@@ -792,7 +794,9 @@ public class UIManager : MonoBehaviour
             myNumberCardPanel.SetActive(false);
         }
     }
+    #endregion
 
+    #region 多多益善
     // 多多益善：打开公式卡选择界面
     public void OpenMoreMoreBetterSelection()
     {
@@ -815,5 +819,5 @@ public class UIManager : MonoBehaviour
         if (myFormulaCardPanel != null)
             myFormulaCardPanel.SetActive(false);
     }
-
+    #endregion
 }

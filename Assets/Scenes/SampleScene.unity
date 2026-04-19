@@ -1245,6 +1245,55 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 428569053}
   m_CullTransparentMesh: 1
+--- !u!1 &445901626
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 445901628}
+  - component: {fileID: 445901627}
+  m_Layer: 0
+  m_Name: CoolDownManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &445901627
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 445901626}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: aeff0c59518813d4a9705ad046d7067a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  cardSelectionCooldown: 0.1
+  shopPurchaseCooldown: 0.2
+  slotUnlockCooldown: 0.1
+  cardDeletionCooldown: 0.06
+  generalCooldown: 0.1
+--- !u!4 &445901628
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 445901626}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 930.28955, y: 456.86426, z: -2.7907052}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &488818684
 GameObject:
   m_ObjectHideFlags: 0
@@ -1835,6 +1884,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ad6c64898997d943adfc2140c85ef6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  selectionCooldown: 0.1
 --- !u!4 &561221007
 Transform:
   m_ObjectHideFlags: 0
@@ -3962,7 +4012,6 @@ MonoBehaviour:
   shopManager: {fileID: 1713274719}
   roundScoreDisplayTime: 1.5
   totalScoreDisplayTime: 1
-  stageRounds: 03000000080000000f00000018000000230000002e00000038000000420000004b000000
 --- !u!224 &1116280461 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 6376953296816160332, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
@@ -5683,6 +5732,50 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_HorizontalFit: 0
   m_VerticalFit: 2
+--- !u!1 &1352822804
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1352822806}
+  - component: {fileID: 1352822805}
+  m_Layer: 0
+  m_Name: DataSavingManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1352822805
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1352822804}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: eda1965887960d34b8914de1e7cdde9a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+--- !u!4 &1352822806
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1352822804}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 930.28955, y: 456.86426, z: -2.7907052}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1453600651 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4209375567368809106, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
@@ -6640,6 +6733,62 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1705639592}
   m_CullTransparentMesh: 1
+--- !u!1 &1706673785
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1706673787}
+  - component: {fileID: 1706673786}
+  m_Layer: 0
+  m_Name: DataDisplayManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!114 &1706673786
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1706673785}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 25a1bcdc4078f1944be438cfa27a81a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  normalModeHighScoreText: {fileID: 2021283996}
+  normalModeHighRateText: {fileID: 2063813944}
+  normalModeMaxCardText: {fileID: 1646368211}
+  normalModeMaxCalculationText: {fileID: 1260266737}
+  hardModeHighScoreText: {fileID: 370919575}
+  hardModeHighRateText: {fileID: 949389166}
+  hardModeMaxCardText: {fileID: 763891630}
+  hardModeMaxCalculationText: {fileID: 365589208}
+  globalHighScoreText: {fileID: 717254166}
+  totalWinsText: {fileID: 1960512800}
+  autoRefresh: 1
+  refreshInterval: 1
+--- !u!4 &1706673787
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1706673785}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 930.28955, y: 456.86426, z: -2.7907052}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1713274718
 GameObject:
   m_ObjectHideFlags: 0
@@ -6690,6 +6839,9 @@ MonoBehaviour:
   numberSlotUnlockTimes: 0
   formulaSlotUnlockTimes: 0
   blessingSlotUnlockTimes: 0
+  purchaseCooldown: 0.2
+  unlockCooldown: 0.1
+  cardDeletionCooldown: 0.06
   formulaCardLibrary: {fileID: 11400000, guid: 09a6b658924651940965cd8a57c4eab9, type: 2}
   numberCardLibrary: {fileID: 11400000, guid: a2fa7726265124f4f82bcb330c2edc3c, type: 2}
   blessingLibrary: {fileID: 11400000, guid: 1ec143d897bd7bd46bc61e19ec7dd011, type: 2}
@@ -7822,4 +7974,7 @@ SceneRoots:
   - {fileID: 911707646}
   - {fileID: 679115385}
   - {fileID: 561221007}
+  - {fileID: 1706673787}
+  - {fileID: 1352822806}
+  - {fileID: 445901628}
   - {fileID: 1050276293}

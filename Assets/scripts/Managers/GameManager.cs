@@ -84,9 +84,9 @@ public class GameManager : MonoBehaviour
         // 重置本局统计数据
         ResetRoundStatistics();
 
-        currentPoints = 1000000;
+        currentPoints = 100000000000000;
 
-        currentRound = 1;
+        currentRound = 60;
 
         GameManager.isInvolutionMode = false;
         //不是内卷模式
@@ -180,6 +180,7 @@ public class GameManager : MonoBehaviour
         cardManager.DrawCardsForTurn();
     }
 
+    #region 计算并显示得分
     public void CalculatePoints(CardManager formula)
     {
         if (currentState != GameState.PlayerTurn)
@@ -268,7 +269,7 @@ public class GameManager : MonoBehaviour
         // 第3步：进入商店
         EndTurn();
     }
-
+    #endregion
     /// <summary>
     /// 检查公式是否填满
     /// </summary>
@@ -529,7 +530,7 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.pointstagePanel.SetActive(false);
     }
 
-    void WinGame(bool isWin)//之后的panel会改，暂时先用一个。
+    void WinGame(bool isWin)
     {
         if (isWin)
         {

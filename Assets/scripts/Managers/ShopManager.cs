@@ -103,25 +103,15 @@ public class ShopManager : MonoBehaviour
         GenerateFormulaCards();
         GenerateBlessings();
         InitializeDeletionUI();
-        InitializeRefreshCost();
+        InitializeRefreshCostUI();
 
 
         // ---通知 UI 刷新 ---
         UIManager.Instance.RefreshShopUI();
     }
-    public void InitializeRefreshCost()
+    public void InitializeRefreshCostUI()
     {
-        int currentRound = GameManager.Instance.currentRound;
-        long roundSquare = (long)Mathf.Pow(currentRound, 2);
-        long powerOfTwo = (long)Mathf.Pow(2, refreshCount);
-        long refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
-
-
-        // 如果拥有丰盈宝库祝福，刷新费用为0
-        if (BlessingManager.Instance.HasRichTreasure == 1)
-        {
-            refreshCost = 0;
-        }
+        long refreshCost = GetCurrentRefreshCost();
 
         refreshCostText.text = $"cost: {refreshCost}";
     }
@@ -137,6 +127,7 @@ public class ShopManager : MonoBehaviour
         ResetCurrentRoundBlessings();
         OpenShop();
     }
+    #region 生成商品
     /// <summary>
     /// 生成数字卡商品
     /// </summary>
@@ -399,7 +390,9 @@ public class ShopManager : MonoBehaviour
         currentRoundPurchasedBlessings.Clear();
         Debug.Log("[ShopManager] 本回合已显示的祝福记录已清空");
     }
+    #endregion
 
+    #region 购买商品
     public bool TryBuyNumberCard(ShopItem<NumberCardInstance> item)
     {
         if (item == null || item.cardData == null)
@@ -496,21 +489,11 @@ public class ShopManager : MonoBehaviour
 
         return purchaseSuccess;
     }
+    #endregion
     //商店刷新
     public void RefreshShop()
     {
-        int currentRound = GameManager.Instance.currentRound;
-        long roundSquare = (long)Mathf.Pow(currentRound, 2);
-        long powerOfTwo = (long)Mathf.Pow(5, refreshCount);
-        long refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
-        Debug.Log($"refreshCount = {refreshCount}, 倍数 = {Mathf.Pow(5, refreshCount)}");
-
-
-        // 如果拥有丰盈宝库祝福，刷新费用为0
-        if (BlessingManager.Instance.HasRichTreasure == 1)
-        {
-            refreshCost = 0;
-        }
+        long refreshCost = GetCurrentRefreshCost();
 
         if (GameManager.Instance.currentPoints < refreshCost)
         {
@@ -525,7 +508,19 @@ public class ShopManager : MonoBehaviour
 
         OpenShop();
     }
-
+    public long GetCurrentRefreshCost()
+    {
+        int currentRound = GameManager.Instance.currentRound;
+        long roundSquare = (long)Mathf.Pow(currentRound, 2);
+        long powerOfTwo = (long)Mathf.Pow(5, refreshCount);
+        long refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
+        // 如果拥有丰盈宝库祝福，刷新费用为0
+        if (BlessingManager.Instance.HasRichTreasure == 1)
+        {
+            refreshCost = 0;
+        }
+        return refreshCost;
+    }
     public void CloseShop() 
     {
         // 隐藏商店面板
