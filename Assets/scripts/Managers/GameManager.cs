@@ -84,9 +84,9 @@ public class GameManager : MonoBehaviour
         // 重置本局统计数据
         ResetRoundStatistics();
 
-        currentPoints = 100000000000000;
+        currentPoints = 1000000000000;
 
-        currentRound = 60;
+        currentRound = 1;
 
         GameManager.isInvolutionMode = false;
         //不是内卷模式
