@@ -501,8 +501,9 @@ public class ShopManager : MonoBehaviour
     {
         int currentRound = GameManager.Instance.currentRound;
         long roundSquare = (long)Mathf.Pow(currentRound, 2);
-        long powerOfTwo = (long)Mathf.Pow(2, refreshCount);
+        long powerOfTwo = (long)Mathf.Pow(5, refreshCount);
         long refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
+        Debug.Log($"refreshCount = {refreshCount}, 倍数 = {Mathf.Pow(5, refreshCount)}");
 
 
         // 如果拥有丰盈宝库祝福，刷新费用为0
