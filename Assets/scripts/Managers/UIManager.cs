@@ -346,78 +346,12 @@ public class UIManager : MonoBehaviour
         // 100亿以内正常显示
         return ((long)number).ToString("N0");
     }
-
-    /*
-    //四舍五入的科学计数法（留着看看以后需不需要）
-    /// <summary>
-    /// 格式化大数字显示（≤100亿用千分位，>100亿用科学计数法，四位有效数字+小写e）
-    /// </summary>
-    string FormatBigNumber(System.Numerics.BigInteger number)
+    
+    public void ShowPlayerData()
     {
-        // 阈值：100亿
-        System.Numerics.BigInteger threshold = 10000000000;
-
-        // 大于100亿 → 科学计数法，四位有效数字 + 小写 e
-        if (System.Numerics.BigInteger.Abs(number) > threshold)
-        {
-            double numDouble = (double)number;
-            return numDouble.ToString("0.000e0");
-        }
-
-        // 小于等于100亿 → 直接千分位（一定在 long 范围内）
-        return ((long)number).ToString("N0");
+        ShowPanel(PlayerDataPanel);
     }
-    */
-
-
-
-    /*
-    //正常版本
-    /// <summary>
-    /// 格式化大数字显示（例如：1,234,567）
-    /// </summary>
-    string FormatBigNumber(System.Numerics.BigInteger number)
-    {
-        // 如果数字在 long 范围内，直接用内置格式化
-        if (number <= long.MaxValue && number >= long.MinValue)
-        {
-            return ((long)number).ToString("N0");  // N0 格式自动添加千位分隔符
-        }
-
-        // 如果超过 long 范围，手动添加逗号
-        string numberStr = number.ToString();
-
-        // 处理负号
-        bool isNegative = number < 0;
-        if (isNegative)
-        {
-            numberStr = numberStr.Substring(1);  // 移除负号
-        }
-
-        // 从右往左插入逗号（每3位）
-        var result = new System.Text.StringBuilder();
-        int digitCount = numberStr.Length;
-
-        for (int i = 0; i < digitCount; i++)
-        {
-            // 从右往左数，每3位插入一个逗号
-            if (i > 0 && (digitCount - i) % 3 == 0)
-            {
-                result.Append(',');
-            }
-            result.Append(numberStr[i]);
-        }
-
-        // 添加负号（如果有）
-        if (isNegative)
-        {
-            return "-" + result.ToString();
-        }
-
-        return result.ToString();
-
-    }
-    */
+   
     #endregion
 
     #region 手牌显示
@@ -821,54 +755,5 @@ public class UIManager : MonoBehaviour
     }
     #endregion
 
-    public class AudioManager : MonoBehaviour
-    {
-        public static AudioManager instance; // 单例，全局调用
-        private AudioSource audioSource;
 
-        void Awake()
-        {
-            // 唯一不销毁（切场景不中断音乐）
-            if (instance == null)
-            {
-                instance = this;
-                DontDestroyOnLoad(gameObject);
-            }
-            else
-            {
-                Destroy(gameObject);
-            }
-
-            audioSource = GetComponent<AudioSource>();
-        }
-
-        // 播放背景音乐
-        public void PlayBGM(AudioClip clip)
-        {
-            audioSource.clip = clip;
-            audioSource.Play();
-        }
-
-        // 停止
-        public void StopBGM()
-        {
-            audioSource.Stop();
-        }
-
-        // 设置音量
-        public void SetVolume(float volume)
-        {
-            audioSource.volume = volume;
-        }
-    /*
-    // 播放
-    AudioManager.instance.PlayBGM(你的音乐片段);
-
-    // 停止
-    AudioManager.instance.StopBGM();
-
-    // 设置音量 0~1
-    AudioManager.instance.SetVolume(0.5f);
-    */
-    }
 }

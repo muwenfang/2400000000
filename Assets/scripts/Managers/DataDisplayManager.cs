@@ -10,6 +10,8 @@ using UnityEngine.UI;
 /// </summary>
 public class DataDisplayManager : MonoBehaviour
 {
+    public static DataDisplayManager Instance { get; private set; }
+
     [Header("普通模式数据显示 ==========")]
     [SerializeField] private Text normalModeHighScoreText;      // 普通模式最高分
     [SerializeField] private Text normalModeHighRateText;       // 普通模式最高倍率
@@ -26,13 +28,35 @@ public class DataDisplayManager : MonoBehaviour
     [SerializeField] private Text globalHighScoreText;          // 全局最高分
     [SerializeField] private Text totalWinsText;                // 总通关次数
 
+    [Header("本局统计数据显示 ==========")]
+    [SerializeField] private GameObject currentGameStatsPanel;   // 本局数据面板
+    [SerializeField] private Text currentMaxScoreText;          // 本局最终点数
+    [SerializeField] private Text currentMaxRateText;           // 本局最高倍率
+    [SerializeField] private Text currentMaxCardText;           // 本局最大数字卡
+    [SerializeField] private Text currentMaxCalculationText;    // 本局最高结算点
+
     [Header("显示格式设置 ==========")]
     [SerializeField] private bool autoRefresh = true;           // 是否自动刷新
     [SerializeField] private float refreshInterval = 1f;        // 自动刷新间隔（秒）
 
+    public GameObject PlayerDataPanel; // 玩家数据面板
+
     private float refreshTimer = 0f;
     private GameManager gameManager;
     private DataSavingManager dataSavingManager;
+
+    private void Awake()
+    {
+        // 单例模式
+        if (Instance == null)
+        {
+            Instance = this;
+        }
+        else if (Instance != this)
+        {
+            Destroy(gameObject);
+        }
+    }
 
     private void Start()
     {
@@ -49,7 +73,6 @@ public class DataDisplayManager : MonoBehaviour
         // 第一次初始化显示
         RefreshAllDisplay();
     }
-
     private void Update()
     {
         if (!autoRefresh) return;
@@ -74,7 +97,6 @@ public class DataDisplayManager : MonoBehaviour
         RefreshHistoryData();
 
     }
-
     /// <summary>
     /// 刷新历史数据显示
     /// </summary>
@@ -88,12 +110,12 @@ public class DataDisplayManager : MonoBehaviour
             string scoreDisplay = data.TotalPointsN == "0"
                 ? "未开始"
                 : data.TotalPointsN;
-            normalModeHighScoreText.text = $"最高分：{scoreDisplay}";
+            normalModeHighScoreText.text = $"{scoreDisplay}";
         }
 
         if (normalModeHighRateText != null)
         {
-            normalModeHighRateText.text = $"最高倍率：{data.RateN}x";
+            normalModeHighRateText.text = $"{data.RateN}";
         }
 
         if (normalModeMaxCardText != null)
@@ -101,7 +123,7 @@ public class DataDisplayManager : MonoBehaviour
             string cardDisplay = data.NumbercardPointN == "0"
                 ? "未开始"
                 : data.NumbercardPointN;
-            normalModeMaxCardText.text = $"最高数字卡：{cardDisplay}";
+            normalModeMaxCardText.text = $"{cardDisplay}";
         }
 
         if (normalModeMaxCalculationText != null)
@@ -109,7 +131,7 @@ public class DataDisplayManager : MonoBehaviour
             string calcDisplay = data.CalculationPointN == "0"
                 ? "未开始"
                 : data.CalculationPointN;
-            normalModeMaxCalculationText.text = $"最高结算：{calcDisplay}";
+            normalModeMaxCalculationText.text = $"{calcDisplay}";
         }
 
         // ===== 内卷模式数据 =====
@@ -118,12 +140,12 @@ public class DataDisplayManager : MonoBehaviour
             string scoreDisplay = data.TotalPointsI == "0"
                 ? "未开始"
                 : data.TotalPointsI;
-            hardModeHighScoreText.text = $"最高分：{scoreDisplay}";
+            hardModeHighScoreText.text = $"{scoreDisplay}";
         }
 
         if (hardModeHighRateText != null)
         {
-            hardModeHighRateText.text = $"最高倍率：{data.RateI}x";
+            hardModeHighRateText.text = $"{data.RateI}";
         }
 
         if (hardModeMaxCardText != null)
@@ -131,7 +153,7 @@ public class DataDisplayManager : MonoBehaviour
             string cardDisplay = data.NumbercardPointI == "0"
                 ? "未开始"
                 : data.NumbercardPointI;
-            hardModeMaxCardText.text = $"最高数字卡：{cardDisplay}";
+            hardModeMaxCardText.text = $"{cardDisplay}";
         }
 
         if (hardModeMaxCalculationText != null)
@@ -139,7 +161,7 @@ public class DataDisplayManager : MonoBehaviour
             string calcDisplay = data.CalculationPointI == "0"
                 ? "未开始"
                 : data.CalculationPointI;
-            hardModeMaxCalculationText.text = $"最高结算：{calcDisplay}";
+            hardModeMaxCalculationText.text = $"{calcDisplay}";
         }
 
         // ===== 全局统计数据 =====
@@ -149,69 +171,53 @@ public class DataDisplayManager : MonoBehaviour
                 ? "0"
                 : data.MaxPoint
                 ;
-            globalHighScoreText.text = $"全局最高：{scoreDisplay}";
+            globalHighScoreText.text = $"{scoreDisplay}";
         }
 
         if (totalWinsText != null)
         {
-            totalWinsText.text = $"总通关：{data.accomplishTimes}次";
+            totalWinsText.text = $"{data.accomplishTimes}次";
         }
     }
 
-    ///// <summary>
-    ///// 格式化大数字显示
-    ///// 999 → 999
-    ///// 1,000 → 1K
-    ///// 1,000,000 → 1M
-    ///// 1,000,000,000 → 1B
-    ///// 1,000,000,000,000 → 1T
-    ///// </summary>
-    //private string FormatNumber(string numberStr)
-    //{
-    //    if (!useShortFormat)
-    //    {
-    //        return numberStr;
-    //    }
+    /// <summary>
+    /// 【新增】显示本局游戏的统计数据
+    /// 在游戏胜利后调用此方法
+    /// 逻辑和历史数据显示相同，用于展示本局的最大数据
+    /// </summary>
+    public void ShowCurrentGameStats(int gameMode, BigInteger maxPoints, float maxMultiplier, BigInteger maxNumberCard, BigInteger maxCalculationValue)
+    {
+        // 显示本局数据面板
+        if (currentGameStatsPanel != null)
+        {
+            currentGameStatsPanel.SetActive(true);
+        }
 
-    //    if (!BigInteger.TryParse(numberStr, out BigInteger num))
-    //    {
-    //        return numberStr;
-    //    }
+        // 显示本局最终点数
+        if (currentMaxScoreText != null)
+        {
+            currentMaxScoreText.text = $"{maxPoints}";
+        }
 
-    //    if (num == 0)
-    //        return "0";
+        // 显示本局最高倍率
+        if (currentMaxRateText != null)
+        {
+            currentMaxRateText.text = $"{maxMultiplier}";
+        }
 
-    //    // 定义单位阈值
-    //    BigInteger trillion = BigInteger.Parse("1000000000000");
-    //    BigInteger billion = BigInteger.Parse("1000000000");
-    //    BigInteger million = BigInteger.Parse("1000000");
-    //    BigInteger thousand = BigInteger.Parse("1000");
+        // 显示本局最大数字卡
+        if (currentMaxCardText != null)
+        {
+            currentMaxCardText.text = $"{maxNumberCard}";
+        }
 
-    //    if (num >= trillion)
-    //    {
-    //        decimal value = (decimal)num / (decimal)trillion;
-    //        return value.ToString("F2") + "T";
-    //    }
-    //    else if (num >= billion)
-    //    {
-    //        decimal value = (decimal)num / (decimal)billion;
-    //        return value.ToString("F2") + "B";
-    //    }
-    //    else if (num >= million)
-    //    {
-    //        decimal value = (decimal)num / (decimal)million;
-    //        return value.ToString("F2") + "M";
-    //    }
-    //    else if (num >= thousand)
-    //    {
-    //        decimal value = (decimal)num / (decimal)thousand;
-    //        return value.ToString("F2") + "K";
-    //    }
-    //    else
-    //    {
-    //        return num.ToString();
-    //    }
-    //}
+        // 显示本局最高结算点
+        if (currentMaxCalculationText != null)
+        {
+            currentMaxCalculationText.text = $"{maxCalculationValue}";
+        }
+
+    }
 
     /// <summary>
     /// 手动刷新显示（在需要时调用）

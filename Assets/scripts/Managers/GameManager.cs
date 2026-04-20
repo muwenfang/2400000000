@@ -86,7 +86,7 @@ public class GameManager : MonoBehaviour
 
         currentPoints = 1000000000000;
 
-        currentRound = 1;
+        currentRound = 60;
 
         GameManager.isInvolutionMode = false;
         //不是内卷模式
@@ -202,6 +202,17 @@ public class GameManager : MonoBehaviour
         //    并且获取本回合的最大数字卡,为经验主义祝福提供数据支持
         lastRoundMaxCard = formula.PrepareCardsForCalculation();
 
+        // 记录本局数字卡的最大值
+        if (lastRoundMaxCard != null)
+        {
+            BigInteger currentRoundMaxValue = lastRoundMaxCard.GetOutPutValue();
+            if (currentRoundMaxValue > roundMaxNumberCardValue)
+            {
+                roundMaxNumberCardValue = currentRoundMaxValue;
+                Debug.Log($"更新本局数字卡最大值: {roundMaxNumberCardValue}");
+            }
+        }
+
         // 2. 刷新UI显示投掷和递增后的结果
         UIManager.Instance.RefreshSelectedCardsDisplay(formula.selectedNumberCards);
 
@@ -245,6 +256,13 @@ public class GameManager : MonoBehaviour
         if (blessingManager != null && blessingManager.CheckJackpot7Effect(baseScore))
         {
             finalScore = BigInteger.Zero;
+        }
+
+        // 记录本回合的结算点数（baseScore，这是一次完整结算的值）
+        if (finalScore > roundMaxCalculationValue)
+        {
+            roundMaxCalculationValue = finalScore;
+            Debug.Log($"【统计数据】更新本局最高结算点: {roundMaxCalculationValue}");
         }
 
         // 启动分步显示协程
@@ -527,7 +545,7 @@ public class GameManager : MonoBehaviour
     {
         //加载主菜单界面
         ChangeState(GameState.MainMenu);
-        UIManager.Instance.pointstagePanel.SetActive(false);
+        //UIManager.Instance.pointstagePanel.SetActive(false);
     }
 
     void WinGame(bool isWin)
@@ -544,8 +562,21 @@ public class GameManager : MonoBehaviour
                     finalPoints: currentPoints,
                     maxMultiplier: roundMaxMultiplier,
                     formulaCardCount: formulaCardCount,
-                    numberCardMaxValue: roundMaxNumberCardValue
+                    numberCardMaxValue: roundMaxNumberCardValue ,
+                    maxCalculationValue:roundMaxCalculationValue  
                 );
+
+                // 显示本局统计数据
+                if (DataDisplayManager.Instance != null)
+                {
+                    DataDisplayManager.Instance.ShowCurrentGameStats(
+                        gameMode: (int)currentGameMode,
+                        maxPoints: currentPoints,
+                        maxMultiplier: roundMaxMultiplier,
+                        maxNumberCard: roundMaxNumberCardValue,
+                        maxCalculationValue: roundMaxCalculationValue
+                    );
+                }
             }
 
             currentState = GameState.GameOver;
@@ -596,5 +627,11 @@ public class GameManager : MonoBehaviour
                 Debug.Log("进入商店界面");
                 break;
         }
+    }
+
+    //退出游戏
+    public void ExitGame()
+    {
+        Application.Quit();
     }
 }

@@ -5,10 +5,6 @@ using UnityEngine;
 
 /// <summary>
 /// 数据保存管理器 - 负责玩家数据的保存和加载
-/// 关键修复：
-/// 1. 使用 BigInteger 进行所有数值比较
-/// 2. 只在存储时将 BigInteger 转换为 string
-/// 3. 确保所有数据类型一致
 /// </summary>
 public class DataSavingManager : MonoBehaviour
 {
@@ -19,6 +15,21 @@ public class DataSavingManager : MonoBehaviour
 
     [Header("当前玩家数据")]
     private SavingData currentSavingData;
+
+    // 用于显示本局数据的缓存
+    private GameSessionStats currentSessionStats;
+
+    /// <summary>
+    /// 本局游戏统计数据
+    /// </summary>
+    public class GameSessionStats
+    {
+        public int gameMode;
+        public BigInteger maxPoints;              // 本局最终点数
+        public float maxMultiplier;               // 本局最高倍率
+        public BigInteger maxNumberCardValue;     // 本局数字卡最大值
+        public BigInteger maxCalculationValue;    // 本局单次结算最大值
+    }
 
     private void Awake()
     {
@@ -90,18 +101,23 @@ public class DataSavingManager : MonoBehaviour
     /// 游戏胜利时调用 - 更新游戏数据
     /// 这是数据更新的唯一入口
     /// </summary>
-    /// <param name="gameMode">游戏模式（0=普通模式，1=内卷模式）</param>
-    /// <param name="finalPoints">最终点数（使用 BigInteger 避免溢出）</param>
-    /// <param name="maxMultiplier">本局最大倍率</param>
-    /// <param name="formulaCardCount">拥有的公式卡数量</param>
-    /// <param name="numberCardMaxValue">本局数字卡最大值</param>
-    public void OnGameWin(int gameMode, BigInteger finalPoints, float maxMultiplier, int formulaCardCount, BigInteger numberCardMaxValue)
+
+    public void OnGameWin(int gameMode, BigInteger finalPoints, float maxMultiplier, int formulaCardCount, BigInteger numberCardMaxValue, BigInteger maxCalculationValue)
     {
         Debug.Log($"\n========== 游戏胜利，开始数据更新 ==========");
         Debug.Log($"最终点数：{finalPoints}");
         Debug.Log($"最大倍率：{maxMultiplier}x");
         Debug.Log($"最大数字卡值：{numberCardMaxValue}");
 
+        // 保存本局数据用于显示
+        currentSessionStats = new GameSessionStats
+        {
+            gameMode = gameMode,
+            maxPoints = finalPoints,
+            maxMultiplier = maxMultiplier,
+            maxNumberCardValue = numberCardMaxValue,
+            maxCalculationValue = maxCalculationValue
+        };
         // 根据游戏模式更新对应的数据
         if (gameMode == 0)
         {
@@ -116,17 +132,13 @@ public class DataSavingManager : MonoBehaviour
         currentSavingData.accomplishTimes++;
         Debug.Log($"通关次数 +1");
 
-        // 【关键】更新全局最高点数 - 使用 BigInteger 比较
+        // 更新全局最高点数 - 使用 BigInteger 比较
         BigInteger currentMaxPoint = SavingData.StringToBigInteger(currentSavingData.MaxPoint);
         if (finalPoints > currentMaxPoint)
         {
             currentSavingData.MaxPoint = finalPoints.ToString();
-            Debug.Log($"更新全局最高点数：{currentSavingData.MaxPoint}");
         }
-        else
-        {
-            Debug.Log($"本局点数 {finalPoints} 未超过历史最高 {currentMaxPoint}，不更新");
-        }
+
 
         // 保存数据到文件
         SaveDataToFile();
@@ -136,7 +148,7 @@ public class DataSavingManager : MonoBehaviour
 
     /// <summary>
     /// 更新普通模式数据
-    /// 【关键】使用 BigInteger 进行比较，确保精度不丢失
+    /// 使用 BigInteger 进行比较，确保精度不丢失
     /// </summary>
     private void UpdateNormalModeData(BigInteger finalPoints, float maxMultiplier, int formulaCardCount, BigInteger numberCardMaxValue)
     {
@@ -192,7 +204,7 @@ public class DataSavingManager : MonoBehaviour
 
     /// <summary>
     /// 更新内卷模式数据
-    /// 【关键】使用 BigInteger 进行比较，确保精度不丢失
+    /// 使用 BigInteger 进行比较，确保精度不丢失
     /// </summary>
     private void UpdateInvolutionModeData(BigInteger finalPoints, float maxMultiplier, int formulaCardCount, BigInteger numberCardMaxValue)
     {
@@ -203,7 +215,7 @@ public class DataSavingManager : MonoBehaviour
         if (finalPoints > currentMaxPointsI)
         {
             currentSavingData.TotalPointsI = finalPoints.ToString();
-            Debug.Log($"✓ 更新内卷模式最大点数：{currentSavingData.TotalPointsI}");
+            Debug.Log($" 更新内卷模式最大点数：{currentSavingData.TotalPointsI}");
         }
         else
         {
