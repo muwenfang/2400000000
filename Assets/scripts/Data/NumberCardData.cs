@@ -178,13 +178,10 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         // 更新递增值（+1）
         if (cardData.partA.isIncremental)
         {
-            if (currentA >= 9)
+            if (currentA >= 9 && BlessingManager.Instance.hasRisingUp == 1)
             {
-                if (BlessingManager.Instance.hasRisingUp == 1)
-                {
-                    currentA = 1;
-                    BlessingManager.Instance.totalMultiplierBonus += 20;
-                }
+                currentA = 1;
+                BlessingManager.Instance.totalMultiplierBonus += 20;
             }
             else currentA++;
             //Debug.Log($"递增卡更新：{cardData.cardName} Part A: {currentA - 1} → {currentA}");
@@ -192,13 +189,10 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
 
         if (cardData.partB != null && cardData.partB.isIncremental)
         {
-            if (currentB >= 9)
+            if (currentB >= 9 && BlessingManager.Instance.hasRisingUp == 1)
             {
-                if (BlessingManager.Instance.hasRisingUp == 1)
-                {
-                    currentB = 1;
-                    BlessingManager.Instance.totalMultiplierBonus += 20;
-                }
+             currentB = 1;
+             BlessingManager.Instance.totalMultiplierBonus += 20;
             }
             else currentB++;
             //Debug.Log($"递增卡更新：{cardData.cardName} Part B: {currentB - 1} → {currentB}");
