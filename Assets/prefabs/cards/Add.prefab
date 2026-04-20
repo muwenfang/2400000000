@@ -509,6 +509,7 @@ MonoBehaviour:
   currentSlot: {fileID: 0}
   isPlacedInSlot: 0
   desiredDropParent: {fileID: 0}
+  dragCooldown: 0.1
   textA: {fileID: 6192043971756098895}
   textB: {fileID: 5795935553713100378}
 --- !u!1001 &5436332064436788758
@@ -645,7 +646,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3483891955417894861, guid: 944f087166581f54986c8754047048b1, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     m_RemovedComponents: []
     m_RemovedGameObjects: []

@@ -102,6 +102,7 @@ public class BlessingManager : MonoBehaviour
         dialecticalAccumulatedMultiplier = 0f;  
         ApplyPragmatism = 0;    
         hasGodOfGambler = false;  
+        GetCurrentPriceMultiplier(); //重置折扣
     }
 
     /// <summary>
@@ -745,6 +746,7 @@ public class BlessingManager : MonoBehaviour
         dialecticalPerRoundBonus = 0;
         dialecticalAccumulatedMultiplier = 0f;
         wishCoinPurchaseCount = 0;
+        GetCurrentPriceMultiplier(); // 强制刷新价格
     }
 
     /// <summary>
