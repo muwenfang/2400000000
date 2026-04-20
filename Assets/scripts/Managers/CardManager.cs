@@ -131,6 +131,8 @@ public class CardManager : MonoBehaviour
         // 创建临时池（使用库存中的实例）
         List<NumberCardInstance> tempPool = new List<NumberCardInstance>(inventoryInstances);
 
+        currentNumberCards.Clear(); // 确保手牌清空
+
         // 经验主义祝福
         if (BlessingManager.Instance.GetBlessingTypeCount(BlessingData.BlessingType.Empiricism) == 1)
         {
@@ -139,16 +141,27 @@ public class CardManager : MonoBehaviour
                 Debug.LogWarning($"卡牌不足！只抽到 0 张");
                 return;
             }
-            // 抽取上一回合最大值的卡牌
+
             NumberCardInstance selectedInstance = GameManager.Instance.lastRoundMaxCard;
 
-            // 抽中时处理骰子和递增
-            selectedInstance.OnDrawn();
-            currentNumberCards.Add(selectedInstance);
-            Debug.Log($"抽到卡牌: {selectedInstance.cardData.cardName}," +
-                $" 当前值: A={selectedInstance.currentA}, B={selectedInstance.currentB}");
+            // 只有这张卡还在池子里才优先抽
+            if (selectedInstance != null && tempPool.Contains(selectedInstance))
+            {
+                // 关键修复：抽完立刻从池里删掉，防止重复
+                tempPool.Remove(selectedInstance);
 
-            for (int i = 1; i < count; i++)
+                selectedInstance.OnDrawn();
+                currentNumberCards.Add(selectedInstance);
+                Debug.Log("[经验主义]优先抽到: " + selectedInstance.cardData.cardName);
+            }
+            else
+            {
+                Debug.Log("[经验主义]上回合最大卡不存在，正常抽卡");
+            }
+
+            // 统一补齐剩余数量
+            int start = currentNumberCards.Count;
+            for (int i = start; i < count; i++)
             {
                 if (tempPool.Count == 0)
                 {
@@ -160,16 +173,13 @@ public class CardManager : MonoBehaviour
                 selectedInstance = tempPool[randomIndex];
                 tempPool.RemoveAt(randomIndex);
 
-                //抽中时处理骰子和递增
                 selectedInstance.OnDrawn();
-
                 currentNumberCards.Add(selectedInstance);
 
                 Debug.Log($"抽到卡牌: {selectedInstance.cardData.cardName}, 当前值: A={selectedInstance.currentA}, B={selectedInstance.currentB}");
             }
         }
-
-        //无经验主义祝福逻辑
+        // ================= 正常抽卡（没有经验主义时） =================
         else
         {
             for (int i = 0; i < count; i++)
@@ -181,18 +191,15 @@ public class CardManager : MonoBehaviour
                 }
 
                 int randomIndex = Random.Range(0, tempPool.Count);
-                NumberCardInstance selectedInstance = tempPool[randomIndex];
+                NumberCardInstance card = tempPool[randomIndex];
                 tempPool.RemoveAt(randomIndex);
 
-                //抽中时处理骰子和递增
-                selectedInstance.OnDrawn();
-
-                currentNumberCards.Add(selectedInstance);
-
-                Debug.Log($"抽到卡牌: {selectedInstance.cardData.cardName}, 当前值: A={selectedInstance.currentA}, B={selectedInstance.currentB}");
+                card.OnDrawn();
+                currentNumberCards.Add(card);
             }
         }
     }
+    
     public void DrawFormulaCards()
     {   
         if (formulaCardDeck == null || formulaCardDeck.Count == 0)
