@@ -56,7 +56,7 @@ public class ShopManager : MonoBehaviour
     public GameObject deleteCostPanel;
     public int totalRemovedNumberCards = 0;
     public int totalRemovedFormulaCards = 0;
-    public int baseNumberCardRemoveCost = 5;
+    public int baseNumberCardRemoveCost = 10;
     public int baseFormulaCardRemoveCost = 200;
 
     [Header("槽位解锁配置")]
@@ -661,17 +661,17 @@ public class ShopManager : MonoBehaviour
         {
             // 用当前已删除次数（未+1）计算本次真实消耗
             // 数字卡删除消耗：基础消耗 + 已删除数量 * 递增值
-            // 示例：第1张数字卡消耗 5，第2张消耗 10，第3张消耗 20，以此类推
+            // 示例：第1张数字卡消耗 10，第2张消耗 50，第3张消耗 250，以此类推
             int deletedCount = totalRemovedNumberCards;
             Debug.Log($"[ShopManager] 计算数字卡删除消耗: " +
-                          $"基础{baseNumberCardRemoveCost} * 2^{deletedCount} = {baseNumberCardRemoveCost * Mathf.Pow(2, deletedCount)}");
-            return (long)(baseNumberCardRemoveCost * Mathf.Pow(2, deletedCount));
+                          $"基础{baseNumberCardRemoveCost} * 5^{deletedCount} = {baseNumberCardRemoveCost * Mathf.Pow(5, deletedCount)}");
+            return (long)(baseNumberCardRemoveCost * Mathf.Pow(5, deletedCount));
         }
         else if (card is FormulaCardData)
         {
             int deletedCount = totalRemovedFormulaCards;
-            Debug.Log($"[ShopManager] 公式卡删除消耗: {baseNumberCardRemoveCost * Mathf.Pow(2, deletedCount)}");
-            return (long)(baseFormulaCardRemoveCost * Mathf.Pow(2, deletedCount));
+            Debug.Log($"[ShopManager] 公式卡删除消耗: {baseFormulaCardRemoveCost * Mathf.Pow(5, deletedCount)}");
+            return (long)(baseFormulaCardRemoveCost * Mathf.Pow(5, deletedCount));
         }
         Debug.LogWarning("[ShopManager] 未知的卡牌类型");
         return 0;
@@ -688,7 +688,7 @@ public class ShopManager : MonoBehaviour
         if (deleteCardCostText != null)
         {
             // 计算下一次删卡的消耗
-            long nextCost = (long)(baseNumberCardRemoveCost * Mathf.Pow(2, totalRemovedNumberCards));
+            long nextCost = (long)(baseNumberCardRemoveCost * Mathf.Pow(5, totalRemovedNumberCards));
 
             deleteCardCostText.text = $"{nextCost}";
 
