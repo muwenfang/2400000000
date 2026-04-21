@@ -84,7 +84,7 @@ public class GameManager : MonoBehaviour
         // 重置本局统计数据
         ResetRoundStatistics();
 
-        currentPoints = 100000000;
+        currentPoints = 0;
 
         currentRound = 1;
 
@@ -128,7 +128,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("初始化游戏");
         ResetRoundStatistics();
 
-        currentPoints = 100000000000;
+        currentPoints = 0;
         GameManager.isInvolutionMode = true;
         //是内卷模式
         blessingManager.hasGodOfGambler = false;
