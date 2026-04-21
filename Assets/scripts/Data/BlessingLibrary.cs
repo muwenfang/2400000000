@@ -221,7 +221,7 @@ public class BlessingLibrary : ScriptableObject
             name: "友情折扣",
             description: "你每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%（最多-80%)",
             type: BlessingData.BlessingType.FriendDiscount,
-            basePrice: 10000,
+            basePrice: 20000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -245,7 +245,7 @@ public class BlessingLibrary : ScriptableObject
             name: "丰盈宝库",
             description: "商店刷新永久免费",
             type: BlessingData.BlessingType.RichTreasury,
-            basePrice: 50000,
+            basePrice: 500000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -327,7 +327,7 @@ public class BlessingLibrary : ScriptableObject
             name: "实用主义",
             description: "立即删除除价格最高的填空卡以外的所有填空卡；此后无法购买比已拥有的填空卡价格更低的填空卡，如果你成功购买了一张填空卡，立即删除你之前拥有的那张填空卡",
             type: BlessingData.BlessingType.Pragmatism,
-            basePrice: 0,
+            basePrice: 5000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -337,7 +337,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 30,
             name: "短视",
-            description: "倍率+10；每回合倍率-1",
+            description: "倍率+15；每回合倍率-1",
             type: BlessingData.BlessingType.ShortSight,
             basePrice: 0,
             isStackable: true
