@@ -746,6 +746,9 @@ public class BlessingManager : MonoBehaviour
         dialecticalPerRoundBonus = 0;
         dialecticalAccumulatedMultiplier = 0f;
         wishCoinPurchaseCount = 0;
+        globalPriceDiscountPercent = 0f;    // 友情折扣
+        blessDiscountPerBlessing = 0f;      // 眷顾
+        maxBlessDiscountPercent = 80f;
         GetCurrentPriceMultiplier(); // 强制刷新价格
     }
 
