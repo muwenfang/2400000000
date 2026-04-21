@@ -605,42 +605,30 @@ public class ShopManager : MonoBehaviour
             Debug.LogError("[ShopManager] OnCardDeleted: 删除的卡牌为空");
             return false;
         }
-        // 冷却检查：防止连续快速点击
+
+        // 冷却检查
         if (CooldownManager.Instance != null &&
             CooldownManager.Instance.IsInCooldown(CooldownManager.CooldownType.CardDeletion))
         {
             Debug.LogWarning($"[ShopManager] 删卡操作在冷却中");
             return false;
         }
-        // 统计删除的卡牌类型
-        if (deletedCard is NumberCardInstance numberCard)
-        {
-            Debug.Log($"[ShopManager] 数字卡被删除：{numberCard.cardData.cardName}");
-            totalRemovedNumberCards++;
-        }
-        else if (deletedCard is FormulaCardData formulaCard)
-        {
-            Debug.Log($"[ShopManager] 公式卡被删除：{formulaCard.Name}");
-            totalRemovedFormulaCards++;
-        }
 
-        // 计算并扣除消耗
+        // 1. 先计算本次消耗
         long cost = CalculateDeletionCost(deletedCard);
 
-        //点数检查
-        if(cost > GameManager.Instance.currentPoints)
+        // 2. 点数检查（关键：先判断，再操作）
+        if (GameManager.Instance == null || GameManager.Instance.currentPoints < cost)
         {
             Debug.LogWarning($"点数不足，无法删除卡牌。需要 {cost} 点");
             return false;
         }
 
-        else if (GameManager.Instance != null)
-        {
-            GameManager.Instance.AddPoints(-cost);
-            Debug.Log($"[ShopManager] 扣除 {cost} 点，当前点数：{GameManager.Instance.currentPoints}");
-        }
+        // 3. 点数足够，才执行删除、扣点、计数+1
+        GameManager.Instance.AddPoints(-cost);
+        Debug.Log($"[ShopManager] 扣除 {cost} 点，当前点数：{GameManager.Instance.currentPoints}");
 
-        // 更新统计计数
+        // 4. 只在成功删除时自增计数
         if (deletedCard is NumberCardInstance)
         {
             totalRemovedNumberCards++;
@@ -650,11 +638,10 @@ public class ShopManager : MonoBehaviour
             totalRemovedFormulaCards++;
         }
 
-        //  更新UI
+        // 5. 更新UI与冷却
         UpdateDeletionUI();
         UIManager.Instance.UpdatePointsDisplay(GameManager.Instance.currentPoints);
 
-        //  启动删卡冷却
         if (CooldownManager.Instance != null)
         {
             CooldownManager.Instance.StartCooldown(
@@ -665,7 +652,6 @@ public class ShopManager : MonoBehaviour
 
         return true;
     }
-
     /// <summary>
     /// 计算单张卡牌的删除消耗
     /// </summary>
@@ -673,24 +659,20 @@ public class ShopManager : MonoBehaviour
     {
         if (card is NumberCardInstance)
         {
+            // 用当前已删除次数（未+1）计算本次真实消耗
             // 数字卡删除消耗：基础消耗 + 已删除数量 * 递增值
             // 示例：第1张数字卡消耗 5，第2张消耗 10，第3张消耗 20，以此类推
             int deletedCount = totalRemovedNumberCards;
-            long cost = (long)(baseNumberCardRemoveCost * Mathf.Pow(2, deletedCount));
-
             Debug.Log($"[ShopManager] 计算数字卡删除消耗: " +
-                      $"基础{baseNumberCardRemoveCost} * 2^{deletedCount} = {cost}");
-
-            return cost;
+                          $"基础{baseNumberCardRemoveCost} * 2^{deletedCount} = {baseNumberCardRemoveCost * Mathf.Pow(2, deletedCount)}");
+            return (long)(baseNumberCardRemoveCost * Mathf.Pow(2, deletedCount));
         }
         else if (card is FormulaCardData)
         {
             int deletedCount = totalRemovedFormulaCards;
-            long cost = (long)(baseFormulaCardRemoveCost * Mathf.Pow(2, deletedCount));
-            Debug.Log($"[ShopManager] 公式卡删除消耗: {cost}");
-            return cost;
+            Debug.Log($"[ShopManager] 公式卡删除消耗: {baseNumberCardRemoveCost * Mathf.Pow(2, deletedCount)}");
+            return (long)(baseFormulaCardRemoveCost * Mathf.Pow(2, deletedCount));
         }
-
         Debug.LogWarning("[ShopManager] 未知的卡牌类型");
         return 0;
     }
