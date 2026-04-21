@@ -353,27 +353,9 @@ public class GameManager : MonoBehaviour
     
     public void AddPoints(BigInteger points)
     {
-        // 如果是扣除点数，直接扣除
-        if (points < BigInteger.Zero)
-        {
-            currentPoints += points;
-            UIManager.Instance.UpdatePointsDisplay(currentPoints);
-            Debug.Log($"扣除点数：{-points}，当前总分：{currentPoints}");
-            return;
-        }
-
-        // 获取加成前的点数
-        BigInteger pointsBefore = currentPoints;
-
-        // 添加基础点数
-        currentPoints += points;
-
-        // 应用祝福效果
-        if (blessingManager != null)
-        {
-            BigInteger financialBonus = blessingManager.CalculateFinancialMasterBonus(pointsBefore);
-            currentPoints += financialBonus;
-        }
+       currentPoints += points;
+       UIManager.Instance.UpdatePointsDisplay(currentPoints);
+       Debug.Log($"增加点数：{points}，当前总分：{currentPoints}");
 
         // 立即更新UI显示
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
@@ -414,6 +396,14 @@ public class GameManager : MonoBehaviour
                         PlayerCardInventory.Instance.numberCards[i].EnergySpread();
                     }
                 }
+            }
+            if (BlessingManager.Instance.GetBlessingTypeCount(BlessingData.BlessingType.FinancialMaster)!= 0)
+            {
+                currentPoints += BlessingManager.Instance.CalculateFinancialMasterBonus(currentPoints);
+
+                // 立即更新UI显示
+                UIManager.Instance.UpdatePointsDisplay(currentPoints);
+                Debug.Log($"总分更新: {currentPoints}");
             }
             // 非最后一回合：直接进商店，不做任何阶段检查
             currentState = GameState.Shop;
@@ -463,6 +453,14 @@ public class GameManager : MonoBehaviour
                         PlayerCardInventory.Instance.numberCards[i].EnergySpread();
                     }
                 }
+            }
+            if (BlessingManager.Instance.GetBlessingTypeCount(BlessingData.BlessingType.FinancialMaster) != 0)
+            {
+                currentPoints += BlessingManager.Instance.CalculateFinancialMasterBonus(currentPoints);
+
+                // 立即更新UI显示
+                UIManager.Instance.UpdatePointsDisplay(currentPoints);
+                Debug.Log($"总分更新: {currentPoints}");
             }
         }
 
