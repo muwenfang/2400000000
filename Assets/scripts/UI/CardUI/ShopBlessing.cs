@@ -234,7 +234,7 @@ public class BlessingInShop : MonoBehaviour
     /// <summary>
     /// 更新价格显示
     /// </summary>
-    void UpdatePriceDisplay(long price, bool sold)
+    void UpdatePriceDisplay(BigInteger price, bool sold)
     {
         if (priceText == null)
         {
@@ -249,7 +249,8 @@ public class BlessingInShop : MonoBehaviour
         }
         else
         {
-            priceText.text = $"${price}";
+            // 统一用商店的科学计数法格式化
+            priceText.text = $"${ShopManager.Instance.FormatBigNumber(price)}";
             priceText.color = Color.black;
         }
     }
@@ -416,7 +417,7 @@ public class BlessingInShop : MonoBehaviour
     /// <summary>
     /// 获取价格
     /// </summary>
-    public long GetPrice()
+    public BigInteger GetPrice()
     {
         return currentItem != null ? currentItem.price : 0;
     }

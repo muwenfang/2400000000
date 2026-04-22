@@ -119,7 +119,7 @@ public class BlessingManager : MonoBehaviour
         // 计算当前祝福的价格（和商店显示逻辑保持一致）
         int purchaseCount = GetBlessingCount(blessingData.blessingId);
         float multiplier = GetCurrentPriceMultiplier();
-        int finalPrice = blessingData.CalculatePrice(purchaseCount, multiplier);
+        BigInteger finalPrice = (BigInteger)blessingData.CalculatePrice(purchaseCount, multiplier);
 
         // 检查点数是否足够
         if (GameManager.Instance.currentPoints < finalPrice)
@@ -184,7 +184,7 @@ public class BlessingManager : MonoBehaviour
             if (item.cardData != null)
             {    
                 int count = GetBlessingCount(item.cardData.blessingId);
-                item.price = item.cardData.CalculatePrice(count, currentMultiplier);
+                item.price = (BigInteger)item.cardData.CalculatePrice(count, currentMultiplier);
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using UnityEngine;
+using BigInteger = System.Numerics.BigInteger;
 
 /// <summary>
 /// 祝福卡数据定义
@@ -72,47 +73,46 @@ public class BlessingData : ScriptableObject
     /// <summary>
     /// 计算当前价格（考虑购买次数和价格上升）
     /// </summary>
-    public int CalculatePrice(int purchaseCount = 0, float priceMultiplier = 1.0f)
-    {
-        // 基础价格 * 购买次数倍数 * 价格乘数
-        float calculatedPrice = basePrice  * priceMultiplier;
-        
-        // 虚无主义：自身价格翻倍
-        if (blessingType == BlessingType.Nihilism)
-        {
-        // 安全获取虚无数量，避免空引用
-            int nihilismCount = 0;
-            if (BlessingManager.Instance != null)
-            {
-                nihilismCount = BlessingManager.Instance.nihilismCount;
-            }
-        
-            calculatedPrice *= Mathf.Pow(2, nihilismCount);
-        }
-        // 许愿币：每购买一次价格+1000
-        if (blessingType == BlessingType.WishingCoin)
-        {
-            calculatedPrice += purchaseCount * 1000;
-        }
-        // 赌具升级：
-        if (blessingType == BlessingType.GamblingGearUpgraded)
-        {
-            calculatedPrice *= Mathf.Pow(2, purchaseCount);
-        }
-        // 倍投：每次购买后价格翻倍
-        if (blessingType == BlessingType.DoubleDown)
-        {
-            calculatedPrice *= Mathf.Pow(2, purchaseCount);
-        }
+    public BigInteger CalculatePrice(int purchaseCount = 0, float priceMultiplier = 1.0f)
+{
+    BigInteger calculatedPrice = (BigInteger)basePrice;
 
-        // 加注：每次购买后，价格 +500
-        if (blessingType == BlessingType.Raise) 
-        {
-            calculatedPrice += purchaseCount * 500;
-        }
-        
-            return Mathf.RoundToInt(calculatedPrice);
-        }
+    // 安全处理全局倍率
+    if (priceMultiplier > 0)
+    {
+        calculatedPrice = calculatedPrice * (BigInteger)(priceMultiplier * 100) / 100;
+    }
+
+    // 虚无主义
+    if (blessingType == BlessingType.Nihilism)
+    {
+        int count = BlessingManager.Instance != null ? BlessingManager.Instance.nihilismCount : 0;
+        for (int i = 0; i < count; i++)
+            calculatedPrice *= 2;
+    }
+
+    // 许愿币：每购买一次价格+1000
+    if (blessingType == BlessingType.WishingCoin)
+        calculatedPrice += (BigInteger)purchaseCount * 1000;
+
+    // 赌具升级：
+    if (blessingType == BlessingType.GamblingGearUpgraded)
+        for (int i = 0; i < purchaseCount; i++)
+            calculatedPrice *= 2;
+
+    // 倍投：每次购买后价格翻倍
+    if (blessingType == BlessingType.DoubleDown)
+        for (int i = 0; i < purchaseCount; i++)
+            calculatedPrice *= 2;
+
+    // 加注：每次购买后，价格 +500
+    if (blessingType == BlessingType.Raise)
+        calculatedPrice += (BigInteger)purchaseCount * 500;
+
+    
+
+    return calculatedPrice;
+}
 }
 
 /// <summary>

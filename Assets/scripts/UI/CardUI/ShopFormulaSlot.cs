@@ -123,7 +123,7 @@ public class ShopFormulaCardSlot : MonoBehaviour
     /// <summary>
     /// 更新价格显示
     /// </summary>
-    void UpdatePriceDisplay(long price, bool sold)
+    void UpdatePriceDisplay(BigInteger price, bool sold)
     {
         if (priceText == null) return;
 
@@ -134,7 +134,8 @@ public class ShopFormulaCardSlot : MonoBehaviour
         }
         else
         {
-            priceText.text = $"${price}";
+            // 自动格式化：>9位科学计数法，≤9位纯数字
+            priceText.text = $"${ShopManager.Instance.FormatBigNumber(price)}";
             priceText.color = Color.black;
         }
     }

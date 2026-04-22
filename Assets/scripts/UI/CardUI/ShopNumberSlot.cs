@@ -161,27 +161,25 @@ public class ShopNumberCardSlot : MonoBehaviour
     /// <summary>
     /// 更新价格显示
     /// </summary>
-    void UpdatePriceDisplay(long price, bool sold)
+void UpdatePriceDisplay(BigInteger price, bool sold)
+{
+    if (priceText == null)
     {
-        if (priceText == null)
-        {
-            Debug.LogWarning($"[ShopNumberCardSlot] 槽位 {slotIndex}: priceText 未绑定");
-            return;
-        }
-        if (sold)
-        {
-            priceText.text = "已售出";
-            priceText.color = Color.gray;
-        }
-        else
-        {
-            // 改用格式化显示
-            System.Numerics.BigInteger bigPrice = price;
-            string priceStr = FormatPrice(bigPrice);
-            priceText.text = $"${priceStr}";
-            priceText.color = Color.black;
-        }
+        Debug.LogWarning($"[ShopNumberCardSlot] 槽位 {slotIndex}: priceText 未绑定");
+        return;
     }
+    if (sold)
+    {
+        priceText.text = "已售出";
+        priceText.color = Color.gray;
+    }
+    else
+    {
+        string priceStr = FormatPrice(price);
+        priceText.text = $"${priceStr}";
+        priceText.color = Color.black;
+    }
+}
 
     /// <summary>
     /// 设置购买按钮
