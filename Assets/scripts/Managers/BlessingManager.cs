@@ -57,7 +57,9 @@ public class BlessingManager : MonoBehaviour
     public float globalPriceDiscountPercent = 0f;    // 友情折扣
     public float blessDiscountPerBlessing = 0f;      // 眷顾
     public float maxBlessDiscountPercent = 80f;      // 眷顾上限
-
+    public int shortSightCount = 0;                // 短视数量
+    public float shortSightCurrentBonus = 0f;      // 短视当前剩余倍率加成
+    
     private void Awake()
     {
         if (Instance == null)
@@ -102,6 +104,8 @@ public class BlessingManager : MonoBehaviour
         dialecticalAccumulatedMultiplier = 0f;  
         ApplyPragmatism = 0;    
         hasGodOfGambler = false;  
+        shortSightCount = 0;                
+        shortSightCurrentBonus = 0f;      
         GetCurrentPriceMultiplier(); //重置折扣
     }
 
@@ -398,7 +402,8 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.ShortSight:
                 //短视 - 可叠加：倍率+10；每回合倍率-1
-                totalMultiplierBonus += 10;
+                shortSightCurrentBonus += 15f;
+                shortSightCount++;
                 Debug.Log("短视效果已激活");
                 break;
 
@@ -610,6 +615,22 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 获取短视的额外倍率
+    /// </summary>
+   public void OnNewRound_ShortSightDecay()
+    {
+        if (shortSightCount <= 0)
+        {
+            shortSightCurrentBonus = 0;
+            return;
+        }
+
+        // 每回合结束 -1/层
+        shortSightCurrentBonus -= shortSightCount;
+    }
+
+    
+    /// <summary>
     /// 获取当前总倍率加成
     /// </summary>
     public float GetTotalMultiplierBonus()
@@ -746,6 +767,11 @@ public class BlessingManager : MonoBehaviour
         dialecticalPerRoundBonus = 0;
         dialecticalAccumulatedMultiplier = 0f;
         wishCoinPurchaseCount = 0;
+        globalPriceDiscountPercent = 0f;    // 友情折扣
+        blessDiscountPerBlessing = 0f;      // 眷顾
+        maxBlessDiscountPercent = 80f;
+        shortSightCount = 0;                
+        shortSightCurrentBonus = 0f;      
         GetCurrentPriceMultiplier(); // 强制刷新价格
     }
 
@@ -777,7 +803,7 @@ public class BlessingManager : MonoBehaviour
         float cardMasterBonus = CalculateCardMasterBonus();
         float dialecticalBonus = dialecticalAccumulatedMultiplier;
         
-        float final = baseMultiplier + jackpotBonus + godsBonus + cardMasterBonus + dialecticalBonus;
+        float final = baseMultiplier + jackpotBonus + godsBonus + cardMasterBonus + dialecticalBonus + shortSightCurrentBonus;
         
         return final;
     }

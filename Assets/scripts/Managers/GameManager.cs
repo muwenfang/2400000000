@@ -128,7 +128,7 @@ public class GameManager : MonoBehaviour
         Debug.Log("初始化游戏");
         ResetRoundStatistics();
 
-        currentPoints = 100000000000;
+        currentPoints = 0;
         GameManager.isInvolutionMode = true;
         //是内卷模式
         blessingManager.hasGodOfGambler = false;
@@ -339,9 +339,6 @@ public class GameManager : MonoBehaviour
         if (blessingManager != null)
         {
             float blessingMultiplier = blessingManager.GetFinalBlessingMultiplier();
-            //祝福——短视：每回合倍率-1，可叠加
-            int count = blessingManager.GetBlessingCount(BlessingData.BlessingType.ShortSight);
-            blessingMultiplier -= count;
             //赌神传说
             blessingMultiplier += blessingManager.GetGodOfGamblerTempMultiplier();
             multiplier += blessingMultiplier;
@@ -467,6 +464,11 @@ public class GameManager : MonoBehaviour
         currentState = GameState.Shop;
         shopManager.OpenShop();
         ChangeState(GameState.Shop);
+        // 短视倍率缩减
+        if (blessingManager != null)
+        {
+            blessingManager.OnNewRound_ShortSightDecay();
+        }
     }
 
     /// <summary>

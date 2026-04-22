@@ -56,8 +56,8 @@ public class ShopManager : MonoBehaviour
     public GameObject deleteCostPanel;
     public int totalRemovedNumberCards = 0;
     public int totalRemovedFormulaCards = 0;
-    public BigInteger baseNumberCardRemoveCost = 5;
-    public BigInteger baseFormulaCardRemoveCost = 200;
+    public int baseNumberCardRemoveCost = 10;
+    public int baseFormulaCardRemoveCost = 200;
 
     [Header("槽位解锁配置")]
     public BigInteger baseNumberSlotUnlockCost = 20; // 数字卡槽位基础解锁消耗
@@ -659,7 +659,7 @@ public class ShopManager : MonoBehaviour
             // 示例：第1张数字卡消耗 5，第2张消耗 10，第3张消耗 20，以此类推
         BigInteger cost = baseNumberCardRemoveCost;
         for (int i = 0; i < totalRemovedNumberCards; i++)
-            cost *= 2;
+            cost *= 5;
 
         Debug.Log($"[ShopManager] 计算数字卡删除消耗: 基础{baseNumberCardRemoveCost} * 2^{totalRemovedNumberCards} = {cost}");
         return cost;
@@ -668,7 +668,7 @@ public class ShopManager : MonoBehaviour
     {
         BigInteger cost = baseFormulaCardRemoveCost;
         for (int i = 0; i < totalRemovedFormulaCards; i++)
-            cost *= 2;
+            cost *= 5;
 
         Debug.Log($"[ShopManager] 公式卡删除消耗: {cost}");
         return cost;
@@ -690,7 +690,7 @@ public class ShopManager : MonoBehaviour
     if (deleteCardCostText != null){
         BigInteger nextCost = baseNumberCardRemoveCost;
     for (int i = 0; i < totalRemovedNumberCards; i++)
-        nextCost *= 2;
+        nextCost *= 5;
 
     deleteCardCostText.text = FormatBigNumber(nextCost);
     Debug.Log($"[ShopManager] 更新UI - 下次删卡消耗: {nextCost}");
