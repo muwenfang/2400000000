@@ -233,7 +233,7 @@ public class BlessingLibrary : ScriptableObject
             name: "眷顾",
             description: "每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%",
             type: BlessingData.BlessingType.Bless,
-            basePrice: 15000,
+            basePrice: 50000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
