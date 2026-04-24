@@ -265,6 +265,7 @@ public class ShowMyFormula : MonoBehaviour
 
         if (deleted)
         {
+            CardManager.Instance.SyncDeckFromInventory();
             // 刷新显示
             RefreshAllCards();
         }
@@ -399,11 +400,35 @@ public class ShowMyFormula : MonoBehaviour
             deletionCostPanel.gameObject.SetActive(true);   
             deletionCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
 
-            deletionCostText.text = cost.ToString();
+            deletionCostText.text = FormatBigNumber(cost).ToString();
 
             Debug.Log($"[ShowMyFormula] 更新UI");
         }
 
+    }
+    public string FormatBigNumber(BigInteger number)
+    {
+        BigInteger threshold = 1000000000;
+
+        if (BigInteger.Abs(number) >= threshold)
+        {
+            string numStr = number.ToString();
+            bool isNegative = numStr.StartsWith("-");
+            if (isNegative) numStr = numStr.Substring(1);
+
+            int len = numStr.Length;
+            string digits = numStr.Substring(0, System.Math.Min(3, len));
+            while (digits.Length < 3) digits += "0";
+
+            string decimalPart = digits[0] + "." + digits.Substring(1);
+            int exponent = len - 1;
+            string result = $"{decimalPart}e{exponent}";
+            return isNegative ? "-" + result : result;
+        }
+        else
+        {
+            return number.ToString();
+        }
     }
     /// <summary>
     /// 通用方法：设置文本内容和颜色

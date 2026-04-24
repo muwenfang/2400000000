@@ -645,7 +645,7 @@ public class ShopManager : MonoBehaviour
         }
 
         // 5. 更新UI与冷却
-        UpdateDeletionUI();
+        UpdateDeletionUI(cost);
         UIManager.Instance.UpdatePointsDisplay(GameManager.Instance.currentPoints);
 
         if (CooldownManager.Instance != null)
@@ -701,26 +701,14 @@ public class ShopManager : MonoBehaviour
     /// 更新删卡UI显示
     /// 显示下一次删卡的消耗提示
     /// </summary>
-    private void UpdateDeletionUI()
+    private void UpdateDeletionUI(BigInteger cost)
     {
         deleteCostPanel.SetActive(true);
         deleteCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
-        baseNumberCardRemoveCost = 10;
-        Debug.Log($"[ShopManager]数字卡删除基础价格为{baseNumberCardRemoveCost}");
-        if (deleteCardCostText != null){
-            BigInteger nextCost = baseNumberCardRemoveCost;
-        for (int i = 0; i < totalRemovedNumberCards; i++)
-            nextCost *= 5;
 
-        deleteCardCostText.text = FormatBigNumber(nextCost);
-        Debug.Log($"[ShopManager] 更新UI - 下次删卡消耗: {nextCost}");
-        }
-        else
-            {
-                Debug.LogWarning("[ShopManager] deleteCardCostText 未绑定");
-            }
+        deleteCardCostText.text = FormatBigNumber(cost).ToString();
     }
-    
+
     /// <summary>
     /// 结束删卡模式
     /// 返回商店主界面
