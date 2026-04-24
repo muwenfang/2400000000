@@ -1762,6 +1762,8 @@ MonoBehaviour:
   scrollRect: {fileID: 682225276}
   cardScale: 1
   deleteFormulaCardButton: {fileID: 5565338637335754498, guid: 796ee20411d8e78449ca4a6d32c4c617, type: 3}
+  deletionCostPanel: {fileID: 1081799470}
+  deletionCostText: {fileID: 152407951}
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
@@ -5517,7 +5519,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2052908318990195148, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2072351454974416949, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.size
@@ -6261,7 +6263,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7279941055438634606, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_IsActive
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7290562765458756537, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_AnchoredPosition.x
@@ -6870,6 +6872,8 @@ MonoBehaviour:
   scrollRect: {fileID: 772237203}
   cardScale: 1
   deleteNumberCardButton: {fileID: 1647833135757660059, guid: 944f087166581f54986c8754047048b1, type: 3}
+  deletionCostPanel: {fileID: 1081799470}
+  deletionCostText: {fileID: 152407951}
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
@@ -8248,24 +8252,21 @@ MonoBehaviour:
   totalRemovedFormulaCards: 0
   baseNumberCardRemoveCost: 5
   baseFormulaCardRemoveCost: 200
-  baseNumberSlotUnlockCost: 10
-  baseFormulaSlotUnlockCost: 20
-  baseBlessingSlotUnlockCost: 2000
+  blessingSlotUnlockTimes: 0
   numberSlotUnlockTimes: 0
   formulaSlotUnlockTimes: 0
-  blessingSlotUnlockTimes: 0
   purchaseCooldown: 0.2
   unlockCooldown: 0.1
   cardDeletionCooldown: 0.06
   formulaCardLibrary: {fileID: 11400000, guid: 09a6b658924651940965cd8a57c4eab9, type: 2}
   numberCardLibrary: {fileID: 11400000, guid: a2fa7726265124f4f82bcb330c2edc3c, type: 2}
   blessingLibrary: {fileID: 11400000, guid: 1ec143d897bd7bd46bc61e19ec7dd011, type: 2}
+  showFormula: {fileID: 496826565}
+  showNumberCard: {fileID: 1329721532}
   shopNumberCards:
-  - price: 0
-    sold: 0
+  - sold: 0
   shopFormulaCards:
   - cardData: {fileID: 0}
-    price: 0
     sold: 0
   shopBlessings: []
   isDeletionMode: 0

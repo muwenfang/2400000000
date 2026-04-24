@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -19,6 +20,10 @@ public class ShowMyNumberCard : MonoBehaviour
     [Header("删卡功能配置")]
     [Tooltip("删除卡牌按钮 - 从Inspector拖入")]
     public Button deleteNumberCardButton;
+
+    public GameObject deletionCostPanel;
+    public Text deletionCostText;
+    public BigInteger deletionCost = 10;
 
     [Header("颜色配置")]
     public Color incrementalColor = Color.green;   // 递增数字：绿色
@@ -143,6 +148,23 @@ public class ShowMyNumberCard : MonoBehaviour
         // 每次刷新卡牌后，重新激活按钮（防止新生成的卡牌没按钮）
         ActivateButtonsBasedOnMode();
 
+        UpdateDeletionUI(deletionCost);
+    }
+    private void UpdateDeletionUI(BigInteger cost)
+    {
+        if (ShopManager.Instance.isDeletionMode == false)
+        {
+            deletionCostPanel.gameObject.SetActive(false);
+        }
+        else
+        {
+            deletionCostPanel.gameObject.SetActive(true);
+            deletionCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
+
+            deletionCostText.text = cost.ToString();
+
+            Debug.Log($"[ShowMyNumberCard] 更新UI ");
+        }
     }
     void GenerateNumberCards()
     {
@@ -293,6 +315,7 @@ public class ShowMyNumberCard : MonoBehaviour
 
         // 触发CardSelectionManager的回调
         CardSelectionManager.Instance.OnCardSelected(selectedCard);
+        deletionCost = ShopManager.Instance.CalculateDeletionCost(selectedCard);
 
         // 执行删卡逻辑
         ExecuteNumberCardDeletion(selectedCard);

@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -17,6 +18,10 @@ public class ShowMyFormula : MonoBehaviour
     [Header("删卡功能配置")]
     [Tooltip("删除公式卡按钮 - 从Inspector拖入")]
     public Button deleteFormulaCardButton;
+
+    public GameObject deletionCostPanel;
+    public Text deletionCostText;
+    public BigInteger deletionCost = 200;
 
     private List<Button> activeDeletionButtons = new List<Button>();
 
@@ -251,6 +256,7 @@ public class ShowMyFormula : MonoBehaviour
         {
             if (!ShopManager.Instance.OnCardDeleted(cardToDelete))
             {
+                deletionCost = ShopManager.Instance.CalculateDeletionCost(cardToDelete);
                 return;
             }
         }
@@ -374,6 +380,25 @@ public class ShowMyFormula : MonoBehaviour
         }
         // 刷新后重新激活按钮
         ActivateButtonsBasedOnMode();
+
+        UpdateDeletionUI(deletionCost);
+    }
+    private void UpdateDeletionUI(BigInteger cost)
+    {
+        if(ShopManager.Instance.isDeletionMode == false)
+        {
+            deletionCostPanel.gameObject.SetActive(false);
+        }
+        else
+        {
+            deletionCostPanel.gameObject.SetActive(true);   
+            deletionCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
+
+            deletionCostText.text = cost.ToString();
+
+            Debug.Log($"[ShowMyFormula] 更新UI");
+        }
+
     }
     /// <summary>
     /// 通用方法：设置文本内容和颜色

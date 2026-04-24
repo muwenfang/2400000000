@@ -82,6 +82,9 @@ public class ShopManager : MonoBehaviour
     [Tooltip("祝福卡库 - 拖入 BlessingLibrary 资源")]
     public BlessingLibrary blessingLibrary;
 
+    public ShowMyFormula showFormula;
+    public ShowMyNumberCard showNumberCard;
+
     [Header("本次商店商品")]
     public List<ShopItem<NumberCardInstance>> shopNumberCards = new();
     public List<ShopItem<FormulaCardData>> shopFormulaCards = new();
@@ -110,7 +113,7 @@ public class ShopManager : MonoBehaviour
         UIManager.Instance.RefreshShopUI();
     }
     public void InitializeRefreshCost()
-{
+    {
     int currentRound = GameManager.Instance.currentRound;
     BigInteger roundSquare = (BigInteger)currentRound * currentRound;
     BigInteger powerOfTwo = 1;
@@ -121,7 +124,7 @@ public class ShopManager : MonoBehaviour
         refreshCost = 0;
 
     refreshCostText.text = "cost: " + FormatBigNumber(refreshCost);
-}
+    }
 
     public void InitializeShop()
     {
@@ -131,6 +134,7 @@ public class ShopManager : MonoBehaviour
         numberCardCount = 3;
         formulaCardCount = 1;
         blessingCardCount = 2;
+        isDeletionMode = false;
 
         ResetCurrentRoundBlessings();
         OpenShop();
@@ -548,7 +552,8 @@ public class ShopManager : MonoBehaviour
         {
             Debug.LogWarning("[ShopManager] deleteCardButton 未在Inspector中配置");
         }
-}
+
+    }
 /// <summary>
 /// 进入删卡模式
 /// 通过CardSelectionManager启动删卡选择流程
@@ -587,7 +592,7 @@ public class ShopManager : MonoBehaviour
             Debug.LogError("[ShopManager] UIManager 或 myNumberCardPanel 为空");
         }
 
-        UpdateDeletionUI();
+        UpdateDeletionUI(baseNumberCardRemoveCost);
     }
 
 
@@ -636,7 +641,7 @@ public class ShopManager : MonoBehaviour
         }
 
         // 5. 更新UI与冷却
-        UpdateDeletionUI();
+        UpdateDeletionUI(cost);
         UIManager.Instance.UpdatePointsDisplay(GameManager.Instance.currentPoints);
 
         if (CooldownManager.Instance != null)
@@ -652,7 +657,7 @@ public class ShopManager : MonoBehaviour
     /// <summary>
     /// 计算单张卡牌的删除消耗
     /// </summary>
-    private BigInteger CalculateDeletionCost(object card)
+    public BigInteger CalculateDeletionCost(object card)
     {
         if (card is NumberCardInstance)
         {// 数字卡删除消耗：基础消耗 + 已删除数量 * 递增值
@@ -674,7 +679,6 @@ public class ShopManager : MonoBehaviour
             Debug.Log($"[ShopManager] 公式卡删除消耗: {cost}");
             return cost;
         }
-
         Debug.LogWarning("[ShopManager] 未知的卡牌类型");
         return 0;
     }   
@@ -684,24 +688,14 @@ public class ShopManager : MonoBehaviour
     /// 更新删卡UI显示
     /// 显示下一次删卡的消耗提示
     /// </summary>
-    private void UpdateDeletionUI()
+    public void UpdateDeletionUI(BigInteger cost)
     {
         deleteCostPanel.SetActive(true);
         deleteCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
-        baseNumberCardRemoveCost = 10;
-        Debug.Log($"[ShopManager]数字卡删除基础价格为{baseNumberCardRemoveCost}");
-        if (deleteCardCostText != null){
-            BigInteger nextCost = baseNumberCardRemoveCost;
-        for (int i = 0; i < totalRemovedNumberCards; i++)
-            nextCost *= 5;
 
-        deleteCardCostText.text = FormatBigNumber(nextCost);
-        Debug.Log($"[ShopManager] 更新UI - 下次删卡消耗: {nextCost}");
-        }
-        else
-            {
-                Debug.LogWarning("[ShopManager] deleteCardCostText 未绑定");
-            }
+        deleteCardCostText.text = cost.ToString();
+
+        Debug.Log($"[ShopManager] 更新UI - 下次删卡消耗: {cost}");
     }
     
     /// <summary>
@@ -732,7 +726,8 @@ public class ShopManager : MonoBehaviour
                 UIManager.Instance.myFormulaCardPanel.SetActive(false);
         }
 
-        deleteCostPanel.SetActive(false);
+        showFormula.deletionCostPanel.SetActive(false);
+        showNumberCard.deletionCostPanel.SetActive(false);
 
         Debug.Log("[ShopManager] 删卡模式已结束，返回商店");
     }

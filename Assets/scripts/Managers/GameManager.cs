@@ -545,6 +545,7 @@ public class GameManager : MonoBehaviour
     {
         //加载主菜单界面
         ChangeState(GameState.MainMenu);
+        shopManager.deleteCostPanel.SetActive(false);
         //UIManager.Instance.pointstagePanel.SetActive(false);
     }
 

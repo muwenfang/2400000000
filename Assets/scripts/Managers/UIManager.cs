@@ -120,7 +120,6 @@ public class UIManager : MonoBehaviour
     // 打开数字卡库
     public void OpenNumberCardDeck()
     {
-
         myNumberCardPanel.SetActive(true);
         myFormulaCardPanel.SetActive(false);
         myBlessPanel.SetActive(false);
@@ -134,7 +133,7 @@ public class UIManager : MonoBehaviour
 
         var showScript = myNumberCardPanel.GetComponent<ShowMyNumberCard>();
         if (showScript != null) 
-            showScript.RefreshAllCards(); // 👈 只保留这一句
+            showScript.RefreshAllCards();
     }
 
     // 打开公式卡库
