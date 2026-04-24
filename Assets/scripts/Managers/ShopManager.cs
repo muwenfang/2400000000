@@ -653,30 +653,31 @@ public class ShopManager : MonoBehaviour
     /// 计算单张卡牌的删除消耗
     /// </summary>
     private BigInteger CalculateDeletionCost(object card)
-{
-    if (card is NumberCardInstance)
-    {// 数字卡删除消耗：基础消耗 + 已删除数量 * 递增值
-            // 示例：第1张数字卡消耗 5，第2张消耗 10，第3张消耗 20，以此类推
-        BigInteger cost = baseNumberCardRemoveCost;
-        for (int i = 0; i < totalRemovedNumberCards; i++)
-            cost *= 5;
-
-        Debug.Log($"[ShopManager] 计算数字卡删除消耗: 基础{baseNumberCardRemoveCost} * 2^{totalRemovedNumberCards} = {cost}");
-        return cost;
-    }
-    else if (card is FormulaCardData)
     {
-        BigInteger cost = baseFormulaCardRemoveCost;
-        for (int i = 0; i < totalRemovedFormulaCards; i++)
-            cost *= 5;
+        if (card is NumberCardInstance)
+        {// 数字卡删除消耗：基础消耗 + 已删除数量 * 递增值
+            // 示例：第1张数字卡消耗 10，第2张消耗 50，第3张消耗 250，以此类推
+            baseNumberCardRemoveCost = 10;
+            BigInteger cost = baseNumberCardRemoveCost;
+            for (int i = 0; i < totalRemovedNumberCards; i++)
+                cost *= 5;
 
-        Debug.Log($"[ShopManager] 公式卡删除消耗: {cost}");
-        return cost;
-    }
+            Debug.Log($"[ShopManager] 计算数字卡删除消耗: 基础{baseNumberCardRemoveCost} * 5^{totalRemovedNumberCards} = {cost}");
+            return cost;
+        }
+        else if (card is FormulaCardData)
+        {
+            BigInteger cost = baseFormulaCardRemoveCost;
+            for (int i = 0; i < totalRemovedFormulaCards; i++)
+                cost *= 5;
 
-    Debug.LogWarning("[ShopManager] 未知的卡牌类型");
-    return 0;
-}
+            Debug.Log($"[ShopManager] 公式卡删除消耗: {cost}");
+            return cost;
+        }
+
+        Debug.LogWarning("[ShopManager] 未知的卡牌类型");
+        return 0;
+    }   
 
 
     /// <summary>
@@ -684,22 +685,24 @@ public class ShopManager : MonoBehaviour
     /// 显示下一次删卡的消耗提示
     /// </summary>
     private void UpdateDeletionUI()
-{
-    deleteCostPanel.SetActive(true);
-    deleteCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
-    if (deleteCardCostText != null){
-        BigInteger nextCost = baseNumberCardRemoveCost;
-    for (int i = 0; i < totalRemovedNumberCards; i++)
-        nextCost *= 5;
+    {
+        deleteCostPanel.SetActive(true);
+        deleteCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
+        baseNumberCardRemoveCost = 10;
+        Debug.Log($"[ShopManager]数字卡删除基础价格为{baseNumberCardRemoveCost}");
+        if (deleteCardCostText != null){
+            BigInteger nextCost = baseNumberCardRemoveCost;
+        for (int i = 0; i < totalRemovedNumberCards; i++)
+            nextCost *= 5;
 
-    deleteCardCostText.text = FormatBigNumber(nextCost);
-    Debug.Log($"[ShopManager] 更新UI - 下次删卡消耗: {nextCost}");
-    }
-    else
-        {
-            Debug.LogWarning("[ShopManager] deleteCardCostText 未绑定");
+        deleteCardCostText.text = FormatBigNumber(nextCost);
+        Debug.Log($"[ShopManager] 更新UI - 下次删卡消耗: {nextCost}");
         }
-}
+        else
+            {
+                Debug.LogWarning("[ShopManager] deleteCardCostText 未绑定");
+            }
+    }
     
     /// <summary>
     /// 结束删卡模式
