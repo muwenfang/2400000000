@@ -381,6 +381,11 @@ public class ShowMyFormula : MonoBehaviour
         // 刷新后重新激活按钮
         ActivateButtonsBasedOnMode();
 
+        if (ShopManager.Instance != null)
+        {
+            deletionCost = ShopManager.Instance.GetNextFormulaCardDeletionCost();
+        }
+
         UpdateDeletionUI(deletionCost);
     }
     private void UpdateDeletionUI(BigInteger cost)

@@ -108,7 +108,6 @@ public class ShopManager : MonoBehaviour
         InitializeDeletionUI();
         InitializeRefreshCost();
 
-
         // ---通知 UI 刷新 ---
         UIManager.Instance.RefreshShopUI();
     }
@@ -586,13 +585,18 @@ public class ShopManager : MonoBehaviour
         {
             UIManager.Instance.OpenNumberCardDeck();
             Debug.Log("[ShopManager] 显示数字卡面板，用户可开始删卡");
+
+            // 通知ShowMyNumberCard进入删卡模式，初始化成本显示
+            if (showNumberCard != null)
+            {
+                showNumberCard.EnterDeletionMode();
+            }
         }
         else
         {
             Debug.LogError("[ShopManager] UIManager 或 myNumberCardPanel 为空");
         }
 
-        UpdateDeletionUI();
     }
 
 
@@ -654,35 +658,44 @@ public class ShopManager : MonoBehaviour
 
         return true;
     }
+    #region 删卡成本计算逻辑
     /// <summary>
-    /// 计算单张卡牌的删除消耗
+    /// 获取下一次数字卡删除的消耗
+    /// </summary>
+    public BigInteger GetNextNumberCardDeletionCost()
+    {
+        BigInteger cost = baseNumberCardRemoveCost;
+        for (int i = 0; i < totalRemovedNumberCards; i++) cost *= 5;
+        return cost;
+    }
+
+    /// <summary>
+    /// 获取下一次公式卡删除的消耗
+    /// </summary>
+    public BigInteger GetNextFormulaCardDeletionCost()
+    {
+        BigInteger cost = baseFormulaCardRemoveCost;
+        for (int i = 0; i < totalRemovedFormulaCards; i++) cost *= 5;
+        return cost;
+    }
+
+    /// <summary>
+    /// 重构原有的 CalculateDeletionCost，让其调用上面的新方法以保持代码整洁
     /// </summary>
     public BigInteger CalculateDeletionCost(object card)
     {
         if (card is NumberCardInstance)
-        {// 数字卡删除消耗：基础消耗 + 已删除数量 * 递增值
-            // 示例：第1张数字卡消耗 10，第2张消耗 50，第3张消耗 250，以此类推
-            
-            BigInteger cost = baseNumberCardRemoveCost;
-            for (int i = 0; i < totalRemovedNumberCards; i++)
-                cost *= 5;
-
-            Debug.Log($"[ShopManager] 计算数字卡删除消耗: 基础{baseNumberCardRemoveCost} * 5^{totalRemovedNumberCards} = {cost}");
-            return cost;
+        {
+            return GetNextNumberCardDeletionCost();
         }
         else if (card is FormulaCardData)
         {
-            BigInteger cost = baseFormulaCardRemoveCost;
-            for (int i = 0; i < totalRemovedFormulaCards; i++)
-                cost *= 5;
-
-            Debug.Log($"[ShopManager] 公式卡删除消耗: {cost}");
-            return cost;
+            return GetNextFormulaCardDeletionCost();
         }
         Debug.LogWarning("[ShopManager] 未知的卡牌类型");
         return 0;
-    }   
-
+    }
+    #endregion
 
     /// <summary>
     /// 更新删卡UI显示

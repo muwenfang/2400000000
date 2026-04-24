@@ -148,7 +148,12 @@ public class ShowMyNumberCard : MonoBehaviour
         // 每次刷新卡牌后，重新激活按钮（防止新生成的卡牌没按钮）
         ActivateButtonsBasedOnMode();
 
-        /*UpdateDeletionUI(deletionCost);
+        if (ShopManager.Instance != null)
+        {
+            deletionCost = ShopManager.Instance.GetNextNumberCardDeletionCost();
+        }
+
+        UpdateDeletionUI(deletionCost);
     }
     private void UpdateDeletionUI(BigInteger cost)
     {
@@ -242,6 +247,23 @@ public class ShowMyNumberCard : MonoBehaviour
             deleteNumberCardButton.gameObject.SetActive(false);
     }
 
+    /// <summary>
+    /// 进入删卡模式时调用 - 由ShopManager.StartCardDeletion()调用
+    /// 此时才初始化删卡UI
+    /// </summary>
+    public void EnterDeletionMode()
+    {
+        if (ShopManager.Instance == null) return;
+
+        var allCards = PlayerCardInventory.Instance.GetAllNumberCards();
+        if (allCards == null || allCards.Count == 0) return;
+
+        // 计算当前状态下删卡的成本（会根据已删除的卡牌数量计算）
+        BigInteger initialCost = ShopManager.Instance.CalculateDeletionCost(allCards[0]);
+
+        UpdateDeletionUI(initialCost);
+        Debug.Log($"[ShowMyNumberCard] 进入删卡模式，初始消耗: {initialCost}");
+    }
     /// <summary>
     /// 根据当前选择模式激活对应的button
     /// </summary>
@@ -351,6 +373,7 @@ public class ShowMyNumberCard : MonoBehaviour
             Debug.LogWarning("[ShowMyNumberCard] 删除数字卡失败");
         }
     }
+    
     /// <summary>
     /// 通用方法：设置文本内容和颜色
     /// </summary>
