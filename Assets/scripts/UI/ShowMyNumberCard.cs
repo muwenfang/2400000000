@@ -148,7 +148,7 @@ public class ShowMyNumberCard : MonoBehaviour
         // 每次刷新卡牌后，重新激活按钮（防止新生成的卡牌没按钮）
         ActivateButtonsBasedOnMode();
 
-        UpdateDeletionUI(deletionCost);
+        /*UpdateDeletionUI(deletionCost);
     }
     private void UpdateDeletionUI(BigInteger cost)
     {
@@ -164,7 +164,8 @@ public class ShowMyNumberCard : MonoBehaviour
             deletionCostText.text = cost.ToString();
 
             Debug.Log($"[ShowMyNumberCard] 更新UI ");
-        }
+        }*/
+        
     }
     void GenerateNumberCards()
     {

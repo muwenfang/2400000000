@@ -592,7 +592,7 @@ public class ShopManager : MonoBehaviour
             Debug.LogError("[ShopManager] UIManager 或 myNumberCardPanel 为空");
         }
 
-        UpdateDeletionUI(baseNumberCardRemoveCost);
+        UpdateDeletionUI();
     }
 
 
@@ -641,7 +641,7 @@ public class ShopManager : MonoBehaviour
         }
 
         // 5. 更新UI与冷却
-        UpdateDeletionUI(cost);
+        UpdateDeletionUI();
         UIManager.Instance.UpdatePointsDisplay(GameManager.Instance.currentPoints);
 
         if (CooldownManager.Instance != null)
@@ -662,7 +662,7 @@ public class ShopManager : MonoBehaviour
         if (card is NumberCardInstance)
         {// 数字卡删除消耗：基础消耗 + 已删除数量 * 递增值
             // 示例：第1张数字卡消耗 10，第2张消耗 50，第3张消耗 250，以此类推
-            baseNumberCardRemoveCost = 10;
+            
             BigInteger cost = baseNumberCardRemoveCost;
             for (int i = 0; i < totalRemovedNumberCards; i++)
                 cost *= 5;
@@ -688,14 +688,24 @@ public class ShopManager : MonoBehaviour
     /// 更新删卡UI显示
     /// 显示下一次删卡的消耗提示
     /// </summary>
-    public void UpdateDeletionUI(BigInteger cost)
+    private void UpdateDeletionUI()
     {
         deleteCostPanel.SetActive(true);
         deleteCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
+        baseNumberCardRemoveCost = 10;
+        Debug.Log($"[ShopManager]数字卡删除基础价格为{baseNumberCardRemoveCost}");
+        if (deleteCardCostText != null){
+            BigInteger nextCost = baseNumberCardRemoveCost;
+        for (int i = 0; i < totalRemovedNumberCards; i++)
+            nextCost *= 5;
 
-        deleteCardCostText.text = cost.ToString();
-
-        Debug.Log($"[ShopManager] 更新UI - 下次删卡消耗: {cost}");
+        deleteCardCostText.text = FormatBigNumber(nextCost);
+        Debug.Log($"[ShopManager] 更新UI - 下次删卡消耗: {nextCost}");
+        }
+        else
+            {
+                Debug.LogWarning("[ShopManager] deleteCardCostText 未绑定");
+            }
     }
     
     /// <summary>
@@ -770,16 +780,7 @@ public class ShopManager : MonoBehaviour
         finalNumberSlotUnlockCost = 10000;
     return finalNumberSlotUnlockCost;
 }
-/*
-    /// <summary>
-    /// 计算公式卡槽位解锁消耗
-    /// </summary>
-    public long CalculateFormulaSlotUnlockCost()
-    {
-        long powerOfTwo = (long)Mathf.Pow(2, formulaSlotUnlockTimes);
-        return 5000 * powerOfTwo;
-    }
-*/
+
     public BigInteger CalculateFormulaSlotUnlockCost()
 {
     BigInteger cost = 5000;
