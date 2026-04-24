@@ -110,7 +110,7 @@ public class DataDisplayManager : MonoBehaviour
             string scoreDisplay = data.TotalPointsN == "0"
                 ? "未开始"
                 : data.TotalPointsN;
-            normalModeHighScoreText.text = $"{scoreDisplay}";
+            normalModeHighScoreText.text = $"{FormatStringToNiceDisplay(scoreDisplay)}";
         }
 
         if (normalModeHighRateText != null)
@@ -123,7 +123,7 @@ public class DataDisplayManager : MonoBehaviour
             string cardDisplay = data.NumbercardPointN == "0"
                 ? "未开始"
                 : data.NumbercardPointN;
-            normalModeMaxCardText.text = $"{cardDisplay}";
+            normalModeMaxCardText.text = $"{FormatStringToNiceDisplay(cardDisplay)}";
         }
 
         if (normalModeMaxCalculationText != null)
@@ -131,7 +131,7 @@ public class DataDisplayManager : MonoBehaviour
             string calcDisplay = data.CalculationPointN == "0"
                 ? "未开始"
                 : data.CalculationPointN;
-            normalModeMaxCalculationText.text = $"{calcDisplay}";
+            normalModeMaxCalculationText.text = $"{FormatStringToNiceDisplay(calcDisplay)}";
         }
 
         // ===== 内卷模式数据 =====
@@ -140,7 +140,7 @@ public class DataDisplayManager : MonoBehaviour
             string scoreDisplay = data.TotalPointsI == "0"
                 ? "未开始"
                 : data.TotalPointsI;
-            hardModeHighScoreText.text = $"{scoreDisplay}";
+            hardModeHighScoreText.text = $"{FormatStringToNiceDisplay(scoreDisplay)}";
         }
 
         if (hardModeHighRateText != null)
@@ -153,7 +153,7 @@ public class DataDisplayManager : MonoBehaviour
             string cardDisplay = data.NumbercardPointI == "0"
                 ? "未开始"
                 : data.NumbercardPointI;
-            hardModeMaxCardText.text = $"{cardDisplay}";
+            hardModeMaxCardText.text = $"{FormatStringToNiceDisplay(cardDisplay)}";
         }
 
         if (hardModeMaxCalculationText != null)
@@ -161,7 +161,7 @@ public class DataDisplayManager : MonoBehaviour
             string calcDisplay = data.CalculationPointI == "0"
                 ? "未开始"
                 : data.CalculationPointI;
-            hardModeMaxCalculationText.text = $"{calcDisplay}";
+            hardModeMaxCalculationText.text = $"{FormatStringToNiceDisplay(calcDisplay)}";
         }
 
         // ===== 全局统计数据 =====
@@ -171,7 +171,7 @@ public class DataDisplayManager : MonoBehaviour
                 ? "0"
                 : data.MaxPoint
                 ;
-            globalHighScoreText.text = $"{scoreDisplay}";
+            globalHighScoreText.text = $"{FormatStringToNiceDisplay(scoreDisplay)}";
         }
 
         if (totalWinsText != null)
@@ -196,7 +196,7 @@ public class DataDisplayManager : MonoBehaviour
         // 显示本局最终点数
         if (currentMaxScoreText != null)
         {
-            currentMaxScoreText.text = $"{maxPoints}";
+            currentMaxScoreText.text = $"{FormatToNiceDisplay(maxPoints)}";
         }
 
         // 显示本局最高倍率
@@ -208,13 +208,13 @@ public class DataDisplayManager : MonoBehaviour
         // 显示本局最大数字卡
         if (currentMaxCardText != null)
         {
-            currentMaxCardText.text = $"{maxNumberCard}";
+            currentMaxCardText.text = $"{FormatToNiceDisplay(maxNumberCard)}";
         }
 
         // 显示本局最高结算点
         if (currentMaxCalculationText != null)
         {
-            currentMaxCalculationText.text = $"{maxCalculationValue}";
+            currentMaxCalculationText.text = $"{FormatToNiceDisplay(maxCalculationValue)}";
         }
 
     }
@@ -236,6 +236,34 @@ public class DataDisplayManager : MonoBehaviour
     {
         RefreshHistoryData();
     }
+    /// <summary>
+    /// 科学计数法
+    /// </summary>
+    // 大于9位 → 8.00e12 格式，小于等于9位正常显示
+    public static string FormatToNiceDisplay(BigInteger number)
+    {
+        if (number < 1000000000)
+            return number.ToString();
 
-   
+        string s = number.ToString();
+        int exponent = s.Length - 1;
+
+        char c0 = s[0];
+        char c1 = s.Length > 1 ? s[1] : '0';
+        char c2 = s.Length > 2 ? s[2] : '0';
+
+        return $"{c0}.{c1}{c2}e{exponent}";
+    }
+
+        // 字符串版本（存档用）
+        public static string FormatStringToNiceDisplay(string numStr)
+    {
+        if (string.IsNullOrEmpty(numStr) || numStr == "0")
+            return "0";
+
+        if (BigInteger.TryParse(numStr, out BigInteger result))
+            return FormatToNiceDisplay(result);
+
+        return numStr;
+    }
 }
