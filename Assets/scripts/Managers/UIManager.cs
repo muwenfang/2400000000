@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,6 +16,7 @@ public enum NumberCardLayoutType
 public class UIManager : MonoBehaviour
 {
     public static UIManager Instance;
+    public DataSavingManager dataSavingManager;
 
     [Header("数字卡 UI 库")]
     public NumberCardUIFactory numberCardLibrary;
@@ -35,6 +37,7 @@ public class UIManager : MonoBehaviour
     public GameObject myFormulaCardPanel;// 公式卡
     public GameObject myBlessPanel;// 祝福
     public GameObject PlayerDataPanel;// 玩家数据面板
+    public Image LockPanel; // 锁定界面
     //public GameObject confirmationPanel;// 确认对话框
 
     [Header("游戏信息显示")]
@@ -98,7 +101,14 @@ public class UIManager : MonoBehaviour
                 myCardButton.transform.SetAsLastSibling();
             }
         }
-
+        if(panelToShow == startMenuPanel )
+        {
+            int accomplishTimes = dataSavingManager.GetAccomplishTimes();
+            if (accomplishTimes > 0)
+            {
+                LockPanel.gameObject.SetActive(false);
+            }
+        }
         Debug.Log($"已激活并置顶面板: {panelToShow.name}");
     }
     public void HideAllPanel()

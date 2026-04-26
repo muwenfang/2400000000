@@ -584,6 +584,7 @@ public class GameManager : MonoBehaviour
             // 显示游戏结束界面
             UIManager.Instance.ShowPanel(UIManager.Instance.gameOverPanel);
             Debug.Log("游戏胜利，达到最终目标");
+
         }
         else { 
             currentState = GameState.GameLose;
