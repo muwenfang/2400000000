@@ -2,13 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+
 public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
 {
     public Text aText;
     public Text bText;
     public Text priceText;
     public bool IsInShop = false;
-    //public Text operatorText; // 新增：用来显示 +、× 或 ^
+
+    [Header("骰子图标")]
+    public Image diceIconA;  // Part A 的骰子图标
+    public Image diceIconB;  // Part B 的骰子图标
+    [Tooltip("是否为骰子时显示图标")]
+    public bool showDiceIcon = true;
 
     [Header("颜色配置")]
     public Color incrementalColor = Color.green;   // 递增数字：绿色
@@ -17,11 +23,13 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
 
     //缓存绑定的实例，用于精准刷新UI
     public NumberCardInstance boundInstance;
+
     private void OnEnable()
     {
         //在启用时检查并修复缺失的组件
         EnsureComponentsExist();
     }
+
     /// <summary>
     /// 确保必要的 Text 组件存在
     /// 如果 bText 为 null，尝试自动查找或创建
@@ -56,7 +64,24 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
                 Debug.LogError($"[CompositeNumberView] 找不到任何 Text 组件！");
             }
         }
+
+        // 初始化图标组件
+        if (diceIconA == null && diceIconB == null)
+        {
+            Image[] allImages = GetComponentsInChildren<Image>();
+            if (allImages.Length > 0)
+            {
+                diceIconA = allImages[0];
+                Debug.LogWarning($"[CompositeNumberView] diceIconA 未赋值，自动查找到第一个 Image");
+            }
+            if (allImages.Length > 1)
+            {
+                diceIconB = allImages[1];
+                Debug.LogWarning($"[CompositeNumberView] diceIconB 未赋值，自动查找到第二个 Image");
+            }
+        }
     }
+
     public void Bind(NumberCardData data)
     {
         // 确保组件存在
@@ -68,9 +93,19 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         aText.color = normalColor;
         bText.color = normalColor;
 
+        // 隐藏静态数据绑定时的图标
+        if (diceIconA != null)
+        {
+            diceIconA.gameObject.SetActive(false);
+        }
+        if (diceIconB != null)
+        {
+            diceIconB.gameObject.SetActive(false);
+        }
     }
+
     /// <summary>
-    /// 绑定卡牌实例（当前值 + 颜色）- 用于商店和手牌显示
+    /// 绑定卡牌实例（当前值 + 颜色 + 图标）- 用于商店和手牌显示
     /// </summary>
     public void BindInstance(NumberCardInstance instance)
     {
@@ -80,19 +115,19 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         EnsureComponentsExist();
 
         // 设置 Part A
-        SetPartDisplay(aText, instance.cardData.partA, instance.currentA, instance.isPrepared);
+        SetPartDisplay(aText, diceIconA, instance.cardData.partA, instance.currentA, instance.isPrepared);
 
         // 设置 Part B
         if (instance.cardData.partB != null)
         {
-            SetPartDisplay(bText, instance.cardData.partB, instance.currentB, instance.isPrepared);
+            SetPartDisplay(bText, diceIconB, instance.cardData.partB, instance.currentB, instance.isPrepared);
         }
     }
 
     /// <summary>
-    /// 通用方法：设置单个部分的文本内容和颜色
+    /// 通用方法：设置单个部分的文本内容、颜色和图标
     /// </summary>
-    private void SetPartDisplay(Text textComp, NumberComponent component, int currentValue, bool isPrepared)
+    private void SetPartDisplay(Text textComp, Image iconComp, NumberComponent component, int currentValue, bool isPrepared)
     {
         if (textComp == null || component == null) return;
 
@@ -110,19 +145,65 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
                 textComp.text = currentValue.ToString();
             }
             textComp.color = diceColor;
+
+            // 显示骰子图标
+            if (showDiceIcon && DiceIconManager.Instance != null && iconComp != null)
+            {
+                SetDiceIcon(iconComp, component.diceSides);
+            }
         }
         else if (component.isIncremental)
         {
             // 递增显示：{当前值} (绿色)
             textComp.text = $"{currentValue}";
             textComp.color = incrementalColor;
+
+            // 隐藏非骰子的图标
+            if (iconComp != null)
+            {
+                iconComp.gameObject.SetActive(false);
+            }
         }
         else
         {
             // 普通显示：数值 (黑色)
             textComp.text = currentValue.ToString();
             textComp.color = normalColor;
+
+            // 隐藏非骰子的图标
+            if (iconComp != null)
+            {
+                iconComp.gameObject.SetActive(false);
+            }
         }
     }
 
+    /// <summary>
+    /// 设置骰子图标
+    /// </summary>
+    private void SetDiceIcon(Image iconComp, int diceSides)
+    {
+        if (iconComp == null) return;
+
+        if (DiceIconManager.Instance == null)
+        {
+            Debug.LogWarning("[CompositeNumberView] DiceIconManager 未初始化");
+            iconComp.gameObject.SetActive(false);
+            return;
+        }
+
+        Sprite icon = DiceIconManager.Instance.GetDiceIcon(diceSides);
+
+        if (icon != null)
+        {
+            iconComp.sprite = icon;
+            iconComp.gameObject.SetActive(true);
+            Debug.Log($"[CompositeNumberView] 设置骰子图标，面数: {diceSides}");
+        }
+        else
+        {
+            Debug.LogWarning($"[CompositeNumberView] 无法找到面数为 {diceSides} 的骰子图标");
+            iconComp.gameObject.SetActive(false);
+        }
+    }
 }

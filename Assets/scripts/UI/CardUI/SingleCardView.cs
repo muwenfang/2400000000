@@ -11,6 +11,11 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
     public Text priceText;
     public bool IsInShop = false;
 
+    [Header("骰子图标")]
+    public Image diceIcon;  // 骰子图标显示
+    [Tooltip("是否为骰子时显示图标")]
+    public bool showDiceIcon = true;
+
     [Header("颜色配置")]
     public Color incrementalColor = Color.green;   // 递增数字：绿色
     public Color diceColor = Color.red;            // 骰子数字：红色
@@ -27,6 +32,12 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
 
         valueText.text = data.partA.value.ToString();
         valueText.color = normalColor;
+
+        // 隐藏静态数据绑定时的图标
+        if (diceIcon != null)
+        {
+            diceIcon.gameObject.SetActive(false);
+        }
     }
     /// <summary>
     /// 绑定卡牌实例（当前值 + 颜色）- 用于商店和手牌显示
@@ -54,19 +65,65 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
                 valueText.text = currentValue.ToString();
             }
             valueText.color = diceColor;
+
+            // 显示骰子图标
+            if (showDiceIcon && DiceIconManager.Instance != null)
+            {
+                SetDiceIcon(component.diceSides);
+            }
         }
         else if (component.isIncremental)
         {
             // 递增显示：{当前值} (绿色)
             valueText.text = $"{currentValue}";
             valueText.color = incrementalColor;
+
+            // 隐藏非骰子的图标
+            if (diceIcon != null)
+            {
+                diceIcon.gameObject.SetActive(false);
+            }
         }
         else
         {
             // 普通显示：数值 (黑色)
             valueText.text = currentValue.ToString();
             valueText.color = normalColor;
+
+            // 隐藏非骰子的图标
+            if (diceIcon != null)
+            {
+                diceIcon.gameObject.SetActive(false);
+            }
         }
     }
 
+    /// <summary>
+    /// 设置骰子图标
+    /// </summary>
+    private void SetDiceIcon(int diceSides)
+    {
+        if (diceIcon == null) return;
+
+        if (DiceIconManager.Instance == null)
+        {
+            Debug.LogWarning("[SingleNumberView] DiceIconManager 未初始化");
+            diceIcon.gameObject.SetActive(false);
+            return;
+        }
+
+        Sprite icon = DiceIconManager.Instance.GetDiceIcon(diceSides);
+
+        if (icon != null)
+        {
+            diceIcon.sprite = icon;
+            diceIcon.gameObject.SetActive(true);
+            Debug.Log($"[SingleNumberView] 设置骰子图标，面数: {diceSides}");
+        }
+        else
+        {
+            Debug.LogWarning($"[SingleNumberView] 无法找到面数为 {diceSides} 的骰子图标");
+            diceIcon.gameObject.SetActive(false);
+        }
+    }
 }
