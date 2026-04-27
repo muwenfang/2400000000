@@ -6506,7 +6506,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 7219716557849208650, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -0.000031471
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 7219716557849208650, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -8546,7 +8546,7 @@ MonoBehaviour:
   deleteCostPanel: {fileID: 1081799470}
   totalRemovedNumberCards: 0
   totalRemovedFormulaCards: 0
-  baseNumberCardRemoveCost: 5
+  baseNumberCardRemoveCost: 10
   baseFormulaCardRemoveCost: 200
   blessingSlotUnlockTimes: 0
   numberSlotUnlockTimes: 0
