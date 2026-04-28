@@ -242,7 +242,7 @@ public class ShowMyNumberCard : MonoBehaviour
 
             if (go.TryGetComponent<NumberCardLayoutView>(out var view))
             {
-                view.BindInstance(instance);
+                view.BindInstance(instance, false);
             }
 
             var singleView = go.GetComponent<SingleNumberView>();

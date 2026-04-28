@@ -107,7 +107,7 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
     /// <summary>
     /// 绑定卡牌实例（当前值 + 颜色 + 图标）- 用于商店和手牌显示
     /// </summary>
-    public void BindInstance(NumberCardInstance instance)
+    public void BindInstance(NumberCardInstance instance, bool showPreparedDiceValue = true)
     {
         if (instance == null) return;
         this.boundInstance = instance;
@@ -115,28 +115,28 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         EnsureComponentsExist();
 
         // 设置 Part A
-        SetPartDisplay(aText, diceIconA, instance.cardData.partA, instance.currentA, instance.isPrepared);
+        SetPartDisplay(aText, diceIconA, instance.cardData.partA, instance.currentA, instance.isPrepared, showPreparedDiceValue);
 
         // 设置 Part B
         if (instance.cardData.partB != null)
         {
-            SetPartDisplay(bText, diceIconB, instance.cardData.partB, instance.currentB, instance.isPrepared);
+            SetPartDisplay(bText, diceIconB, instance.cardData.partB, instance.currentB, instance.isPrepared, showPreparedDiceValue);
         }
     }
 
     /// <summary>
     /// 通用方法：设置单个部分的文本内容、颜色和图标
     /// </summary>
-    private void SetPartDisplay(Text textComp, Image iconComp, NumberComponent component, int currentValue, bool isPrepared)
+    private void SetPartDisplay(Text textComp, Image iconComp, NumberComponent component, int currentValue, bool isPrepared, bool showPreparedDiceValue)
     {
         if (textComp == null || component == null) return;
 
         if (component.isDice)
         {
             // 骰子显示：~面数~ (红色)
-            if (!isPrepared)
+            if (!showPreparedDiceValue || !isPrepared)
             {
-                // 抽中/未结算时：显示最大面数
+                // 展示卡牌信息时，或者未结算时：显示最大面数
                 textComp.text = $"{component.diceSides}";
             }
             else

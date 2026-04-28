@@ -42,7 +42,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
     /// <summary>
     /// 绑定卡牌实例（当前值 + 颜色）- 用于商店和手牌显示
     /// </summary>
-    public void BindInstance(NumberCardInstance instance)
+    public void BindInstance(NumberCardInstance instance, bool showPreparedDiceValue = true)
     {
         if (valueText == null || instance == null) return;
 
@@ -54,9 +54,9 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
         if (component.isDice)
         {
             // 骰子显示：~面数~ (红色)
-            if (!instance.isPrepared)
+            if (!showPreparedDiceValue || !instance.isPrepared)
             {
-                // 抽中/未结算时：显示最大面数
+                // 展示卡牌信息时，或者未结算时：显示最大面数
                 valueText.text = $"{component.diceSides}";
             }
             else

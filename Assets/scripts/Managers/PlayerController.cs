@@ -11,7 +11,8 @@ public interface NumberCardLayoutView
     void Bind(NumberCardData data);
 
     /// 绑定卡牌实例（显示当前值，支持颜色）
-    void BindInstance(NumberCardInstance instance);
+    /// showPreparedDiceValue 为 false 时，骰子固定显示最大面数
+    void BindInstance(NumberCardInstance instance, bool showPreparedDiceValue = true);
 }
 public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler
 {
