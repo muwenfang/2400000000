@@ -403,8 +403,7 @@ public class UIManager : MonoBehaviour
             var view = cardGo.GetComponent<NumberCardLayoutView>();
             if (view != null)
             {
-                //Debug.Log($"正在绑定手牌数据：{cardData.cardData.cardName}");
-                view.Bind(cardData.cardData);
+                view.BindInstance(cardData);
             }
             else
             {
@@ -423,6 +422,11 @@ public class UIManager : MonoBehaviour
             else
             {
                 Debug.LogWarning($"[警告] {cardGo.name} 缺少 PlayerController 组件！");
+            }
+
+            if (cardGo.TryGetComponent<NumberCardLayoutView>(out var refreshedView))
+            {
+                refreshedView.BindInstance(cardData);
             }
         }
 
@@ -456,13 +460,13 @@ public class UIManager : MonoBehaviour
         {
             GameObject prefab = numberCardLibrary.GetPrefab(card.cardData.layoutType);
 
-            GameObject go = Instantiate(prefab, handArea);
-
             if (prefab == null)
             {
                 Debug.LogError($"【UIManager报错】工厂里没配置 {card.cardData.layoutType} 类型的预制体！");
                 continue;
             }
+
+            GameObject go = Instantiate(prefab, handArea);
             // 1. 强制重置缩放为 1 (防止被LayoutGroup压缩成0，或者继承了错误的缩放)
             go.transform.localScale = UnityEngine.Vector3.one;
 
@@ -477,7 +481,7 @@ public class UIManager : MonoBehaviour
 
             if (go.TryGetComponent<NumberCardLayoutView>(out var view))
             {
-                view.Bind(card.cardData);
+                view.BindInstance(card);
             }
             else
             {
@@ -491,6 +495,11 @@ public class UIManager : MonoBehaviour
             else
             {
                 Debug.LogError($"Prefab {go.name} 缺少 PlayerController 脚本！");
+            }
+
+            if (go.TryGetComponent<NumberCardLayoutView>(out var refreshedView))
+            {
+                refreshedView.BindInstance(card);
             }
         }
     }

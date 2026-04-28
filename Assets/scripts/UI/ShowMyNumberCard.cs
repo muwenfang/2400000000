@@ -215,6 +215,8 @@ public class ShowMyNumberCard : MonoBehaviour
             GameObject go = Instantiate(prefab, contentRoot);
 
             go.transform.localScale = UnityEngine.Vector3.one * cardScale;
+            go.transform.localPosition = UnityEngine.Vector3.zero;
+            go.transform.localRotation = UnityEngine.Quaternion.identity;
             go.SetActive(true); // 确保显示
 
             //禁用 PlayerController 脚本
@@ -238,29 +240,23 @@ public class ShowMyNumberCard : MonoBehaviour
                 }
             }
 
-            // 判断是哪种视图组件，分别赋值
-            // 尝试获取单数字视图
-            var singleView = go.GetComponent<SingleNumberView>();
-            if (singleView != null)
+            if (go.TryGetComponent<NumberCardLayoutView>(out var view))
             {
-                // 设置数值 (使用实例中的 currentA)
-                SetPartDisplay(singleView.valueText, instance.cardData.partA, instance.currentA);
-                // 可以在这里设置价格文字隐藏或显示
-                if (singleView.priceText != null) singleView.priceText.gameObject.SetActive(false);
+                view.BindInstance(instance);
             }
-            // 尝试获取组合视图 (加法/乘法/乘方)
-            else
-            {
-                var compositeView = go.GetComponent<CompositeNumberView>();
-                if (compositeView != null)
-                {
-                    // 设置 Part A (使用 currentA)
-                    SetPartDisplay(compositeView.aText, instance.cardData.partA, instance.currentA);
 
-                    // 设置 Part B (使用 currentB)
-                    SetPartDisplay(compositeView.bText, instance.cardData.partB, instance.currentB);
-                }
+            var singleView = go.GetComponent<SingleNumberView>();
+            if (singleView != null && singleView.priceText != null)
+            {
+                singleView.priceText.gameObject.SetActive(false);
             }
+
+            var compositeView = go.GetComponent<CompositeNumberView>();
+            if (compositeView != null && compositeView.priceText != null)
+            {
+                compositeView.priceText.gameObject.SetActive(false);
+            }
+
             cardGameObjects[instance] = go;
         }
     }
@@ -399,32 +395,6 @@ public class ShowMyNumberCard : MonoBehaviour
         }
     }
     
-    /// <summary>
-    /// 通用方法：设置文本内容和颜色
-    /// </summary>
-    void SetPartDisplay(Text textComp, NumberComponent component, int currentValue)
-    {
-        if (textComp == null || component == null) return;
-
-        if (component.isDice)
-        {
-            // 骰子显示：~面数~ (黄色)
-            textComp.text = $"~{component.diceSides}~";
-            textComp.color = diceColor;
-        }
-        else if (component.isIncremental)
-        {
-            // 递增显示：{当前值} (绿色) - 这里使用了实例里的 currentValue
-            textComp.text = $"{{{currentValue}}}";
-            textComp.color = incrementalColor;
-        }
-        else
-        {
-            // 普通显示：数值 (黑色)
-            textComp.text = currentValue.ToString();
-            textComp.color = normalColor;
-        }
-    }
     // 老千专用：显示数字卡并自动给每张卡加按钮（许愿币同款逻辑）
     public void ShowCardsForCardCheat()
     {
