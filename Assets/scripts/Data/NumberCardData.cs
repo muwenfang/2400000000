@@ -250,20 +250,35 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
 
             // 第二步：倍率修正
             double X = expectation; // 用期望作为 X
-            double log5Value = Math.Log(X, 5); // 以5为底的对数
-            float rate = (float)(log5Value + 1.0f);
+            double rate = 1.0;
 
-            // 防止rate太小/负数（非常重要！）
-            if (rate < 1.0f) rate = 1.0f;
+            // 1. 所有卡牌 × (log2(X) - 1) 倍
+            if (X >= 2) // 防止 log2(1)=0 变成负数
+            {
+                rate *= (Math.Log(X, 2) - 1.0);
+            }
 
-            if (a.isIncremental || (b != null && b.isIncremental))
-                rate *= 2.0f;
-            if (a.isDice || (b != null && b.isDice))
-                rate *= 2.0f;
+            // 2. 所有含绿色数字(递增) 或 含骰子 的卡牌 再 × 1.5 倍
+            bool hasGreenOrDice = a.isIncremental || (b != null && b.isIncremental) || a.isDice || (b != null && b.isDice);
+            if (hasGreenOrDice)
+            {
+                rate *= 1.5;
+            }
+
+            // 3. 所有指数型(Power)卡牌 再 × 2.0 倍
             if (logic == NumberCardData.LogicalType.Power)
-                rate *= 2.0f;
+            {
+                rate *= 2.0;
+            }
 
-            long priceAfterRate = (long)(expectation * rate);
+            // 4. 所有 X >= 10000 的数字卡 再 × (log10(X) - 3) 倍
+            if (X >= 10000)
+            {
+                rate *= (Math.Log10(X) - 3.0);
+            }
+
+            // 计算倍率后价格
+            long priceAfterRate = (long)(X * rate);
 
             // 第三步：舍入
             long finalPrice = RoundPrice(priceAfterRate);
