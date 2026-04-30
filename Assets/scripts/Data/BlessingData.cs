@@ -128,7 +128,7 @@ public class BlessingData : ScriptableObject
             calculatedPrice += (BigInteger)purchaseCount * 200000;
         }
 
-        // 理财大师：每回合翻倍
+        // 理财大师：每次购买后价格翻倍
         if (blessingType == BlessingType.FinancialMaster)
             for (int i = 0; i < purchaseCount; i++)
                 calculatedPrice *= 2;
