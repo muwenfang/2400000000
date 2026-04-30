@@ -150,7 +150,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             if (BlessingManager.Instance.hasRisingUp == 1 && currentA >= 9)
             {
                 currentA = 1;
-                BlessingManager.Instance.totalMultiplierBonus += 20;
+                BlessingManager.Instance.totalMultiplierBonus += 50;
             }
             else currentA++;
             Debug.Log($"递增卡更新：{cardData.cardName} Part A: {currentA - 1} → {currentA}");
@@ -161,7 +161,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             if (BlessingManager.Instance.hasRisingUp == 1 && currentB >= 9)
             {
                 currentB = 1;
-                BlessingManager.Instance.totalMultiplierBonus += 20;
+                BlessingManager.Instance.totalMultiplierBonus += 50;
             }
             else currentB++;
             Debug.Log($"递增卡更新：{cardData.cardName} Part B: {currentB - 1} → {currentB}");
@@ -181,7 +181,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             if (currentA >= 9 && BlessingManager.Instance.hasRisingUp == 1)
             {
                 currentA = 1;
-                BlessingManager.Instance.totalMultiplierBonus += 20;
+                BlessingManager.Instance.totalMultiplierBonus += 50;
             }
             else currentA++;
             //Debug.Log($"递增卡更新：{cardData.cardName} Part A: {currentA - 1} → {currentA}");
@@ -192,7 +192,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             if (currentB >= 9 && BlessingManager.Instance.hasRisingUp == 1)
             {
              currentB = 1;
-             BlessingManager.Instance.totalMultiplierBonus += 20;
+             BlessingManager.Instance.totalMultiplierBonus += 50;
             }
             else currentB++;
             //Debug.Log($"递增卡更新：{cardData.cardName} Part B: {currentB - 1} → {currentB}");
