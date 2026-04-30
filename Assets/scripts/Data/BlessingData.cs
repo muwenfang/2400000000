@@ -121,7 +121,17 @@ public class BlessingData : ScriptableObject
         if (blessingType == BlessingType.Raise)
             calculatedPrice += (BigInteger)purchaseCount * 500;
 
+        
+        // 众神归位：每已拥有一个众神归位，自身价格增加200000
+        if (blessingType == BlessingType.AllGodsInPlace)
+        {
+            calculatedPrice += (BigInteger)purchaseCount * 200000;
+        }
 
+        // 理财大师：每回合翻倍
+        if (blessingType == BlessingType.FinancialMaster)
+            for (int i = 0; i < purchaseCount; i++)
+                calculatedPrice *= 2;
 
         return calculatedPrice;
     }

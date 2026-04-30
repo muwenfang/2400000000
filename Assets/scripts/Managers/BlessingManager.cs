@@ -56,10 +56,10 @@ public class BlessingManager : MonoBehaviour
     public FormulaCardLibrary formulaCardLibrary;
     public float globalPriceDiscountPercent = 0f;    // 友情折扣
     public float blessDiscountPerBlessing = 0f;      // 眷顾
-    public float maxBlessDiscountPercent = 80f;      // 眷顾上限
+    public float maxBlessDiscountPercent = 70f;      // 眷顾上限
     public int shortSightCount = 0;                // 短视数量
     public float shortSightCurrentBonus = 0f;      // 短视当前剩余倍率加成
-    
+    public int materialismFixedRate = 0;    // 唯物主义一次性倍率
     private void Awake()
     {
         if (Instance == null)
@@ -359,10 +359,11 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.Materialism:
-                // 唯物主义 - 不可叠加：立即获得等同于当前已拥有祝福数量2倍的永久倍率，然后失去所有祝福
-                totalMultiplierBonus += ownedBlessingInstance.Count * 2;
+                // 唯物主义：获得当前祝福数量×2永久倍率 → 清空所有祝福（包括自己）
+                int totalBlessCount = GetTotalBlessingCount();
+                materialismFixedRate = totalBlessCount * 5; // 永久倍率，不会被清空
                 ClearAllBlessings();
-                Debug.Log("唯物主义效果已激活");
+                Debug.Log($"唯物主义触发！获得倍率：{materialismFixedRate}");
                 break;
 
             case BlessingData.BlessingType.QuitGambling:
@@ -774,6 +775,7 @@ public class BlessingManager : MonoBehaviour
         shortSightCount = 0;                
         shortSightCurrentBonus = 0f;      
         GetCurrentPriceMultiplier(); // 强制刷新价格
+        hasGodOfGambler = false;
     }
 
     /// <summary>
@@ -798,15 +800,17 @@ public class BlessingManager : MonoBehaviour
     /// </summary>
     public float GetFinalBlessingMultiplier()
     {
-        float baseMultiplier = totalMultiplierBonus;
-        float jackpotBonus = CalculateJackpot7Bonus();
-        float godsBonus = CalculateAllGodsInPlaceBonus();
-        float cardMasterBonus = CalculateCardMasterBonus();
-        float dialecticalBonus = dialecticalAccumulatedMultiplier;
-        
-        float final = baseMultiplier + jackpotBonus + godsBonus + cardMasterBonus + dialecticalBonus + shortSightCurrentBonus;
-        
-        return final;
+        float total = totalMultiplierBonus;
+
+        // 各类祝福倍率加成
+        total += CalculateJackpot7Bonus();
+        total += CalculateAllGodsInPlaceBonus();
+        total += CalculateCardMasterBonus();
+        total += dialecticalAccumulatedMultiplier;
+        total += shortSightCurrentBonus;
+        total += materialismFixedRate;
+
+        return total;
     }
 
     /// <summary>

@@ -89,7 +89,7 @@ public class BlessingLibrary : ScriptableObject
             name: "小卡牌包",
             description: "立即获得3张随机数字卡",
             type: BlessingData.BlessingType.SmallCardPack,
-            basePrice: 100000,
+            basePrice: 50000,
             isStackable: true
         ));
 
@@ -97,7 +97,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 9,
             name: "众神归位",
-            description: "每拥有一个祝福，倍率+1",
+            description: "你每拥有一个祝福，倍率+1，祝福“众神归位”的价格增加200000",
             type: BlessingData.BlessingType.AllGodsInPlace,
             basePrice: 2000000,
             isStackable: true
@@ -107,7 +107,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 10,
             name: "理财大师",
-            description: "每回合结束时额外获得已拥有点数1%的点数",
+            description: "祝福“理财大师”的价格翻倍；你每回合结束时额外获得已拥有点数1%的点数（向下取整）",
             type: BlessingData.BlessingType.FinancialMaster,
             basePrice: 5000,
             isStackable: true,
@@ -120,7 +120,7 @@ public class BlessingLibrary : ScriptableObject
             name: "大卡牌包",
             description: "立即获得5张随机数字卡",
             type: BlessingData.BlessingType.BigCardPack,
-            basePrice: 200000,
+            basePrice: 100000,
             isStackable: true
         ));
         
@@ -130,7 +130,7 @@ public class BlessingLibrary : ScriptableObject
             name: "老千",
             description: "择一张数字卡，将其替换为一张随机的数字卡",
             type: BlessingData.BlessingType.CardCheat,
-            basePrice: 3000,
+            basePrice: 8000,
             isStackable: true
         
         ));
@@ -231,9 +231,9 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 21,
             name: "眷顾",
-            description: "每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%",
+            description: "你每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%（最多-70%）",
             type: BlessingData.BlessingType.Bless,
-            basePrice: 50000,
+            basePrice: 100000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -267,9 +267,9 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 24,
             name: "唯物主义",
-            description: "立即获得等同于当前已拥有祝福数量2倍的永久倍率，然后失去所有祝福",
+            description: "立即获得等同于当前已拥有祝福数量5倍的永久倍率，然后失去所有祝福",
             type: BlessingData.BlessingType.Materialism,
-            basePrice: 240000,
+            basePrice: 24000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.CurrentRoundOnly
 
@@ -304,7 +304,7 @@ public class BlessingLibrary : ScriptableObject
             name: "经验主义",
             description: "每回合抽取数字卡时先抽取上一回合判定结果最大的数字卡",
             type: BlessingData.BlessingType.Empiricism,
-            basePrice: 240000,
+            basePrice: 24000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -348,7 +348,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 31,
             name: "节节高",
-            description: "大于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20",
+            description: "大于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+50",
             type: BlessingData.BlessingType.RisingUp,
             basePrice: 50000,
             isStackable: false,
