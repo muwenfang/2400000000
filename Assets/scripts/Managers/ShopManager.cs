@@ -157,24 +157,14 @@ public class ShopManager : MonoBehaviour
          ? BlessingManager.Instance.GetCurrentPriceMultiplier()
          : 1.0f;
 
+        // 创建临时池，抽到后移除，避免同一批商品重复
+        List<NumberCardData> tempPool = new List<NumberCardData>(numberCardLibrary.allCards);
+
         // 生成所有槽位（包括锁定的）
         for (int i = 0; i < MaxnumberCardCount; i++)
         {
-            // 未锁定槽位：随机抽取一张卡
-             int randomIndex = Random.Range(0, numberCardLibrary.allCards.Count);
-             NumberCardData randomCard = numberCardLibrary.allCards[randomIndex];
-
-            // 推断布局类型
-            randomCard.layoutType = InferLayoutType(randomCard);
-
-            // 创建实例并计算价格
-            NumberCardInstance instance = new NumberCardInstance(randomCard);
-            
-            long price = (long)(instance.GetNumberCardPrice(randomCard) * priceMultiplier);
-            
-            shopNumberCards.Add(new ShopItem<NumberCardInstance>(instance, price));
-            
-
+            NumberCardData randomCard = DrawNumberCardFromPool(tempPool);
+            shopNumberCards.Add(CreateNumberShopItem(randomCard, priceMultiplier));
         }
     }
     /// <summary>
@@ -198,6 +188,173 @@ public class ShopManager : MonoBehaviour
 
             default:
                 return NumberCardLayoutType.Single;
+        }
+    }
+
+    private NumberCardData DrawNumberCardFromPool(List<NumberCardData> pool)
+    {
+        if (pool == null || pool.Count == 0)
+        {
+            Debug.LogWarning("[ShopManager] 可用数字卡不足，无法继续生成不重复商品");
+            return null;
+        }
+
+        int randomIndex = Random.Range(0, pool.Count);
+        NumberCardData card = pool[randomIndex];
+        pool.RemoveAt(randomIndex);
+        return card;
+    }
+
+    private FormulaCardData DrawFormulaCardFromPool(List<FormulaCardData> pool)
+    {
+        if (pool == null || pool.Count == 0)
+        {
+            Debug.LogWarning("[ShopManager] 可用公式卡不足，无法继续生成不重复商品");
+            return null;
+        }
+
+        int randomIndex = Random.Range(0, pool.Count);
+        FormulaCardData card = pool[randomIndex];
+        pool.RemoveAt(randomIndex);
+        return card;
+    }
+
+    private BlessingData DrawBlessingFromPool(List<BlessingData> pool)
+    {
+        if (pool == null || pool.Count == 0)
+        {
+            Debug.LogWarning("[ShopManager] 可用祝福不足，无法继续生成不重复商品");
+            return null;
+        }
+
+        int randomIndex = Random.Range(0, pool.Count);
+        BlessingData blessing = pool[randomIndex];
+        pool.RemoveAt(randomIndex);
+        return blessing;
+    }
+
+    private ShopItem<NumberCardInstance> CreateNumberShopItem(NumberCardData card, float priceMultiplier)
+    {
+        if (card == null)
+        {
+            return new ShopItem<NumberCardInstance>(null, 0);
+        }
+
+        card.layoutType = InferLayoutType(card);
+        NumberCardInstance instance = new NumberCardInstance(card);
+        long price = (long)(instance.GetNumberCardPrice(card) * priceMultiplier);
+        return new ShopItem<NumberCardInstance>(instance, price);
+    }
+
+    private ShopItem<FormulaCardData> CreateFormulaShopItem(FormulaCardData card, float priceMultiplier)
+    {
+        if (card == null)
+        {
+            return new ShopItem<FormulaCardData>(null, 0);
+        }
+
+        long finalPrice = (long)(card.CardPrice * priceMultiplier);
+        return new ShopItem<FormulaCardData>(card, finalPrice);
+    }
+
+    private ShopItem<BlessingData> CreateBlessingShopItem(BlessingData blessing, float priceMultiplier)
+    {
+        if (blessing == null)
+        {
+            return new ShopItem<BlessingData>(null, 0);
+        }
+
+        int currentCount = BlessingManager.Instance.GetBlessingCount(blessing.blessingId);
+        BigInteger price = (BigInteger)blessing.CalculatePrice(currentCount, priceMultiplier);
+        return new ShopItem<BlessingData>(blessing, price);
+    }
+
+    private List<NumberCardData> BuildAvailableNumberCardPool(int ignoredSlotIndex = -1)
+    {
+        List<NumberCardData> pool = new List<NumberCardData>(numberCardLibrary.allCards);
+
+        for (int i = 0; i < shopNumberCards.Count; i++)
+        {
+            if (i == ignoredSlotIndex) continue;
+
+            if (shopNumberCards[i] == null) continue;
+
+            NumberCardInstance instance = shopNumberCards[i].cardData;
+            if (instance != null && instance.cardData != null)
+            {
+                RemoveNumberCardFromPool(pool, instance.cardData);
+            }
+        }
+
+        return pool;
+    }
+
+    private List<FormulaCardData> BuildAvailableFormulaCardPool(int ignoredSlotIndex = -1)
+    {
+        List<FormulaCardData> pool = new List<FormulaCardData>(formulaCardLibrary.allCards);
+
+        for (int i = 0; i < shopFormulaCards.Count; i++)
+        {
+            if (i == ignoredSlotIndex) continue;
+
+            if (shopFormulaCards[i] == null) continue;
+
+            FormulaCardData card = shopFormulaCards[i].cardData;
+            if (card != null)
+            {
+                RemoveFormulaCardFromPool(pool, card);
+            }
+        }
+
+        return pool;
+    }
+
+    private void RemoveDisplayedBlessingsFromPool(List<BlessingData> pool, int ignoredSlotIndex = -1)
+    {
+        for (int i = 0; i < shopBlessings.Count; i++)
+        {
+            if (i == ignoredSlotIndex) continue;
+
+            if (shopBlessings[i] == null) continue;
+
+            BlessingData blessing = shopBlessings[i].cardData;
+            if (blessing != null)
+            {
+                RemoveBlessingFromPool(pool, blessing);
+            }
+        }
+    }
+
+    private void RemoveNumberCardFromPool(List<NumberCardData> pool, NumberCardData card)
+    {
+        for (int i = pool.Count - 1; i >= 0; i--)
+        {
+            if (pool[i] == card)
+            {
+                pool.RemoveAt(i);
+            }
+        }
+    }
+
+    private void RemoveFormulaCardFromPool(List<FormulaCardData> pool, FormulaCardData card)
+    {
+        for (int i = pool.Count - 1; i >= 0; i--)
+        {
+            if (pool[i] == card || pool[i].FormulaCardId == card.FormulaCardId)
+            {
+                pool.RemoveAt(i);
+            }
+        }
+    }
+
+    private void RemoveBlessingFromPool(List<BlessingData> pool, BlessingData blessing)
+    {
+        for (int i = pool.Count - 1; i >= 0; i--)
+        {
+            if (pool[i] == blessing || pool[i].blessingId == blessing.blessingId)
+            {
+                pool.RemoveAt(i);
+            }
         }
     }
 
@@ -226,15 +383,8 @@ public class ShopManager : MonoBehaviour
         // 生成所有槽位
         for (int i = 0; i < MaxformulaCardCount; i++)
         {
-                // 未锁定槽位：随机抽取
-                int randomIndex = Random.Range(0, tempPool.Count);
-                FormulaCardData randomCard = tempPool[randomIndex];
-                tempPool.RemoveAt(randomIndex); // 避免重复
-
-                long finalPrice = (long)(randomCard.CardPrice * priceMultiplier);
-
-                shopFormulaCards.Add(new ShopItem<FormulaCardData>(randomCard, finalPrice));
-
+            FormulaCardData randomCard = DrawFormulaCardFromPool(tempPool);
+            shopFormulaCards.Add(CreateFormulaShopItem(randomCard, priceMultiplier));
         }
     }
 
@@ -307,36 +457,32 @@ public class ShopManager : MonoBehaviour
 
         // 构建可用祝福池（根据刷新行为过滤）
         List<BlessingData> availableBlessings = BuildAvailableBlessingPool();
+        RemoveDisplayedBlessingsFromPool(availableBlessings);
         
         int remainingSlots = MaxBlessingCardCount - wishAdded;//减去许愿币占位
         
         // 生成4个槽位（包括锁定的）
         for (int i = 0; i < remainingSlots; i++)
         {
-            // 如果是解锁的槽位
-            if (i < blessingCardCount)
-            {
-                BlessingData selectedBlessing = null;
+            int slotIndex = i + wishAdded;
 
+            // 如果是解锁的槽位
+            if (slotIndex < blessingCardCount)
+            {
                 // 从可用池中选择祝福
                 if (availableBlessings.Count > 0)
                 {
-                    int randomIndex = Random.Range(0, availableBlessings.Count);
-                    selectedBlessing = availableBlessings[randomIndex];
+                    BlessingData selectedBlessing = DrawBlessingFromPool(availableBlessings);
+                    ShopItem<BlessingData> item = CreateBlessingShopItem(selectedBlessing, priceMultiplier);
 
-                    availableBlessings.RemoveAt(randomIndex);
-                    // 计算价格
-                    int currentCount = BlessingManager.Instance.GetBlessingCount(selectedBlessing.blessingId);
-                    BigInteger price = (BigInteger)selectedBlessing.CalculatePrice(currentCount, priceMultiplier);
-
-                    shopBlessings.Add(new ShopItem<BlessingData>(selectedBlessing, price));
-                    Debug.Log($"祝福槽位{i}：{selectedBlessing.blessingName}（{selectedBlessing.refreshBehavior}），价格 {price}");
+                    shopBlessings.Add(item);
+                    Debug.Log($"祝福槽位{slotIndex}：{selectedBlessing.blessingName}（{selectedBlessing.refreshBehavior}），价格 {item.price}");
                 }
                 else
                 {
                     // 可用祝福不足，添加空槽位
                     shopBlessings.Add(new ShopItem<BlessingData>(null, 0));
-                    Debug.LogWarning($"[ShopManager] 可用祝福不足！槽位{i}无法填充");
+                    Debug.LogWarning($"[ShopManager] 可用祝福不足！槽位{slotIndex}无法填充");
                 }
             }
             else
@@ -499,27 +645,27 @@ public class ShopManager : MonoBehaviour
     }
     //商店刷新
     public void RefreshShop()
-{
-    int currentRound = GameManager.Instance.currentRound;
-    BigInteger roundSquare = (BigInteger)currentRound * currentRound;
-    BigInteger powerOfTwo = 1;
-    for (int i = 0; i < refreshCount; i++) powerOfTwo *= 2;
-    BigInteger refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
-// 如果拥有丰盈宝库祝福，刷新费用为0
-    if (BlessingManager.Instance.HasRichTreasure == 1)
+    {
+        int currentRound = GameManager.Instance.currentRound;
+        BigInteger roundSquare = (BigInteger)currentRound * currentRound;
+        BigInteger powerOfTwo = 1;
+        for (int i = 0; i < refreshCount; i++) powerOfTwo *= 2;
+        BigInteger refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
+        // 如果拥有丰盈宝库祝福，刷新费用为0
+        if (BlessingManager.Instance.HasRichTreasure == 1)
         refreshCost = 0;
 
-    if (GameManager.Instance.currentPoints < refreshCost)
-    {
-        Debug.Log("点数不足");
-        return;
-    }
+        if (GameManager.Instance.currentPoints < refreshCost)
+        {
+            Debug.Log("点数不足");
+            return;
+        }
 
-    GameManager.Instance.AddPoints(-refreshCost);
-    refreshCostText.text = "cost: " + FormatBigNumber(refreshCost);
-    refreshCount++;
-    OpenShop();
-}
+        GameManager.Instance.AddPoints(-refreshCost);
+        refreshCostText.text = "cost: " + FormatBigNumber(refreshCost);
+        refreshCount++;
+        OpenShop();
+    }
 
     public void CloseShop() 
     {
@@ -992,20 +1138,18 @@ public class ShopManager : MonoBehaviour
 
         float priceMultiplier = BlessingManager.Instance != null ? BlessingManager.Instance.GetCurrentPriceMultiplier() : 1.0f;
 
-        // 只生成一个新槽位，避免与现有卡牌重复
-        FormulaCardData randomCard = formulaCardLibrary.GetRandomCard();
+        List<FormulaCardData> availableCards = BuildAvailableFormulaCardPool(slotIndex);
+        FormulaCardData randomCard = DrawFormulaCardFromPool(availableCards);
+        ShopItem<FormulaCardData> item = CreateFormulaShopItem(randomCard, priceMultiplier);
 
         // 将新卡牌添加到列表
         if (slotIndex < shopFormulaCards.Count)
-        {
-            shopFormulaCards[slotIndex] = new ShopItem<FormulaCardData>(randomCard, (long)(randomCard.CardPrice * priceMultiplier));
-        }
+            shopFormulaCards[slotIndex] = item;
         else
-        {
-            shopFormulaCards.Add(new ShopItem<FormulaCardData>(randomCard, (long)(randomCard.CardPrice * priceMultiplier)));
-        }
+            shopFormulaCards.Add(item);
 
-        Debug.Log($"槽位{slotIndex}：{randomCard.Name}，价格 {randomCard.CardPrice}");
+        if (randomCard != null)
+            Debug.Log($"槽位{slotIndex}：{randomCard.Name}，价格 {item.price}");
     }
     /// <summary>
     ///只生成一个新的数字卡槽位（用于解锁时调用）
@@ -1020,29 +1164,19 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
-        // 只生成一个新槽位
-        int randomIndex = Random.Range(0, numberCardLibrary.allCards.Count);
-        NumberCardData randomCard = numberCardLibrary.allCards[randomIndex];
-
-        // 推断布局类型
-        randomCard.layoutType = InferLayoutType(randomCard);
-
-        // 创建实例并计算价格
-        NumberCardInstance instance = new NumberCardInstance(randomCard);
         float priceMultiplier = BlessingManager.Instance != null ? BlessingManager.Instance.GetCurrentPriceMultiplier() : 1.0f;
-        long price = (long)(instance.GetNumberCardPrice(randomCard) * priceMultiplier);
+        List<NumberCardData> availableCards = BuildAvailableNumberCardPool(slotIndex);
+        NumberCardData randomCard = DrawNumberCardFromPool(availableCards);
+        ShopItem<NumberCardInstance> item = CreateNumberShopItem(randomCard, priceMultiplier);
         
         // 将新卡牌添加到列表
         if (slotIndex < shopNumberCards.Count)
-        {
-            shopNumberCards[slotIndex] = new ShopItem<NumberCardInstance>(instance, price);
-        }
+            shopNumberCards[slotIndex] = item;
         else
-        {
-            shopNumberCards.Add(new ShopItem<NumberCardInstance>(instance, price));
-        }
+            shopNumberCards.Add(item);
 
-        Debug.Log($"槽位{slotIndex}：{randomCard.cardName}，价格 {price}");
+        if (randomCard != null)
+            Debug.Log($"槽位{slotIndex}：{randomCard.cardName}，价格 {item.price}");
     }
     /// <summary>
     /// 只生成一个新的祝福槽位（用于解锁时调用）
@@ -1061,24 +1195,20 @@ public class ShopManager : MonoBehaviour
             ? BlessingManager.Instance.GetCurrentPriceMultiplier()
             : 1.0f;
 
-        // 随机获取一个祝福
-        BlessingData randomBlessing = blessingLibrary.GetRandomBlessing();
+        List<BlessingData> availableBlessings = BuildAvailableBlessingPool();
+        RemoveDisplayedBlessingsFromPool(availableBlessings, slotIndex);
 
-        // 计算价格
-        int currentCount = BlessingManager.Instance.GetBlessingCount(randomBlessing.blessingId);
-        BigInteger price = (BigInteger)randomBlessing.CalculatePrice(currentCount, priceMultiplier);
+        BlessingData randomBlessing = DrawBlessingFromPool(availableBlessings);
+        ShopItem<BlessingData> item = CreateBlessingShopItem(randomBlessing, priceMultiplier);
 
         // 将新祝福添加到列表
         if (slotIndex < shopBlessings.Count)
-        {
-            shopBlessings[slotIndex] = new ShopItem<BlessingData>(randomBlessing, price);
-        }
+            shopBlessings[slotIndex] = item;
         else
-        {
-            shopBlessings.Add(new ShopItem<BlessingData>(randomBlessing, price));
-        }
+            shopBlessings.Add(item);
 
-        Debug.Log($"祝福槽位{slotIndex}：{randomBlessing.blessingName}，价格 {price}");
+        if (randomBlessing != null)
+            Debug.Log($"祝福槽位{slotIndex}：{randomBlessing.blessingName}，价格 {item.price}");
     }
 
     #region
