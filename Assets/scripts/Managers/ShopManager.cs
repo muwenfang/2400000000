@@ -137,6 +137,7 @@ public class ShopManager : MonoBehaviour
         numberCardCount = 3;
         formulaCardCount = 1;
         blessingCardCount = 2;
+
         isDeletionMode = false;
 
         ResetCurrentRoundBlessings();
@@ -668,7 +669,7 @@ public class ShopManager : MonoBehaviour
         }
 
         GameManager.Instance.AddPoints(-refreshCost);
-        refreshCostText.text = "cost: " + FormatBigNumber(refreshCost);
+        refreshCostText.text = "$ " + FormatBigNumber(refreshCost);
         refreshCount++;
         OpenShop();
     }
@@ -1016,12 +1017,12 @@ public class ShopManager : MonoBehaviour
     /// 计算祝福卡槽位解锁消耗
     /// </summary>
     public BigInteger CalculateBlessingSlotUnlockCost()
-{
-    BigInteger cost = baseBlessingSlotUnlockCost;
-    for (int i = 0; i < blessingSlotUnlockTimes; i++)
-        cost *= 25;
-    return cost;
-}
+    {
+        BigInteger cost = baseBlessingSlotUnlockCost;
+        for (int i = 0; i < blessingSlotUnlockTimes; i++)
+            cost *= 25;
+        return cost;
+    }
     /// <summary>
     /// 尝试解锁公式卡槽位
     /// </summary>
@@ -1129,6 +1130,7 @@ public class ShopManager : MonoBehaviour
         return true;
     }
     #endregion
+
     /// <summary>
     ///只生成一个新的公式卡槽位（用于解锁时调用）
     /// 不改变现有的卡牌数值

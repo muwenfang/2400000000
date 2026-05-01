@@ -303,7 +303,7 @@ public class BlessingInShop : MonoBehaviour
             return;
 
         BigInteger unlockCost = ShopManager.Instance.CalculateBlessingSlotUnlockCost();
-        unlockCostText.text = $"{unlockCost}";
+        unlockCostText.text = $"$ {unlockCost}";
 
         // 根据点数情况改变颜色
         if (GameManager.Instance.currentPoints >= unlockCost)
