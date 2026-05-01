@@ -83,6 +83,8 @@ public class GameManager : MonoBehaviour
         Debug.Log("初始化游戏");
         // 重置本局统计数据
         ResetRoundStatistics();
+        shopManager.totalRemovedNumberCards = 0;
+        shopManager.totalRemovedFormulaCards = 0;
 
         currentPoints = 0;
 
@@ -127,6 +129,8 @@ public class GameManager : MonoBehaviour
     {   
         Debug.Log("初始化游戏");
         ResetRoundStatistics();
+        shopManager.totalRemovedNumberCards = 0;
+        shopManager.totalRemovedFormulaCards = 0;
 
         currentPoints = 0;
         GameManager.isInvolutionMode = true;
