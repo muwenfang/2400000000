@@ -97,7 +97,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 9,
             name: "众神归位",
-            description: "你每拥有一个祝福，倍率+1，祝福“众神归位”的价格增加200000",
+            description: "你每拥有一个祝福，倍率+1，祝福“众神归位”的价格为（2000000+已拥有祝福数量*200000）",
             type: BlessingData.BlessingType.AllGodsInPlace,
             basePrice: 2000000,
             isStackable: true
@@ -161,7 +161,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 15,
             name: "卡牌大师",
-            description: "每张数字卡额外提供1倍率",
+            description: "你每拥有一张数字卡，倍率+1",
             type: BlessingData.BlessingType.CardMaster,
             basePrice: 3000000,
             isStackable: true
@@ -348,7 +348,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 31,
             name: "节节高",
-            description: "大于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+50",
+            description: "大于等于9的绿色数字递增后将变为{1}；触发此效果时，你的倍率永久+50",
             type: BlessingData.BlessingType.RisingUp,
             basePrice: 50000,
             isStackable: false,

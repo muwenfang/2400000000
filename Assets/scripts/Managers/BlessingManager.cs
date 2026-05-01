@@ -208,7 +208,7 @@ public class BlessingManager : MonoBehaviour
     /// <summary>
     /// 获取已有祝福数量
     /// </summary>
-    private int GetTotalBlessingCount()
+    public int GetTotalBlessingCount()
     {
         int totalCount = 0;
         foreach (var kvp in ownedBlessings)

@@ -84,7 +84,7 @@ public class GameManager : MonoBehaviour
         // 重置本局统计数据
         ResetRoundStatistics();
 
-        currentPoints = 100000000;
+        currentPoints = 0;
 
         currentRound = 1;
 
@@ -383,25 +383,6 @@ public class GameManager : MonoBehaviour
                 }
                 return; // 不进商店
             }
-            // 祝福:能量扩散
-            if (BlessingManager.Instance.hasEnergySpread == 1)
-            {
-                for (int i = 0; i < PlayerCardInventory.Instance.numberCards.Count; i++)
-                {
-                    if (!cardManager.selectedNumberCards.Contains(PlayerCardInventory.Instance.numberCards[i]))
-                    {
-                        PlayerCardInventory.Instance.numberCards[i].EnergySpread();
-                    }
-                }
-            }
-            if (BlessingManager.Instance.GetBlessingTypeCount(BlessingData.BlessingType.FinancialMaster)!= 0)
-            {
-                currentPoints += BlessingManager.Instance.CalculateFinancialMasterBonus(currentPoints);
-
-                // 立即更新UI显示
-                UIManager.Instance.UpdatePointsDisplay(currentPoints);
-                Debug.Log($"总分更新: {currentPoints}");
-            }
             // 非最后一回合：直接进商店，不做任何阶段检查
             currentState = GameState.Shop;
             shopManager.OpenShop();
@@ -430,37 +411,40 @@ public class GameManager : MonoBehaviour
             // 进行阶段检查
             if (!CheckStageRequirement())
             {
-               // 检查失败，游戏结束
-               return; // 不进入商店
+                // 检查失败，游戏结束
+                return; // 不进入商店
             }
             else   // 检查通过，扣除阶段要求的点数，这里要刷新UI
-            { 
-                currentPoints -= stageRequirement; 
+            {
+                currentPoints -= stageRequirement;
                 // 刷新点数 UI 显示
                 UIManager.Instance.UpdatePointsDisplay(GameManager.Instance.currentPoints);
             }
-            
-            // 祝福:能量扩散
-            if (BlessingManager.Instance.hasEnergySpread == 1)
-            {
-                for (int i = 0; i < PlayerCardInventory.Instance.numberCards.Count; i++)
-                {
-                    if (!cardManager.selectedNumberCards.Contains(PlayerCardInventory.Instance.numberCards[i]))
-                    {
-                        PlayerCardInventory.Instance.numberCards[i].EnergySpread();
-                    }
-                }
-            }
-            if (BlessingManager.Instance.GetBlessingTypeCount(BlessingData.BlessingType.FinancialMaster) != 0)
-            {
-                currentPoints += BlessingManager.Instance.CalculateFinancialMasterBonus(currentPoints);
-
-                // 立即更新UI显示
-                UIManager.Instance.UpdatePointsDisplay(currentPoints);
-                Debug.Log($"总分更新: {currentPoints}");
-            }
         }
+            
+         // 祝福:能量扩散
+         if (BlessingManager.Instance.hasEnergySpread == 1)
+         {
+            for (int i = 0; i < PlayerCardInventory.Instance.numberCards.Count; i++)
+            {
+               if (!cardManager.selectedNumberCards.Contains(PlayerCardInventory.Instance.numberCards[i]))
+               {
+                 PlayerCardInventory.Instance.numberCards[i].EnergySpread();
+               }
+            }
+         }
+         //祝福:理财大师
+         if (BlessingManager.Instance.GetBlessingTypeCount(BlessingData.BlessingType.FinancialMaster) != 0)
+         {
+            currentPoints += BlessingManager.Instance.CalculateFinancialMasterBonus(currentPoints);
 
+             // 立即更新UI显示
+             UIManager.Instance.UpdatePointsDisplay(currentPoints);
+             Debug.Log($"总分更新: {currentPoints}");
+         }
+
+
+        //打开商店界面
         currentState = GameState.Shop;
         shopManager.OpenShop();
         ChangeState(GameState.Shop);
