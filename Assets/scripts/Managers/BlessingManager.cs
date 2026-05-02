@@ -1159,7 +1159,8 @@ public class BlessingManager : MonoBehaviour
                 CardManager.Instance.SyncDeckFromInventory();
 
             Debug.Log($"【空想主义】获得：{missing[r].Name}");
-            ForcePragmatismCleanup();
+            ForcePragmatismCleanup(); // 强制触发实用主义防止bug
+
         }
         else
         {

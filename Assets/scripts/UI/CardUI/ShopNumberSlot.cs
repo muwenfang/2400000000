@@ -267,7 +267,7 @@ void UpdatePriceDisplay(BigInteger price, bool sold)
         if (unlockCostText == null) return;
 
         BigInteger unlockCost = ShopManager.Instance.CalculateNumberSlotUnlockCost();
-        unlockCostText.text = $"{unlockCost}";
+        unlockCostText.text = $"$ {unlockCost}";
 
         // 根据点数情况改变颜色
         if (GameManager.Instance.currentPoints >= unlockCost)

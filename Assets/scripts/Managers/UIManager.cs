@@ -38,6 +38,7 @@ public class UIManager : MonoBehaviour
     public GameObject myBlessPanel;// 祝福
     public GameObject PlayerDataPanel;// 玩家数据面板
     public Image LockPanel; // 锁定界面
+    public GameObject targetPointPanel; // 目标点数界面
     //public GameObject confirmationPanel;// 确认对话框
 
     [Header("游戏信息显示")]
@@ -91,6 +92,16 @@ public class UIManager : MonoBehaviour
             {
                 pointstagePanel.SetActive(true);
                 pointstagePanel.transform.SetAsLastSibling();
+
+                if(GameManager.isInvolutionMode)
+                {
+                    targetPointPanel.SetActive(false);
+                }
+                else
+                {
+                    targetPointPanel.SetActive(true);
+                    targetPointPanel.transform.SetAsLastSibling();
+                }
             }
         }
         if (panelToShow == gameUIPanel || panelToShow == myBlessPanel || panelToShow == myNumberCardPanel || panelToShow == myFormulaCardPanel)
@@ -225,9 +236,7 @@ public class UIManager : MonoBehaviour
     {
         if (stageRequirementText != null)
         {
-            if(GameManager.isInvolutionMode)
-                stageRequirementText.text = $"{2400000000}";
-            else stageRequirementText.text = $"{FormatBigNumber(requirement)}";
+            stageRequirementText.text = $"{FormatBigNumber(requirement)}";
         }
     }
     /// <summary>

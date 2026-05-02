@@ -130,9 +130,14 @@ public class ShopManager : MonoBehaviour
         numberSlotUnlockTimes = 0; // 数字卡已解锁次数
         formulaSlotUnlockTimes = 0; // 公式卡已解锁次数
         blessingSlotUnlockTimes = 0;
+
+        totalRemovedFormulaCards = 0;
+        totalRemovedNumberCards = 0;
+
         numberCardCount = 3;
         formulaCardCount = 1;
         blessingCardCount = 2;
+
         isDeletionMode = false;
 
         ResetCurrentRoundBlessings();
@@ -191,6 +196,7 @@ public class ShopManager : MonoBehaviour
         }
     }
 
+    #region 抽卡
     private NumberCardData DrawNumberCardFromPool(List<NumberCardData> pool)
     {
         if (pool == null || pool.Count == 0)
@@ -537,7 +543,7 @@ public class ShopManager : MonoBehaviour
 
         return availableBlessings;
     }
-
+    #endregion
     /// <summary>
     /// 重置本回合显示过的祝福
     /// </summary>
@@ -546,7 +552,7 @@ public class ShopManager : MonoBehaviour
         currentRoundPurchasedBlessings.Clear();
         Debug.Log("[ShopManager] 本回合已显示的祝福记录已清空");
     }
-
+    #region 买卡逻辑
     public bool TryBuyNumberCard(ShopItem<NumberCardInstance> item)
     {
         if (item == null || item.cardData == null)
@@ -643,6 +649,7 @@ public class ShopManager : MonoBehaviour
 
         return purchaseSuccess;
     }
+    #endregion
     //商店刷新
     public void RefreshShop()
     {
@@ -662,7 +669,7 @@ public class ShopManager : MonoBehaviour
         }
 
         GameManager.Instance.AddPoints(-refreshCost);
-        refreshCostText.text = "cost: " + FormatBigNumber(refreshCost);
+        refreshCostText.text = "$ " + FormatBigNumber(refreshCost);
         refreshCount++;
         OpenShop();
     }
@@ -917,24 +924,24 @@ public class ShopManager : MonoBehaviour
     /// 计算数字卡槽位解锁消耗
     /// </summary>
     public BigInteger CalculateNumberSlotUnlockCost()
-{
-    BigInteger finalNumberSlotUnlockCost = 0 ;
-    if (numberSlotUnlockTimes == 0)
-        finalNumberSlotUnlockCost = 20;
-    else if (numberSlotUnlockTimes == 1)
-        finalNumberSlotUnlockCost = 500;
-    else if (numberSlotUnlockTimes == 2)
-        finalNumberSlotUnlockCost = 10000;
-    return finalNumberSlotUnlockCost;
-}
+    {
+        BigInteger finalNumberSlotUnlockCost = 0 ;
+        if (numberSlotUnlockTimes == 0)
+            finalNumberSlotUnlockCost = 20;
+        else if (numberSlotUnlockTimes == 1)
+            finalNumberSlotUnlockCost = 500;
+        else if (numberSlotUnlockTimes == 2)
+            finalNumberSlotUnlockCost = 10000;
+        return finalNumberSlotUnlockCost;
+    }
 
     public BigInteger CalculateFormulaSlotUnlockCost()
-{
-    BigInteger cost = 5000;
-    for (int i = 0; i < formulaSlotUnlockTimes; i++)
-        cost *= 2;
-    return cost;
-}
+    {
+        BigInteger cost = 5000;
+        for (int i = 0; i < formulaSlotUnlockTimes; i++)
+            cost *= 2;
+        return cost;
+    }
 
     /// <summary>
     /// 获取下一个可解锁的数字卡槽位编号
@@ -1010,12 +1017,12 @@ public class ShopManager : MonoBehaviour
     /// 计算祝福卡槽位解锁消耗
     /// </summary>
     public BigInteger CalculateBlessingSlotUnlockCost()
-{
-    BigInteger cost = baseBlessingSlotUnlockCost;
-    for (int i = 0; i < blessingSlotUnlockTimes; i++)
-        cost *= 25;
-    return cost;
-}
+    {
+        BigInteger cost = baseBlessingSlotUnlockCost;
+        for (int i = 0; i < blessingSlotUnlockTimes; i++)
+            cost *= 25;
+        return cost;
+    }
     /// <summary>
     /// 尝试解锁公式卡槽位
     /// </summary>
@@ -1123,6 +1130,7 @@ public class ShopManager : MonoBehaviour
         return true;
     }
     #endregion
+
     /// <summary>
     ///只生成一个新的公式卡槽位（用于解锁时调用）
     /// 不改变现有的卡牌数值
