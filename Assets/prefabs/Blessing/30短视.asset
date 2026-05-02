@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   blessingId: 30
   blessingName: "\u77ED\u89C6"
-  description: "\u500D\u7387+15\uFF1B\u6BCF\u56DE\u5408\u500D\u7387-1"
-  basePrice: 0
+  description: "\u500D\u7387+10\uFF1B\u6BCF\u56DE\u5408\u500D\u7387-1"
+  basePrice: 500
   isStackable: 1
   blessingType: 30
   effectValue: -1

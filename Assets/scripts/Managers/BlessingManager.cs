@@ -404,7 +404,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.ShortSight:
                 //短视 - 可叠加：倍率+10；每回合倍率-1
-                shortSightCurrentBonus += 15f;
+                shortSightCurrentBonus += 10f;
                 shortSightCount++;
                 Debug.Log("短视效果已激活");
                 break;
