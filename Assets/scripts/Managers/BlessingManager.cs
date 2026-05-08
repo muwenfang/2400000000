@@ -776,6 +776,7 @@ public class BlessingManager : MonoBehaviour
         shortSightCurrentBonus = 0f;      
         GetCurrentPriceMultiplier(); // 强制刷新价格
         hasGodOfGambler = false;
+        ApplyPragmatism = 0;//实用主义
     }
 
     /// <summary>
