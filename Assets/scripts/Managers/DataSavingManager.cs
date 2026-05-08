@@ -301,23 +301,27 @@ public class DataSavingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 清除所有数据（谨慎使用！）
+    /// Reset saved player data only.
     /// </summary>
-    public void ClearAllData()
+    public void InitializePlayerData()
     {
-        try
+        currentSavingData = new SavingData();
+        SaveDataToFile();
+
+        if (DataDisplayManager.Instance != null)
         {
-            if (System.IO.File.Exists(savePath))
-            {
-                System.IO.File.Delete(savePath);
-                currentSavingData = new SavingData();
-                Debug.LogWarning(" 所有数据已清除");
-            }
+            DataDisplayManager.Instance.ManualRefresh();
         }
-        catch (System.Exception e)
-        {
-            Debug.LogError($"清除数据失败：{e.Message}");
-        }
+
+        Debug.Log("Player save data has been initialized.");
+    }
+
+    /// <summary>
+    /// UI button entry point.
+    /// </summary>
+    public void InitializePlayerDataButton()
+    {
+        InitializePlayerData();
     }
 
     /// <summary>

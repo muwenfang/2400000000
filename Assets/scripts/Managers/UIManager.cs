@@ -39,6 +39,7 @@ public class UIManager : MonoBehaviour
     public GameObject PlayerDataPanel;// 玩家数据面板
     public Image LockPanel; // 锁定界面
     public GameObject targetPointPanel; // 目标点数界面
+    public GameObject settingPanel; // 设置界面
     //public GameObject confirmationPanel;// 确认对话框
 
     [Header("游戏信息显示")]
@@ -136,6 +137,7 @@ public class UIManager : MonoBehaviour
         if (myBlessPanel != null) myBlessPanel.SetActive(false);
         if (PlayerDataPanel != null) PlayerDataPanel.SetActive(false);
         if (pointstagePanel != null) pointstagePanel.SetActive(false);
+        if(settingPanel != null) settingPanel.SetActive(false);
     }
     #region 展示卡牌库
     // 打开数字卡库
@@ -370,6 +372,10 @@ public class UIManager : MonoBehaviour
         ShowPanel(PlayerDataPanel);
     }
    
+    public void ShowSettings()
+    {
+        ShowPanel(settingPanel);
+    }
     #endregion
 
     #region 手牌显示
