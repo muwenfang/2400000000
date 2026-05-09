@@ -71,27 +71,12 @@ public class BlessingData : ScriptableObject
     }
 
     /// <summary>
-    /// 计算当前价格（考虑购买次数和价格上升）
+    /// 计算当前价格（先算自身涨价，再算百分比折扣）
     /// </summary>
     public BigInteger CalculatePrice(int purchaseCount = 0, float priceMultiplier = 1.0f)
     {
+        // 1. 基础价
         BigInteger calculatedPrice = (BigInteger)basePrice;
-
-        // 安全处理全局倍率
-        if (priceMultiplier > 0)
-        {
-            calculatedPrice = calculatedPrice * (BigInteger)(priceMultiplier * 100) / 100;
-        }
-
-
-        // 虚无主义倍率后保底（仅防止变0，不影响翻倍）
-        if (blessingType == BlessingType.Nihilism)
-        {
-            if (calculatedPrice <= 0)
-            {
-                calculatedPrice = 1;
-            }
-        }
 
         // 虚无主义价格翻倍逻辑
         if (blessingType == BlessingType.Nihilism)
@@ -107,7 +92,7 @@ public class BlessingData : ScriptableObject
         if (blessingType == BlessingType.WishingCoin)
             calculatedPrice += (BigInteger)purchaseCount * 1000;
 
-        // 赌具升级：
+        // 赌具升级：每次购买后价格翻倍
         if (blessingType == BlessingType.GamblingGearUpgraded)
             for (int i = 0; i < purchaseCount; i++)
                 calculatedPrice *= 2;
@@ -121,7 +106,6 @@ public class BlessingData : ScriptableObject
         if (blessingType == BlessingType.Raise)
             calculatedPrice += (BigInteger)purchaseCount * 500;
 
-        
         // 众神归位：每拥有一个祝福，价格+200000
         if (blessingType == BlessingType.AllGodsInPlace)
         {
@@ -134,10 +118,23 @@ public class BlessingData : ScriptableObject
             for (int i = 0; i < purchaseCount; i++)
                 calculatedPrice *= 2;
 
+        if (priceMultiplier > 0)
+        {
+            calculatedPrice = calculatedPrice * (BigInteger)(priceMultiplier * 100) / 100;
+        }
+
+        // 虚无主义保底（最后保底）
+        if (blessingType == BlessingType.Nihilism)
+        {
+            if (calculatedPrice <= 0)
+            {
+                calculatedPrice = 1;
+            }
+        }
+
         return calculatedPrice;
     }
 }
-
 /// <summary>
 /// 玩家已购买的祝福实例
 /// </summary>
