@@ -51,6 +51,7 @@ public class BlessingManager : MonoBehaviour
     public Dictionary<int, int> idealismDiceResults = new Dictionary<int, int>();  //唯心主义储存不同等级骰子出目的字典   
     public int dialecticalPerRoundBonus = 0;  // 每购买1级辩证主义，每回合+1倍率
     public float dialecticalAccumulatedMultiplier = 0f; // 辩证主义累积的回合倍率
+    public float dialecticalPricePercent = 0f; // 辩证主义：每回合累积的价格涨幅（每回合+1%）
     public int ApplyPragmatism = 0;//实用主义
     public bool hasGodOfGambler = false;//赌神传说
     public FormulaCardLibrary formulaCardLibrary;
@@ -60,6 +61,9 @@ public class BlessingManager : MonoBehaviour
     public int shortSightCount = 0;                // 短视数量
     public float shortSightCurrentBonus = 0f;      // 短视当前剩余倍率加成
     public int materialismFixedRate = 0;    // 唯物主义一次性倍率
+    
+    
+    
     private void Awake()
     {
         if (Instance == null)
@@ -106,6 +110,7 @@ public class BlessingManager : MonoBehaviour
         hasGodOfGambler = false;  
         shortSightCount = 0;                
         shortSightCurrentBonus = 0f;      
+        dialecticalPricePercent = 0f;
         GetCurrentPriceMultiplier(); //重置折扣
     }
 
@@ -206,7 +211,7 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 获取已有祝福数量
+    /// 获取已有祝福数量GetBlessingCount
     /// </summary>
     public int GetTotalBlessingCount()
     {
@@ -677,8 +682,8 @@ public class BlessingManager : MonoBehaviour
     public float GetCurrentPriceMultiplier()
     {
         // 1. 辩证主义：每级 +1% 价格
-        int dialecticCount = GetBlessingTypeCount(BlessingData.BlessingType.DialecticalViewpoint);
-        float multiplier = 1f + (dialecticCount * 0.01f);
+        // 改用辩证主义每回合+购买累积的百分比
+        float multiplier = 1f + (dialecticalPricePercent * 0.01f);
 
         // 2. 友情折扣（固定10%）不可叠加
         float friendDiscount = globalPriceDiscountPercent;
@@ -737,11 +742,6 @@ public class BlessingManager : MonoBehaviour
         CardManager.Instance.SyncDeckFromInventory();
     }
 
-    public int GetBlessingCount(BlessingData.BlessingType type)
-    {
-        return ownedBlessingInstance.Count(b => b.data.blessingType == type);
-    }
-
     /// <summary>
     /// 清空所有祝福
     /// </summary>
@@ -777,6 +777,7 @@ public class BlessingManager : MonoBehaviour
         GetCurrentPriceMultiplier(); // 强制刷新价格
         hasGodOfGambler = false;
         ApplyPragmatism = 0;//实用主义
+        dialecticalPricePercent = 0f;
     }
 
     /// <summary>
@@ -820,23 +821,6 @@ public class BlessingManager : MonoBehaviour
     public BigInteger GetBlessingPointBonus(BigInteger currentPoints)
     {
         return CalculateFinancialMasterBonus(currentPoints);
-    }
-
-    /// <summary>
-    /// 获取祝福导致的价格提高倍数（辩证主义等）
-    /// </summary>
-    public float GetBlessingPriceIncreaseMultiplier()
-    {
-        return GetCurrentPriceMultiplier();
-    }
-
-    /// <summary>
-    /// 获取价格提高百分比（方便显示用，如 15%）
-    /// </summary>
-    public float GetBlessingPriceIncreasePercent()
-    {
-        float multiplier = GetCurrentPriceMultiplier();
-        return (multiplier - 1f) * 100f;
     }
     
     /// <summary>
@@ -887,15 +871,23 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 每回合开始时叠加辩证主义倍率
+    /// 每回合开始时叠加辩证主义效果
     /// </summary>
     public void AddDialecticalPerRoundMultiplier()
     {
-        if (dialecticalPerRoundBonus > 0)
-        {
-            dialecticalAccumulatedMultiplier += dialecticalPerRoundBonus;
-            Debug.Log($"辩证主义每回合加成：累积倍率+{dialecticalPerRoundBonus}，当前总累积{dialecticalAccumulatedMultiplier}");
-        }
+        int layer = dialecticalPerRoundBonus;
+        if (layer <= 0) return;
+
+        // 1. 每回合倍率 +1
+        dialecticalAccumulatedMultiplier += layer;
+
+        // 2. 每回合获得 24 点数
+        GameManager.Instance.AddPoints(24 * layer);
+
+        // 3. 每回合价格 +1%（逐回合上涨，这就是你之前缺失的）
+        dialecticalPricePercent += layer * 1f;
+
+        Debug.Log($"辩证主义回合效果：倍率+{layer}，得{24*layer}点，价格+{layer}%");
     }
 
     /// <summary>
