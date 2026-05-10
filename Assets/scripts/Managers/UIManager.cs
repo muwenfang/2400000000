@@ -176,11 +176,33 @@ public class UIManager : MonoBehaviour
         var showScript = myFormulaCardPanel.GetComponent<ShowMyFormula>();
         if (showScript != null) showScript.RefreshAllCards();
     }
+
+    private void HideDeletionCostPanelsForBlessView()
+    {
+        if (ShopManager.Instance != null && ShopManager.Instance.deleteCostPanel != null)
+        {
+            ShopManager.Instance.deleteCostPanel.SetActive(false);
+        }
+
+        var numberCardView = myNumberCardPanel != null ? myNumberCardPanel.GetComponent<ShowMyNumberCard>() : null;
+        if (numberCardView != null && numberCardView.deletionCostPanel != null)
+        {
+            numberCardView.deletionCostPanel.SetActive(false);
+        }
+
+        var formulaCardView = myFormulaCardPanel != null ? myFormulaCardPanel.GetComponent<ShowMyFormula>() : null;
+        if (formulaCardView != null && formulaCardView.deletionCostPanel != null)
+        {
+            formulaCardView.deletionCostPanel.SetActive(false);
+        }
+    }
+
     public void OpenBlessCardDeck()
     {
         myBlessPanel.SetActive(true);
         myNumberCardPanel.SetActive(false);
         myFormulaCardPanel.SetActive(false);
+        HideDeletionCostPanelsForBlessView();
         myBlessPanel.transform.SetAsLastSibling(); // 确保祝福卡库在其他卡库之上显示
 
         if (myCardButton != null)
@@ -278,7 +300,7 @@ public class UIManager : MonoBehaviour
     {
         if (pointsGainText != null)
         {
-            pointsGainText.text = "0";
+            pointsGainText.text = "结算";
         }
 
         if (multiplierText != null)
@@ -709,6 +731,7 @@ public class UIManager : MonoBehaviour
     {
         // 直接打开你现有的祝福面板
         myBlessPanel.SetActive(true);
+        HideDeletionCostPanelsForBlessView();
         myBlessPanel.transform.SetAsLastSibling();
 
         // 调用专属刷新（只显示可叠加祝福）

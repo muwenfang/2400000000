@@ -181,7 +181,7 @@ public class DataDisplayManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 【新增】显示本局游戏的统计数据
+    /// \显示本局游戏的统计数据
     /// 在游戏胜利后调用此方法
     /// 逻辑和历史数据显示相同，用于展示本局的最大数据
     /// </summary>
@@ -251,8 +251,9 @@ public class DataDisplayManager : MonoBehaviour
         char c0 = s[0];
         char c1 = s.Length > 1 ? s[1] : '0';
         char c2 = s.Length > 2 ? s[2] : '0';
+        char c3 = s.Length > 3 ? s[3] : '0';
 
-        return $"{c0}.{c1}{c2}e{exponent}";
+        return $"{c0}.{c1}{c2}{c3}e{exponent}";
     }
 
         // 字符串版本（存档用）
