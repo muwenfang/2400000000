@@ -243,7 +243,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 22,
             name: "丰盈宝库",
-            description: "商店刷新永久免费",
+            description: "每回合第一次商店刷新免费",
             type: BlessingData.BlessingType.RichTreasury,
             basePrice: 500000,
             isStackable: false,
@@ -399,7 +399,28 @@ public class BlessingLibrary : ScriptableObject
             type: BlessingData.BlessingType.GamblingGodSage,
             basePrice: 5000000,
             isStackable: false
+        ));
 
+        //  势如破竹
+        allBlessings.Add(CreateBlessing(
+            id: 36,
+            name: "势如破竹",
+            description: "你的绿色数字的正增量将转化为永久倍率",
+            type: BlessingData.BlessingType.Unstoppable,
+            basePrice: 5000000,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+
+        //  贷款钱包
+        allBlessings.Add(CreateBlessing(
+            id: 37,
+            name: "贷款钱包",
+            description:"你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数",
+            type: BlessingData.BlessingType.LoanWallet,
+            basePrice: 0,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
         ));
 
         Debug.Log($" 成功初始化 {allBlessings.Count} 个祝福！");

@@ -118,8 +118,8 @@ public class ShopManager : MonoBehaviour
     BigInteger powerOfTwo = 1;
     for (int i = 0; i < refreshCount; i++) powerOfTwo *= 2;
     BigInteger refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
-    // 如果拥有丰盈宝库祝福，刷新费用为0
-    if (BlessingManager.Instance.HasRichTreasure == 1)
+    // 如果拥有丰盈宝库祝福，每回合第一次商店刷新费用为0
+    if (BlessingManager.Instance.HasRichTreasure == 1 && refreshCount < 1)
         refreshCost = 0;
 
     refreshCostText.text = "cost: " + FormatBigNumber(refreshCost);
@@ -658,8 +658,8 @@ public class ShopManager : MonoBehaviour
         BigInteger powerOfTwo = 1;
         for (int i = 0; i < refreshCount; i++) powerOfTwo *= 2;
         BigInteger refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
-        // 如果拥有丰盈宝库祝福，刷新费用为0
-        if (BlessingManager.Instance.HasRichTreasure == 1)
+        // 如果拥有丰盈宝库祝福，每回合首次刷新费用为0
+        if (BlessingManager.Instance.HasRichTreasure == 1 && refreshCount < 1)
         refreshCost = 0;
 
         if (GameManager.Instance.currentPoints < refreshCost)

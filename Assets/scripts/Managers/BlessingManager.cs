@@ -432,6 +432,17 @@ public class BlessingManager : MonoBehaviour
                 BlessingManager.Instance.hasGodOfGambler = true;
                 Debug.Log("赌神传说效果已激活");
                 break;
+
+            case BlessingData.BlessingType.Unstoppable:
+                // 势如破竹  不可叠加：你的绿色数字的正增量将转化为永久倍率
+                Debug.Log("势如破竹效果已激活");
+                break;
+
+            case BlessingData.BlessingType.LoanWallet:
+                // 贷款钱包 不可叠加：你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数
+                Debug.Log("你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数");
+                break;
+
         }
     }
 

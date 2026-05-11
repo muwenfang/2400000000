@@ -67,7 +67,9 @@ public class BlessingData : ScriptableObject
         RisingUp,             // 节节高
         Temperlance,          // 平衡节制
         GamblingGearUpgraded, // 赌具升级
-        GamblingGodSage       // 赌神传说
+        GamblingGodSage,      // 赌神传说
+        Unstoppable,          // 势如破竹
+        LoanWallet           // 贷款钱包
     }
 
     /// <summary>
