@@ -299,7 +299,7 @@ public class BlessingManager : MonoBehaviour
 
 
             case BlessingData.BlessingType.DialecticalViewpoint:
-                // 开局一次性奖励点数
+                // 辩证主义 - 开局一次性奖励点数
                 Debug.Log($"辩证主义已激活：每回合倍率+1、得24点、全商品价格+1%");
                 break;
 
