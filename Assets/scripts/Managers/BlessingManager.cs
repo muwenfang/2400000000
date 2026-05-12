@@ -63,6 +63,7 @@ public class BlessingManager : MonoBehaviour
     public int materialismFixedRate = 0;    // 唯物主义一次性倍率
     public int hasUnstoppable = 0;        // 势如破竹
     public int hasLoanWallet = 0;          // 贷款钱包
+    public BigInteger loan = BigInteger.Zero;          // 贷款金额
 
 
     private void Awake()
@@ -444,7 +445,8 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.LoanWallet:
                 // 贷款钱包 不可叠加：你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数
                 hasLoanWallet = 1;
-                GameManager.Instance.AddPoints(BigInteger.Abs(GameManager.Instance.currentPoints) * 3);
+                loan = BigInteger.Abs(GameManager.Instance.currentPoints * 3);
+                GameManager.Instance.AddPoints(loan);
                 Debug.Log("你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数");
                 break;
 

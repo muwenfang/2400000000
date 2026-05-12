@@ -169,7 +169,13 @@ public class GameManager : MonoBehaviour
             // 顺带重置唯心主义骰子结果（原有逻辑）
             blessingManager.NewRound_IdealismReset();
         }
-        
+
+        // 祝福贷款钱包：每回合扣除贷款15%的点数
+        if (BlessingManager.Instance.hasLoanWallet == 1)
+        {
+            AddPoints(-BlessingManager.Instance.loan * 15/100);
+        }
+
         // 刷新所有游戏信息UI
         UIManager.Instance.RefreshAllGameInfo();
         // 重置本回合得分
