@@ -4,6 +4,7 @@ using System.Numerics;
 using System.Linq;
 using UnityEngine;
 
+
 /// <summary>
 /// 祝福管理器 - 管理玩家拥有的祝福及其效果
 /// </summary>
@@ -443,6 +444,7 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.LoanWallet:
                 // 贷款钱包 不可叠加：你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数
                 hasLoanWallet = 1;
+                GameManager.Instance.AddPoints(BigInteger.Abs(GameManager.Instance.currentPoints) * 3);
                 Debug.Log("你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数");
                 break;
 
