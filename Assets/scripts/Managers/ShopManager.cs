@@ -113,16 +113,8 @@ public class ShopManager : MonoBehaviour
     }
     public void InitializeRefreshCost()
     {
-    int currentRound = GameManager.Instance.currentRound;
-    BigInteger roundSquare = (BigInteger)currentRound * currentRound;
-    BigInteger powerOfTwo = 1;
-    for (int i = 0; i < refreshCount; i++) powerOfTwo *= 2;
-    BigInteger refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
-    // 如果拥有丰盈宝库祝福，每回合第一次商店刷新费用为0
-    if (BlessingManager.Instance.HasRichTreasure == 1 && refreshCount < 1)
-        refreshCost = 0;
-
-    refreshCostText.text = "cost: " + FormatBigNumber(refreshCost);
+        BigInteger refreshCost = CalculateRefreshCost();
+        refreshCostText.text = "cost: " + FormatBigNumber(refreshCost);
     }
 
     public void InitializeShop()
@@ -158,9 +150,7 @@ public class ShopManager : MonoBehaviour
         }
 
         // 获取价格乘数（如果有祝福影响价格的话）
-        float priceMultiplier = BlessingManager.Instance != null
-         ? BlessingManager.Instance.GetCurrentPriceMultiplier()
-         : 1.0f;
+        float priceMultiplier = GetCurrentNumberCardPriceMultiplier();
 
         // 创建临时池，抽到后移除，避免同一批商品重复
         List<NumberCardData> tempPool = new List<NumberCardData>(numberCardLibrary.allCards);
@@ -379,9 +369,7 @@ public class ShopManager : MonoBehaviour
         }
 
         // 获取价格乘数（如果有祝福影响价格的话）
-        float priceMultiplier = BlessingManager.Instance != null
-            ? BlessingManager.Instance.GetCurrentPriceMultiplier()
-            : 1.0f;
+        float priceMultiplier = GetCurrentFormulaCardPriceMultiplier();
 
         // 创建临时池，避免重复抽取
         List<FormulaCardData> tempPool = new List<FormulaCardData>(formulaCardLibrary.allCards);
@@ -402,9 +390,7 @@ public class ShopManager : MonoBehaviour
         shopBlessings.Clear();
 
         // 获取价格乘数（如果有祝福影响价格的话）
-        float priceMultiplier = BlessingManager.Instance != null
-        ? BlessingManager.Instance.GetCurrentPriceMultiplier()
-        : 1.0f;
+        float priceMultiplier = GetCurrentBlessingPriceMultiplier();
 
         bool forceNihilism = false;
         int nihilismCount = BlessingManager.Instance.nihilismCount;
@@ -442,7 +428,7 @@ public class ShopManager : MonoBehaviour
         if (wishBlessing != null)
         {
             // 强制加入本次商品，优先占用第一个槽位
-            priceMultiplier = BlessingManager.Instance.GetCurrentPriceMultiplier();
+            priceMultiplier = GetCurrentBlessingPriceMultiplier();
             int currentCount = BlessingManager.Instance.GetBlessingCount(wishBlessing.blessingId);
             BigInteger price = wishBlessing.CalculatePrice(currentCount, priceMultiplier);
 
@@ -653,14 +639,7 @@ public class ShopManager : MonoBehaviour
     //商店刷新
     public void RefreshShop()
     {
-        int currentRound = GameManager.Instance.currentRound;
-        BigInteger roundSquare = (BigInteger)currentRound * currentRound;
-        BigInteger powerOfTwo = 1;
-        for (int i = 0; i < refreshCount; i++) powerOfTwo *= 2;
-        BigInteger refreshCost = roundSquare * powerOfTwo;///计算刷新需要的点数
-        // 如果拥有丰盈宝库祝福，每回合首次刷新费用为0
-        if (BlessingManager.Instance.HasRichTreasure == 1 && refreshCount < 1)
-        refreshCost = 0;
+        BigInteger refreshCost = CalculateRefreshCost();
 
         if (GameManager.Instance.currentPoints < refreshCost)
         {
@@ -819,7 +798,7 @@ public class ShopManager : MonoBehaviour
     {
         BigInteger cost = baseNumberCardRemoveCost;
         for (int i = 0; i < totalRemovedNumberCards; i++) cost *= 5;
-        return cost;
+        return ApplyMultiplier(cost, GetCurrentDeletionPriceMultiplier());
     }
 
     /// <summary>
@@ -829,7 +808,7 @@ public class ShopManager : MonoBehaviour
     {
         BigInteger cost = baseFormulaCardRemoveCost;
         for (int i = 0; i < totalRemovedFormulaCards; i++) cost *= 5;
-        return cost;
+        return ApplyMultiplier(cost, GetCurrentDeletionPriceMultiplier());
     }
 
     /// <summary>
@@ -1144,7 +1123,7 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
-        float priceMultiplier = BlessingManager.Instance != null ? BlessingManager.Instance.GetCurrentPriceMultiplier() : 1.0f;
+        float priceMultiplier = GetCurrentFormulaCardPriceMultiplier();
 
         List<FormulaCardData> availableCards = BuildAvailableFormulaCardPool(slotIndex);
         FormulaCardData randomCard = DrawFormulaCardFromPool(availableCards);
@@ -1172,7 +1151,7 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
-        float priceMultiplier = BlessingManager.Instance != null ? BlessingManager.Instance.GetCurrentPriceMultiplier() : 1.0f;
+        float priceMultiplier = GetCurrentNumberCardPriceMultiplier();
         List<NumberCardData> availableCards = BuildAvailableNumberCardPool(slotIndex);
         NumberCardData randomCard = DrawNumberCardFromPool(availableCards);
         ShopItem<NumberCardInstance> item = CreateNumberShopItem(randomCard, priceMultiplier);
@@ -1199,9 +1178,7 @@ public class ShopManager : MonoBehaviour
             return;
         }
 
-        float priceMultiplier = BlessingManager.Instance != null
-            ? BlessingManager.Instance.GetCurrentPriceMultiplier()
-            : 1.0f;
+        float priceMultiplier = GetCurrentBlessingPriceMultiplier();
 
         List<BlessingData> availableBlessings = BuildAvailableBlessingPool();
         RemoveDisplayedBlessingsFromPool(availableBlessings, slotIndex);
@@ -1256,6 +1233,137 @@ public class ShopManager : MonoBehaviour
         }
     }
     #endregion 
+
+    private float GetBaseBlessingPriceMultiplier()
+    {
+        return BlessingManager.Instance != null
+            ? BlessingManager.Instance.GetCurrentPriceMultiplier()
+            : 1f;
+    }
+
+    private float GetDifficultyMultiplier(DifficultySettingType settingType)
+    {
+        if (DataSavingManager.Instance == null)
+        {
+            return 1f;
+        }
+
+        return DataSavingManager.Instance.GetDifficultyMultiplier(settingType);
+    }
+
+    public float GetCurrentNumberCardPriceMultiplier()
+    {
+        return GetBaseBlessingPriceMultiplier() * GetDifficultyMultiplier(DifficultySettingType.NumberCardPrice);
+    }
+
+    public float GetCurrentFormulaCardPriceMultiplier()
+    {
+        return GetBaseBlessingPriceMultiplier() * GetDifficultyMultiplier(DifficultySettingType.FormulaCardPrice);
+    }
+
+    public float GetCurrentBlessingPriceMultiplier()
+    {
+        return GetBaseBlessingPriceMultiplier() * GetDifficultyMultiplier(DifficultySettingType.BlessingPrice);
+    }
+
+    public float GetCurrentDeletionPriceMultiplier()
+    {
+        return GetDifficultyMultiplier(DifficultySettingType.CardDeletionPrice);
+    }
+
+    public float GetCurrentRefreshPriceMultiplier()
+    {
+        return GetDifficultyMultiplier(DifficultySettingType.ShopRefreshPrice);
+    }
+
+    private BigInteger ApplyMultiplier(BigInteger value, float multiplier)
+    {
+        if (multiplier <= 0f)
+        {
+            return value;
+        }
+
+        return value * (BigInteger)(multiplier * 100f) / 100;
+    }
+
+    public BigInteger CalculateRefreshCost()
+    {
+        int currentRound = GameManager.Instance.currentRound;
+        BigInteger roundSquare = (BigInteger)currentRound * currentRound;
+        BigInteger powerOfTwo = 1;
+        for (int i = 0; i < refreshCount; i++) powerOfTwo *= 2;
+
+        BigInteger refreshCost = roundSquare * powerOfTwo;
+        refreshCost = ApplyMultiplier(refreshCost, GetCurrentRefreshPriceMultiplier());
+
+        if (BlessingManager.Instance.HasRichTreasure == 1 && refreshCount < 1)
+        {
+            refreshCost = 0;
+        }
+
+        return refreshCost;
+    }
+
+    public void RefreshCurrentNumberCardPrices()
+    {
+        float priceMultiplier = GetCurrentNumberCardPriceMultiplier();
+
+        foreach (var item in shopNumberCards)
+        {
+            if (item == null || item.cardData == null || item.cardData.cardData == null)
+            {
+                continue;
+            }
+
+            long originalPrice = item.cardData.GetNumberCardPrice(item.cardData.cardData);
+            item.price = (long)(originalPrice * priceMultiplier);
+        }
+    }
+
+    public void RefreshCurrentFormulaCardPrices()
+    {
+        float priceMultiplier = GetCurrentFormulaCardPriceMultiplier();
+
+        foreach (var item in shopFormulaCards)
+        {
+            if (item == null || item.cardData == null)
+            {
+                continue;
+            }
+
+            item.price = (long)(item.cardData.CardPrice * priceMultiplier);
+        }
+    }
+
+    public void RefreshCurrentBlessingPrices()
+    {
+        float priceMultiplier = GetCurrentBlessingPriceMultiplier();
+
+        foreach (var item in shopBlessings)
+        {
+            if (item == null || item.cardData == null)
+            {
+                continue;
+            }
+
+            int count = BlessingManager.Instance.GetBlessingCount(item.cardData.blessingId);
+            item.price = item.cardData.CalculatePrice(count, priceMultiplier);
+        }
+    }
+
+    public void ApplyDifficultySettings()
+    {
+        RefreshCurrentNumberCardPrices();
+        RefreshCurrentFormulaCardPrices();
+        RefreshCurrentBlessingPrices();
+        InitializeRefreshCost();
+
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.RefreshShopUI();
+        }
+    }
+
     public string FormatBigNumber(BigInteger number)
     {
         BigInteger threshold = 1000000000;

@@ -125,7 +125,9 @@ public class BlessingManager : MonoBehaviour
 
         // 计算当前祝福的价格（和商店显示逻辑保持一致）
         int purchaseCount = GetBlessingCount(blessingData.blessingId);
-        float multiplier = GetCurrentPriceMultiplier();
+        float multiplier = ShopManager.Instance != null
+            ? ShopManager.Instance.GetCurrentBlessingPriceMultiplier()
+            : GetCurrentPriceMultiplier();
         BigInteger finalPrice = (BigInteger)blessingData.CalculatePrice(purchaseCount, multiplier);
 
         // 检查点数是否足够
@@ -164,39 +166,10 @@ public class BlessingManager : MonoBehaviour
         ApplyBlessingEffect(blessingData);
         // 刷新商店显示
         // 购买成功后，强制重新计算商店里所有祝福的价格
-        float currentMultiplier = GetCurrentPriceMultiplier();
-
-        // 1. 刷新数字卡价格
-        foreach (var item in ShopManager.Instance.shopNumberCards)
+        if (ShopManager.Instance != null)
         {
-            if (item.cardData != null)
-            {
-                long originalPrice = item.cardData.GetNumberCardPrice(item.cardData.cardData);
-                item.price = (long)(originalPrice * currentMultiplier);
-            }
+            ShopManager.Instance.ApplyDifficultySettings();
         }
-
-        // 2. 刷新公式卡价格
-        foreach (var item in ShopManager.Instance.shopFormulaCards)
-        {
-            if (item.cardData != null)
-            {
-                item.price = (long)(item.cardData.CardPrice * currentMultiplier);
-            }
-        }
-
-        // 3. 刷新祝福价格
-        foreach (var item in ShopManager.Instance.shopBlessings)
-        {
-            if (item.cardData != null)
-            {    
-                int count = GetBlessingCount(item.cardData.blessingId);
-                item.price = (BigInteger)item.cardData.CalculatePrice(count, currentMultiplier);
-            }
-        }
-
-        // 再刷新UI
-        UIManager.Instance.RefreshShopUI();
         
         return true;
     }

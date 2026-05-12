@@ -397,6 +397,17 @@ public class UIManager : MonoBehaviour
     public void ShowSettings()
     {
         ShowPanel(settingPanel);
+
+        if (settingPanel != null)
+        {
+            DifficultySettingsManager difficultySettingsManager = settingPanel.GetComponent<DifficultySettingsManager>();
+            if (difficultySettingsManager == null)
+            {
+                difficultySettingsManager = settingPanel.AddComponent<DifficultySettingsManager>();
+            }
+
+            difficultySettingsManager.Initialize();
+        }
     }
     #endregion
 

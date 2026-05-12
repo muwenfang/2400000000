@@ -3,6 +3,15 @@ using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 
+public enum DifficultySettingType
+{
+    NumberCardPrice,
+    FormulaCardPrice,
+    BlessingPrice,
+    CardDeletionPrice,
+    ShopRefreshPrice
+}
+
 [System.Serializable]
 public class SavingData
 {
@@ -38,6 +47,14 @@ public class SavingData
 
     /// 全局最高点数（两种模式中最高的）
     public string MaxPoint = "0";
+
+    [Header("=============== 设置数据 ===============")]
+    /// 商店数字卡价格难度倍率（1.0x - 10.0x，每次 0.5x）
+    public float numberCardPriceDifficultyMultiplier = 1f;
+    public float formulaCardPriceDifficultyMultiplier = 1f;
+    public float blessingPriceDifficultyMultiplier = 1f;
+    public float cardDeletionPriceDifficultyMultiplier = 1f;
+    public float shopRefreshPriceDifficultyMultiplier = 1f;
 
 
     /// 将 BigInteger 转换为字符串存储
