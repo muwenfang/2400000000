@@ -79,6 +79,8 @@ public class DataSavingManager : MonoBehaviour
             currentSavingData = new SavingData();
             Debug.Log("首次游戏，创建新存档");
         }
+
+        NormalizeSettingsData();
     }
 
     /// <summary>
@@ -95,6 +97,36 @@ public class DataSavingManager : MonoBehaviour
         {
             Debug.LogError($"数据保存失败：{e.Message}\n{e.StackTrace}");
         }
+    }
+
+    private void NormalizeSettingsData()
+    {
+        if (currentSavingData == null)
+        {
+            currentSavingData = new SavingData();
+        }
+
+        currentSavingData.numberCardPriceDifficultyMultiplier =
+            NormalizeDifficultyMultiplier(currentSavingData.numberCardPriceDifficultyMultiplier);
+        currentSavingData.formulaCardPriceDifficultyMultiplier =
+            NormalizeDifficultyMultiplier(currentSavingData.formulaCardPriceDifficultyMultiplier);
+        currentSavingData.blessingPriceDifficultyMultiplier =
+            NormalizeDifficultyMultiplier(currentSavingData.blessingPriceDifficultyMultiplier);
+        currentSavingData.cardDeletionPriceDifficultyMultiplier =
+            NormalizeDifficultyMultiplier(currentSavingData.cardDeletionPriceDifficultyMultiplier);
+        currentSavingData.shopRefreshPriceDifficultyMultiplier =
+            NormalizeDifficultyMultiplier(currentSavingData.shopRefreshPriceDifficultyMultiplier);
+    }
+
+    private float NormalizeDifficultyMultiplier(float value)
+    {
+        if (value <= 0f)
+        {
+            value = 1f;
+        }
+
+        value = Mathf.Clamp(value, 1f, 10f);
+        return Mathf.Round(value * 2f) / 2f;
     }
 
     /// <summary>
@@ -267,8 +299,75 @@ public class DataSavingManager : MonoBehaviour
         {
             Debug.LogWarning("当前数据为空，创建新实例");
             currentSavingData = new SavingData();
+            NormalizeSettingsData();
         }
         return currentSavingData;
+    }
+
+    public float GetDifficultyMultiplier(DifficultySettingType settingType)
+    {
+        SavingData data = GetCurrentData();
+
+        switch (settingType)
+        {
+            case DifficultySettingType.NumberCardPrice:
+                return data.numberCardPriceDifficultyMultiplier;
+            case DifficultySettingType.FormulaCardPrice:
+                return data.formulaCardPriceDifficultyMultiplier;
+            case DifficultySettingType.BlessingPrice:
+                return data.blessingPriceDifficultyMultiplier;
+            case DifficultySettingType.CardDeletionPrice:
+                return data.cardDeletionPriceDifficultyMultiplier;
+            case DifficultySettingType.ShopRefreshPrice:
+                return data.shopRefreshPriceDifficultyMultiplier;
+            default:
+                return 1f;
+        }
+    }
+
+    public void SetDifficultyMultiplier(DifficultySettingType settingType, float multiplier)
+    {
+        float normalizedValue = NormalizeDifficultyMultiplier(multiplier);
+
+        SavingData data = GetCurrentData();
+        float currentValue = GetDifficultyMultiplier(settingType);
+
+        if (Mathf.Approximately(currentValue, normalizedValue))
+        {
+            return;
+        }
+
+        switch (settingType)
+        {
+            case DifficultySettingType.NumberCardPrice:
+                data.numberCardPriceDifficultyMultiplier = normalizedValue;
+                break;
+            case DifficultySettingType.FormulaCardPrice:
+                data.formulaCardPriceDifficultyMultiplier = normalizedValue;
+                break;
+            case DifficultySettingType.BlessingPrice:
+                data.blessingPriceDifficultyMultiplier = normalizedValue;
+                break;
+            case DifficultySettingType.CardDeletionPrice:
+                data.cardDeletionPriceDifficultyMultiplier = normalizedValue;
+                break;
+            case DifficultySettingType.ShopRefreshPrice:
+                data.shopRefreshPriceDifficultyMultiplier = normalizedValue;
+                break;
+        }
+
+        SaveDataToFile();
+        Debug.Log($"难度设置已保存：{settingType} = {normalizedValue:F1}x");
+    }
+
+    public float GetNumberCardPriceDifficultyMultiplier()
+    {
+        return GetDifficultyMultiplier(DifficultySettingType.NumberCardPrice);
+    }
+
+    public void SetNumberCardPriceDifficultyMultiplier(float multiplier)
+    {
+        SetDifficultyMultiplier(DifficultySettingType.NumberCardPrice, multiplier);
     }
 
     /// <summary>
@@ -306,6 +405,7 @@ public class DataSavingManager : MonoBehaviour
     public void InitializePlayerData()
     {
         currentSavingData = new SavingData();
+        NormalizeSettingsData();
         SaveDataToFile();
 
         if (DataDisplayManager.Instance != null)
