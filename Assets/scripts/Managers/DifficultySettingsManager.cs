@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using UnityEngine;
@@ -84,7 +84,7 @@ public class DifficultySettingsManager : MonoBehaviour
             && group.decreaseButton != null
             && group.increaseButton != null;
     }
-
+    #region 自动生成按钮
     private void AutoBindValueTexts()
     {
         List<Text> candidates = new List<Text>();
@@ -227,7 +227,7 @@ public class DifficultySettingsManager : MonoBehaviour
         if (group.decreaseButton == null) group.decreaseButton = row[0];
         if (group.increaseButton == null) group.increaseButton = row[row.Count - 1];
     }
-
+    #endregion
     private void BindControlGroup(DifficultySettingControlGroup group, DifficultySettingType settingType)
     {
         if (group == null)
