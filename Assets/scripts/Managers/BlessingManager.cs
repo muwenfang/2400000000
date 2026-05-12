@@ -60,9 +60,10 @@ public class BlessingManager : MonoBehaviour
     public int shortSightCount = 0;                // 短视数量
     public float shortSightCurrentBonus = 0f;      // 短视当前剩余倍率加成
     public int materialismFixedRate = 0;    // 唯物主义一次性倍率
-    
-    
-    
+    public int hasUnstoppable = 0;        // 势如破竹
+    public int hasLoanWallet = 0;          // 贷款钱包
+
+
     private void Awake()
     {
         if (Instance == null)
@@ -96,9 +97,9 @@ public class BlessingManager : MonoBehaviour
         nihilismCount = 0;
         hasLeadingCharge = false;
         hasGambleToWin = false; 
-
+        hasLoanWallet = 0;
         hasIdealism = false;
-      
+        hasUnstoppable = 0;
         hasEnergySpread = 0;
         hasRisingUp = 0;
         hasTemperlance = 0;
@@ -435,11 +436,13 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.Unstoppable:
                 // 势如破竹  不可叠加：你的绿色数字的正增量将转化为永久倍率
+                hasUnstoppable = 1;
                 Debug.Log("势如破竹效果已激活");
                 break;
 
             case BlessingData.BlessingType.LoanWallet:
                 // 贷款钱包 不可叠加：你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数
+                hasLoanWallet = 1;
                 Debug.Log("你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数");
                 break;
 
@@ -792,6 +795,8 @@ public class BlessingManager : MonoBehaviour
         hasGodOfGambler = false;
         ApplyPragmatism = 0;//实用主义
         dialecticalPricePercent = 0f;
+        hasLoanWallet = 0;  // 贷款钱包
+        hasUnstoppable = 0;  // 势如破竹
     }
 
     /// <summary>

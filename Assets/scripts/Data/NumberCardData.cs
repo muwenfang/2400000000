@@ -152,8 +152,15 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 currentA = 1;
                 BlessingManager.Instance.totalMultiplierBonus += 50;
             }
-            else currentA++;
+            else
+            {
+                currentA++;
+                //祝福势如破竹效果：你的绿色数字的正增量将转化为永久倍率
+                if (BlessingManager.Instance.hasUnstoppable == 1)
+                    BlessingManager.Instance.totalMultiplierBonus += 1;
+            }
             Debug.Log($"递增卡更新：{cardData.cardName} Part A: {currentA - 1} → {currentA}");
+
         }
 
         if (cardData.partB != null && cardData.partB.isIncremental)
@@ -163,8 +170,15 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 currentB = 1;
                 BlessingManager.Instance.totalMultiplierBonus += 50;
             }
-            else currentB++;
+            else
+            {
+                currentB++;
+                //祝福势如破竹效果：你的绿色数字的正增量将转化为永久倍率
+                if (BlessingManager.Instance.hasUnstoppable == 1)
+                    BlessingManager.Instance.totalMultiplierBonus += 1;
+            }
             Debug.Log($"递增卡更新：{cardData.cardName} Part B: {currentB - 1} → {currentB}");
+
         }
 
         // 标记为已结算
@@ -174,7 +188,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
 
     // 祝福:能量扩散
     public void EnergySpread()
-    { 
+    {
         // 更新递增值（+1）
         if (cardData.partA.isIncremental)
         {
@@ -183,10 +197,16 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 currentA = 1;
                 BlessingManager.Instance.totalMultiplierBonus += 50;
             }
-            else currentA++;
+            else
+            {
+                currentA++;
+                //祝福势如破竹效果：你的绿色数字的正增量将转化为永久倍率
+                if (BlessingManager.Instance.hasUnstoppable == 1)
+                    BlessingManager.Instance.totalMultiplierBonus += 1;
+            }
             //Debug.Log($"递增卡更新：{cardData.cardName} Part A: {currentA - 1} → {currentA}");
-        }
 
+        }
         if (cardData.partB != null && cardData.partB.isIncremental)
         {
             if (currentB >= 9 && BlessingManager.Instance.hasRisingUp == 1)
@@ -194,8 +214,15 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
              currentB = 1;
              BlessingManager.Instance.totalMultiplierBonus += 50;
             }
-            else currentB++;
-            //Debug.Log($"递增卡更新：{cardData.cardName} Part B: {currentB - 1} → {currentB}");
+            else
+            {
+              currentB++;
+              //祝福势如破竹效果：你的绿色数字的正增量将转化为永久倍率
+              if (BlessingManager.Instance.hasUnstoppable == 1)
+                  BlessingManager.Instance.totalMultiplierBonus += 1;
+            }
+                //Debug.Log($"递增卡更新：{cardData.cardName} Part B: {currentB - 1} → {currentB}");
+
         }
     }
     
