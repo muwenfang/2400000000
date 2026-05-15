@@ -15,7 +15,7 @@ MonoBehaviour:
   blessingId: 22
   blessingName: "\u4E30\u76C8\u5B9D\u5E93"
   description: "\u6BCF\u56DE\u5408\u7B2C\u4E00\u6B21\u5546\u5E97\u5237\u65B0\u514D\u8D39"
-  basePrice: 500000
+  basePrice: 50000
   isStackable: 0
   blessingType: 21
   effectValue: 0

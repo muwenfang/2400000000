@@ -109,7 +109,7 @@ public class BlessingLibrary : ScriptableObject
             name: "理财大师",
             description: "祝福“理财大师”的价格翻倍；你每回合结束时额外获得已拥有点数1%的点数（向下取整）",
             type: BlessingData.BlessingType.FinancialMaster,
-            basePrice: 5000,
+            basePrice: 10000,
             isStackable: true,
             effectValue: 0.01f
         ));
@@ -163,7 +163,7 @@ public class BlessingLibrary : ScriptableObject
             name: "卡牌大师",
             description: "你每拥有一张数字卡，倍率+1",
             type: BlessingData.BlessingType.CardMaster,
-            basePrice: 3000000,
+            basePrice: 1000000,
             isStackable: true
             
         ));
@@ -245,7 +245,7 @@ public class BlessingLibrary : ScriptableObject
             name: "丰盈宝库",
             description: "每回合第一次商店刷新免费",
             type: BlessingData.BlessingType.RichTreasury,
-            basePrice: 500000,
+            basePrice: 50000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
