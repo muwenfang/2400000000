@@ -20,15 +20,6 @@ public class CardSelectionManager : MonoBehaviour
         MoreMoreBetter  // 多多益善：只能选择公式卡 
     }
 
-    /// <summary>
-    /// 选卡界面列队
-    /// </summary>
-    private class SelectionRequest
-    {
-        public SelectionMode mode;
-        public Action<object> callback;
-    }
-    private Queue<SelectionRequest> requestQueue = new Queue<SelectionRequest>();
     private SelectionMode currentMode;
     private Action<object> selectionCallback;  // 选择完成后的回调
 
@@ -52,9 +43,6 @@ public class CardSelectionManager : MonoBehaviour
     /// </summary>
     public void StartCardSelection(SelectionMode mode, Action<object> callback)
     {
-        requestQueue.Enqueue(new SelectionRequest { mode = mode, callback = callback });
-        if (IsSelecting()) return;
-        
         currentMode = mode;
         selectionCallback = callback;
 
@@ -99,15 +87,6 @@ public class CardSelectionManager : MonoBehaviour
             EndCardSelection();
         }
     }
-    ///<summary>
-    /// 依次处理选卡效果
-    /// </summary>
-    private void ProcessNextRequest()
-    {
-        if (requestQueue.Count == 0) return;
-        var req = requestQueue.Dequeue();
-        StartCardSelection(req.mode, req.callback);
-    }
     /// <summary>
     /// 关闭卡牌选择模式
     /// </summary>
@@ -116,7 +95,7 @@ public class CardSelectionManager : MonoBehaviour
         Debug.Log("[CardSelectionManager] 关闭卡牌选择模式");
         currentMode = SelectionMode.None;
         selectionCallback = null;
-        ProcessNextRequest();
+
     }
 
     /// <summary>
