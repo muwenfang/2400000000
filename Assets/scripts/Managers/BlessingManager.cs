@@ -135,8 +135,13 @@ public class BlessingManager : MonoBehaviour
             : GetCurrentPriceMultiplier();
         BigInteger finalPrice = (BigInteger)blessingData.CalculatePrice(purchaseCount, multiplier);
 
+        if (finalPrice == 0)
+        { 
+        // 价格为0的祝福直接购买成功（如祝福逢七过，贷款钱包）
+            Debug.Log($"购买【{blessingData.blessingName}】成功！价格：免费");
+        }
         // 检查点数是否足够
-        if (GameManager.Instance.currentPoints < finalPrice)
+        else if (GameManager.Instance.currentPoints < finalPrice)
         {
             Debug.LogWarning($"点数不足！需要{finalPrice}，当前{GameManager.Instance.currentPoints}");
             return false;
