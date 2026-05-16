@@ -83,7 +83,7 @@ public class BlessingManager : MonoBehaviour
     /// <summary>
     /// 初始化祝福系统
     /// </summary>
-    private void InitializeBlessingSystem()
+    public void InitializeBlessingSystem()
     {
         ownedBlessings.Clear();
         blessingTypeCount.Clear();
@@ -112,7 +112,9 @@ public class BlessingManager : MonoBehaviour
         shortSightCount = 0;                
         shortSightCurrentBonus = 0f;      
         dialecticalPricePercent = 0f;
+        materialismFixedRate = 0; //唯物主义
         GetCurrentPriceMultiplier(); //重置折扣
+
     }
 
     /// <summary>
@@ -806,7 +808,7 @@ public class BlessingManager : MonoBehaviour
         total += CalculateCardMasterBonus();
         total += dialecticalAccumulatedMultiplier;
         total += shortSightCurrentBonus;
-        total += materialismFixedRate;
+        total += materialismFixedRate;// 唯物主义
 
         return total;
     }

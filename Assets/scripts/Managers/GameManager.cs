@@ -98,6 +98,7 @@ public class GameManager : MonoBehaviour
         if (blessingManager != null)
         {
             blessingManager.ClearAllBlessings();
+            blessingManager.InitializeBlessingSystem();
         }
         ShopManager.Instance.InitializeShop(); // 重置商店状态
         // 初始化UI显示
