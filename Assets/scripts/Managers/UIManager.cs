@@ -41,6 +41,7 @@ public class UIManager : MonoBehaviour
     public GameObject targetPointPanel; // 目标点数界面
     public GameObject settingPanel; // 设置界面
     public GameObject confirmationPanel;// 确认界面
+    public GameObject StaffListPanel;// 制作人员界面
     //public GameObject confirmationPanel;// 确认对话框
 
     [Header("游戏信息显示")]
@@ -140,6 +141,7 @@ public class UIManager : MonoBehaviour
         if (pointstagePanel != null) pointstagePanel.SetActive(false);
         if(settingPanel != null) settingPanel.SetActive(false);
         if (confirmationPanel != null) confirmationPanel.SetActive(false);
+        if (StaffListPanel != null) StaffListPanel.SetActive(false);
     }
     #region 展示卡牌库
     // 打开数字卡库
