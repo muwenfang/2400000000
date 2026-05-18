@@ -9499,6 +9499,7 @@ MonoBehaviour:
   LockPanel: {fileID: 690189399}
   targetPointPanel: {fileID: 1277934615}
   settingPanel: {fileID: 1400730580}
+  confirmationPanel: {fileID: 81683919}
   pointsText: {fileID: 1329721519}
   roundText: {fileID: 1329721520}
   stageRequirementText: {fileID: 1329721521}
