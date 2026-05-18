@@ -32,6 +32,8 @@ public class GameManager : MonoBehaviour
     public BlessingManager blessingManager;
     public ShopManager shopManager;
 
+    public FormulaSlot formulaSlot; // 公式卡槽位引用
+
     // 记录上一回合最大的数字卡
     public NumberCardInstance lastRoundMaxCard;
     // 记录本局的统计数据
@@ -308,12 +310,31 @@ public class GameManager : MonoBehaviour
             return false;
         }
 
-        int requiredCount = cardManager.currentFormulaCard.RequiredCount;
-        int filledCount = cardManager.selectedNumberCards.Count;
+        if (CardManager.Instance != null)
+        {
+            return CardManager.Instance.HasAllSlotsFilled();
+        }
 
-        Debug.Log($"公式卡要求: {requiredCount}, 已填入: {filledCount}");
+        // 检查填入的卡牌数是否等于需要的数量
+        if (cardManager.selectedNumberCards == null ||
+            cardManager.selectedNumberCards.Count != cardManager.currentFormulaCard.RequiredCount)
+        {
+            Debug.LogWarning($"[GameManager] 卡牌数量不足。期望: {cardManager.currentFormulaCard.RequiredCount}，实际: {cardManager.selectedNumberCards?.Count ?? 0}");
+            return false;
+        }
 
-        return filledCount >= requiredCount;
+        // 检查是否存在null值
+        for (int i = 0; i < cardManager.selectedNumberCards.Count; i++)
+        {
+            if (cardManager.selectedNumberCards[i] == null)
+            {
+                Debug.LogWarning($"[GameManager] 槽位 {i} 为空，还有未填入的卡牌位置");
+                return false;
+            }
+        }
+
+        Debug.Log("[GameManager] 公式完全填满，可以结算");
+        return true;
     }
 
     // 添加一个辅助方法，获取下一个结算回合

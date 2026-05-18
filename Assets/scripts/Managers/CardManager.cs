@@ -37,6 +37,7 @@ public class CardManager : MonoBehaviour
 
     [Header("当前填入公式的数字卡")]
     public List<NumberCardInstance> selectedNumberCards = new();
+    public int filledNumber = 0;   
 
     public void InitializeStarterDeck()
     {   
@@ -244,7 +245,39 @@ public class CardManager : MonoBehaviour
        
         return lastRoundMaxCard;
     }
-    
+    /// <summary>
+    /// 检查是否所有槽位都填入了有效的卡牌（没有null值）
+    /// </summary>
+    public bool HasAllSlotsFilled()
+    {
+        if (currentFormulaCard == null)
+        {
+            Debug.LogWarning("[CardManager] 没有公式卡，无法检查槽位");
+            return false;
+        }
+
+        int requiredCount = currentFormulaCard.RequiredCount;
+
+        // 检查selectedNumberCards的长度
+        if (selectedNumberCards == null || selectedNumberCards.Count != requiredCount)
+        {
+            Debug.LogWarning($"[CardManager] 卡牌列表长度不符。期望: {requiredCount}，实际: {(selectedNumberCards?.Count ?? 0)}");
+            return false;
+        }
+
+        // 检查是否存在null值
+        for (int i = 0; i < selectedNumberCards.Count; i++)
+        {
+            if (selectedNumberCards[i] == null)
+            {
+                Debug.LogWarning($"[CardManager] 槽位 {i} 为空（null）");
+                return false;
+            }
+        }
+
+        Debug.Log($"[CardManager] 所有槽位已填满，共 {requiredCount} 张卡牌");
+        return true;
+    }
     public BigInteger CalculateResult()
     {
         if (currentFormulaCard == null)
@@ -253,9 +286,10 @@ public class CardManager : MonoBehaviour
             return 0;
         }
 
-        if (selectedNumberCards.Count != currentFormulaCard.RequiredCount)
+        // 不仅要检查列表长度，还要检查是否存在null值
+        if (!HasAllSlotsFilled())
         {
-            Debug.LogWarning("数字卡数量不足");
+            Debug.LogWarning("卡牌槽位未全部填入，无法结算");
             return 0;
         }
 
@@ -285,7 +319,11 @@ public class CardManager : MonoBehaviour
 
         // 扩展到 required 长度，使用 null 占位
         while (selectedNumberCards.Count < required)
+        {
+            filledNumber = selectedNumberCards.Count; // 更新 filledNumber
             selectedNumberCards.Add(null);
+        }
+
 
         // 若卡牌已经在其他位置，先清除（置 null）
         for (int i = 0; i < selectedNumberCards.Count; i++)
@@ -319,6 +357,7 @@ public class CardManager : MonoBehaviour
         if (!found)
             Debug.LogWarning($"尝试移除不存在的卡牌: {card.cardData.cardName}");
     }
+
     // 按索引移除（FormulaSlot 点击或 ClearSlot 使用）
     public void RemoveNumberCardFromFormulaAtIndex(int index)
     {

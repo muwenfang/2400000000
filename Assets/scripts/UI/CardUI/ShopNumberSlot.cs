@@ -89,6 +89,9 @@ public class ShopNumberCardSlot : MonoBehaviour
             cardGo.transform.localRotation = Quaternion.identity;
             cardGo.SetActive(true);
 
+            // 商店里的数字卡只用于展示和购买，不能参与手牌拖拽逻辑。
+            PlayerController.SetDragEnabledForHierarchy(cardGo, false);
+
             // 绑定数据
             var view = cardGo.GetComponent<NumberCardLayoutView>();
             if (view != null)

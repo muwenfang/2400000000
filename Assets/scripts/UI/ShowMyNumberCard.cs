@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class ShowMyNumberCard : MonoBehaviour
@@ -219,26 +218,8 @@ public class ShowMyNumberCard : MonoBehaviour
             go.transform.localRotation = UnityEngine.Quaternion.identity;
             go.SetActive(true); // 确保显示
 
-            //禁用 PlayerController 脚本
-            PlayerController playerController = go.GetComponent<PlayerController>();
-            if (playerController != null)
-            {
-                playerController.enabled = false;  // 禁用拖动功能
-            }
-
-            //禁用 IBeginDragHandler, IDragHandler, IEndDragHandler
-            IBeginDragHandler beginDragHandler = go.GetComponent<IBeginDragHandler>();
-            IDragHandler dragHandler = go.GetComponent<IDragHandler>();
-            IEndDragHandler endDragHandler = go.GetComponent<IEndDragHandler>();
-
-            // 移除这些事件监听（通过禁用脚本）
-            foreach (var component in go.GetComponents<MonoBehaviour>())
-            {
-                if (component is PlayerController)
-                {
-                    component.enabled = false;
-                }
-            }
+            // 卡牌展示面板中的数字卡不应参与拖拽，子物体上的 PlayerController 也一并禁用。
+            PlayerController.SetDragEnabledForHierarchy(go, false);
 
             if (go.TryGetComponent<NumberCardLayoutView>(out var view))
             {

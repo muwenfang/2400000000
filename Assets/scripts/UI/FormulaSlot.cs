@@ -12,6 +12,8 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler
     private int slotIndex = -1;
     public NumberCardInstance currentCard;
 
+    public int filledNumberCardCount = 0; // 记录已填入槽位的数字卡数量
+
     [Header("UI组件")]
     public Image background;
 
@@ -104,6 +106,7 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler
         }
 
         Debug.Log($"接收卡牌: {draggedCard.BoundCard.cardData.cardName} → 值: {draggedCard.BoundCard.GetOutPutValue()}");
+        Debug.Log(filledNumberCardCount);
 
         // 使用 PlayerController 的封装方法完成父级设置与定位（保证一致性）
         draggedCard.OnDroppedIntoSlot(transform);
@@ -111,6 +114,8 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler
         // 标记卡牌已放置
         draggedCard.isPlacedInSlot = true;
         draggedCard.currentSlot = this;
+
+        filledNumberCardCount++;
 
         // 立即调用 OnDrawn() 重置卡牌状态（重置为初始值）
         if (draggedCard.BoundCard != null)
@@ -205,6 +210,8 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler
 
         // 清空槽位
         ClearSlot();
+
+        filledNumberCardCount--;
     }
 
     /// <summary>

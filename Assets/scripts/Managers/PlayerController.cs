@@ -28,6 +28,7 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     [Header("卡牌数据")]
     private NumberCardInstance cardInstance;
 
+
     //记录当前卡牌在哪
     public FormulaSlot currentSlot;
     public bool isPlacedInSlot = false;
@@ -40,6 +41,7 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     [Header("拖动冷却配置")]
     [SerializeField] private float dragCooldown = 0.1f;  // 拖动操作的冷却时间
     private float lastDragTime = -1f;  // 上次拖动的时间
+    [SerializeField] private bool dragEnabled = true;     // 允许外部在特定 UI 中彻底关闭拖拽
 
     [Header("UI 显示引用")]
     public Text textA;       // 对应 PartA 的数值显示
@@ -103,10 +105,21 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     }
 
     /// <summary>
-    /// 检查是否可以开始拖动（冷却保护）
+    /// 检查当前游戏状态是否允许拖动+冷却保护
     /// </summary>
-    private bool CanStartDrag()
+    private bool CanDragInCurrentGameState()
     {
+        if (!dragEnabled)
+        {
+            return false;
+        }
+
+        // 只有在 PlayerTurn 状态时才允许拖动卡牌
+        if (GameManager.Instance != null && GameManager.Instance.currentState != GameManager.GameState.PlayerTurn)
+        {
+            Debug.LogWarning($"[PlayerController] 当前游戏状态为 {GameManager.Instance.currentState}，只能在 PlayerTurn 状态下拖动卡牌");
+            return false;
+        }
         // 检查拖动冷却
         if (Time.time - lastDragTime < dragCooldown)
         {
@@ -116,10 +129,36 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         return true;
     }
 
+    /// <summary>
+    /// 允许外部在商店、图鉴等只读展示区域关闭拖拽能力。
+    /// </summary>
+    public void SetDragEnabled(bool enabled)
+    {
+        dragEnabled = enabled;
+
+        if (!enabled && canvasGroup != null)
+        {
+            canvasGroup.alpha = 1f;
+            canvasGroup.blocksRaycasts = true;
+        }
+    }
+
+    public static void SetDragEnabledForHierarchy(GameObject root, bool enabled)
+    {
+        if (root == null) return;
+
+        PlayerController[] controllers = root.GetComponentsInChildren<PlayerController>(true);
+        foreach (var controller in controllers)
+        {
+            controller.SetDragEnabled(enabled);
+            controller.enabled = enabled;
+        }
+    }
+
     public void OnBeginDrag(PointerEventData eventData)
     {
         // 冷却检查：防止快速重复拖动
-        if (!CanStartDrag())
+        if (!CanDragInCurrentGameState())
         {
             return;
         }
@@ -176,6 +215,7 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
                 rectTransform.localPosition = Vector3.zero;
                 rectTransform.localScale = Vector3.one;
                 desiredDropParent = null;
+
             }
             else
             {
