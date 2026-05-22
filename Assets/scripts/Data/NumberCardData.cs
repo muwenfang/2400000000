@@ -298,16 +298,18 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 rate *= 2.0;
             }
 
-            // 4. 所有 X >= 100 的数字卡 再 × （log5(x) - 1） 倍
+            // 4. 所有 x >= 100 的数字卡 再乘以 (log5(x)-1) 的 1.5 次方
             if (X >= 100)
             {
-                rate *= (Math.Log(X, 5) - 1.0);
+                double value = Math.Log(X, 5) - 1.0;
+                rate *= Math.Pow(value, 3.0 / 2.0); // ^(3/2)
             }
 
-            // 5. 所有 X >= 10000 的数字卡 再 × (log10(X) - 3) 倍
+            // 5. 所有 x >= 10000 的数字卡 再乘以 (log10(x)-2) 的 1.5 次方
             if (X >= 10000)
             {
-                rate *= (Math.Log10(X) - 2.0);
+                double value = Math.Log10(X) - 2.0;
+                rate *= Math.Pow(value, 3.0 / 2.0); // ^(3/2)
             }
 
             // 计算倍率后价格
