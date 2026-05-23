@@ -55,15 +55,16 @@ public class BlessingManager : MonoBehaviour
     public int ApplyPragmatism = 0;//实用主义
     public bool hasGodOfGambler = false;//赌神传说
     public FormulaCardLibrary formulaCardLibrary;
-    public float globalPriceDiscountPercent = 0f;    // 友情折扣
-    public float blessDiscountPerBlessing = 0f;      // 眷顾
-    public float maxBlessDiscountPercent = 70f;      // 眷顾上限
-    public int shortSightCount = 0;                // 短视数量
-    public float shortSightCurrentBonus = 0f;      // 短视当前剩余倍率加成
-    public int materialismFixedRate = 0;    // 唯物主义一次性倍率
-    public int hasUnstoppable = 0;        // 势如破竹
-    public int hasLoanWallet = 0;          // 贷款钱包
-    public BigInteger loan = BigInteger.Zero;          // 贷款金额
+    public float globalPriceDiscountPercent = 0f;// 友情折扣
+    public float blessDiscountPerBlessing = 0f;// 眷顾
+    public float maxBlessDiscountPercent = 70f;// 眷顾上限
+    public int shortSightCount = 0;// 短视数量
+    public float shortSightCurrentBonus = 0f;// 短视当前剩余倍率加成
+    public int materialismFixedRate = 0;// 唯物主义一次性倍率
+    public int hasUnstoppable = 0;// 势如破竹
+    public int hasLoanWallet = 0;// 贷款钱包
+    public BigInteger loan = BigInteger.Zero;// 贷款金额
+    public int minimalismMultiplier = 0;//极简主义
 
 
     private void Awake()
@@ -113,6 +114,7 @@ public class BlessingManager : MonoBehaviour
         shortSightCurrentBonus = 0f;      
         dialecticalPricePercent = 0f;
         materialismFixedRate = 0; //唯物主义
+        minimalismMultiplier = 0f;//极简主义
         GetCurrentPriceMultiplier(); //重置折扣
 
     }
@@ -427,6 +429,13 @@ public class BlessingManager : MonoBehaviour
                 hasLoanWallet = 1;
                 loan = BigInteger.Abs(GameManager.Instance.currentPoints * 3);
                 GameManager.Instance.AddPoints(loan);
+                Debug.Log("你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数");
+                break;
+
+            case BlessingData.BlessingType.Minimalism:
+                // 极简主义 可叠加：本局游戏每删除过一次游戏卡或填空卡，获得1永久倍率
+                minimalismMultiplier == ShopManager.Instance.totalRemovedNumberCards + ShopManager.Instance.totalRemovedFormulaCards;
+                totalMultiplierBonus += minimalismMultiplier;
                 Debug.Log("你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数");
                 break;
 
@@ -781,6 +790,7 @@ public class BlessingManager : MonoBehaviour
         dialecticalPricePercent = 0f;
         hasLoanWallet = 0;  // 贷款钱包
         hasUnstoppable = 0;  // 势如破竹
+        minimalismMultiplier = 0f; //极简主义
     }
 
     /// <summary>
@@ -811,9 +821,10 @@ public class BlessingManager : MonoBehaviour
         total += CalculateJackpot7Bonus();
         total += CalculateAllGodsInPlaceBonus();
         total += CalculateCardMasterBonus();
-        total += dialecticalAccumulatedMultiplier;
-        total += shortSightCurrentBonus;
+        total += dialecticalAccumulatedMultiplier;//辩证主义
+        total += shortSightCurrentBonus;//短视
         total += materialismFixedRate;// 唯物主义
+        total += minimalismMultiplier;// 极简主义
 
         return total;
     }
