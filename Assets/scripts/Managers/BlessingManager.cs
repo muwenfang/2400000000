@@ -441,7 +441,10 @@ public class BlessingManager : MonoBehaviour
                 minimalismMultiplier = ShopManager.Instance.totalRemovedNumberCards + ShopManager.Instance.totalRemovedFormulaCards + pragmatismDeleteCount;
                 totalMultiplierBonus += minimalismMultiplier;
                 minimalismCount++;
-                Debug.Log("你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数");
+                Debug.Log($"删除游戏卡次数:{ShopManager.Instance.totalRemovedNumberCards}," +
+                    $"删除填空卡次数{ShopManager.Instance.totalRemovedFormulaCards}," +
+                    $"实用主义删除次数{pragmatismDeleteCount}," +
+                    $"极简主义数量{minimalismCount}"); 
                 break;
 
         }
@@ -831,7 +834,6 @@ public class BlessingManager : MonoBehaviour
         total += dialecticalAccumulatedMultiplier;//辩证主义
         total += shortSightCurrentBonus;//短视
         total += materialismFixedRate;// 唯物主义
-        total += minimalismMultiplier;// 极简主义
 
         return total;
     }
@@ -922,9 +924,15 @@ public class BlessingManager : MonoBehaviour
         if (formulaCards == null || formulaCards.Count <= 1)
             return;
 
+        //增加实用主义删除的卡牌数量（用于极简主义计算）
         pragmatismDeleteCount += formulaCards.Count - 1;
         if (BlessingManager.Instance.minimalismCount != 0)
-            totalMultiplierBonus += (formulaCards.Count - 1) * minimalismCount;
+        {
+            totalMultiplierBonus += (formulaCards.Count - 1) * BlessingManager.Instance.minimalismCount;
+            Debug.Log($"实用主义删除了{formulaCards.Count - 1}张填空卡，" +
+                $"极简主义数量{BlessingManager.Instance.minimalismCount}," +
+                $"极简主义获得永久倍率+{(formulaCards.Count - 1) * BlessingManager.Instance.minimalismCount}");
+        }
 
         // 按名称排序（保证只留一张）
         formulaCards.Sort((a, b) => b.CardPrice.CompareTo(a.CardPrice));
