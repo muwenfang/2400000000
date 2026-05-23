@@ -32,7 +32,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "#*#*#",
                 RequiredCount = 3,
                 FormulaCardId = 0,
-                CardPrice = 1000,
+                CardPrice = 10,
             },
             new FormulaCardData
             {
@@ -40,7 +40,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#)*#*#",
                 RequiredCount = 4,
                 FormulaCardId = 1,
-                CardPrice = 2000,
+                CardPrice = 20,
             },
             //[to do]
              new FormulaCardData
@@ -49,7 +49,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "#*#*#*#",
                 RequiredCount = 4,
                 FormulaCardId = 2,
-                CardPrice = 10000,
+                CardPrice = 100,
             },
              new FormulaCardData
             {
@@ -57,7 +57,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#)*(#+#)",
                 RequiredCount = 4,
                 FormulaCardId = 3,
-                CardPrice = 400,
+                CardPrice = 4,
             },
             new FormulaCardData
             {
@@ -65,7 +65,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#+#)*#",
                 RequiredCount = 4,
                 FormulaCardId = 4,
-                CardPrice = 100,
+                CardPrice = 1,
             },
              new FormulaCardData
             {
@@ -73,7 +73,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#+#+#)*#",
                 RequiredCount = 5,
                 FormulaCardId = 5,
-                CardPrice = 1600,
+                CardPrice = 16,
             },
              new FormulaCardData
             {
@@ -81,7 +81,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#+#)*(#+#)",
                 RequiredCount = 5,
                 FormulaCardId = 6,
-                CardPrice = 2400,
+                CardPrice = 24,
             },
              new FormulaCardData
             {
@@ -89,7 +89,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#+#)*#*#",
                 RequiredCount = 5,
                 FormulaCardId = 7,
-                CardPrice = 24000,
+                CardPrice = 240,
             },
              new FormulaCardData
             {
@@ -97,7 +97,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#)*(#+#)*#",
                 RequiredCount = 5,
                 FormulaCardId = 8,
-                CardPrice = 32000,
+                CardPrice = 320,
             },
              new FormulaCardData
             {
@@ -105,7 +105,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#)*#*#*#",
                 RequiredCount = 5,
                 FormulaCardId = 9,
-                CardPrice = 320000,
+                CardPrice = 3200,
             },
              new FormulaCardData
             {
@@ -113,7 +113,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "#*#*#*#*#",
                 RequiredCount = 5,
                 FormulaCardId = 10,
-                CardPrice = 3200000,
+                CardPrice = 32000,
             },
              new FormulaCardData
             {
@@ -121,7 +121,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#+#+#+#)*#",
                 RequiredCount = 6,
                 FormulaCardId = 11,
-                CardPrice = 4500,
+                CardPrice = 45,
             },
              new FormulaCardData
             {
@@ -129,7 +129,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#+#+#)*(#+#)",
                 RequiredCount = 6,
                 FormulaCardId = 12,
-                CardPrice = 7200,
+                CardPrice = 72,
             },
              new FormulaCardData
             {
@@ -137,7 +137,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#+#)*(#+#+#)",
                 RequiredCount = 6,
                 FormulaCardId = 13,
-                CardPrice = 8100,
+                CardPrice = 81,
             },
              new FormulaCardData
             {
@@ -145,7 +145,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#+#+#)*#*#",
                 RequiredCount = 6,
                 FormulaCardId = 14,
-                CardPrice = 108000,
+                CardPrice = 1080,
             },
             new FormulaCardData
             {
@@ -153,7 +153,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#+#)*(#+#)*#",
                 RequiredCount = 6,
                 FormulaCardId = 15,
-                CardPrice = 162000,
+                CardPrice = 1620,
             },
             new FormulaCardData
             {
@@ -161,7 +161,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#)*(#+#)*(#+#)",
                 RequiredCount = 6,
                 FormulaCardId = 16,
-                CardPrice = 216000,
+                CardPrice = 2160,
             },
              new FormulaCardData
             {
@@ -169,7 +169,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#+#)*#*#*#",
                 RequiredCount = 6,
                 FormulaCardId = 17,
-                CardPrice = 2430000,
+                CardPrice = 24300,
             },
              new FormulaCardData
             {
@@ -177,7 +177,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#)*(#+#)*#*#",
                 RequiredCount = 6,
                 FormulaCardId = 18,
-                CardPrice = 3240000,
+                CardPrice = 32400,
             },
              new FormulaCardData
             {
@@ -185,7 +185,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "(#+#)*#*#*#*#",
                 RequiredCount = 6,
                 FormulaCardId = 19,
-                CardPrice = 48600000,
+                CardPrice = 486000,
             },
              new FormulaCardData
             {
@@ -193,7 +193,7 @@ public class FormulaCardData : ScriptableObject
                 Name = "#*#*#*#*#*#",
                 RequiredCount = 6,
                 FormulaCardId = 20,
-                CardPrice = 729000000,
+                CardPrice = 7290000,
             },
         
         });

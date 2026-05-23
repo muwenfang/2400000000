@@ -22,27 +22,27 @@ public class FormulaCardLibrary : ScriptableObject
         // 使用 FormulaCardData 中定义的默认公式卡
         // 注意：这里需要手动创建 ScriptableObject 实例
 
-        allCards.Add(CreateCard("#*#*#", 3, 0, 1000));
-        allCards.Add(CreateCard("(#+#)*#*#", 4, 1, 2000));
-        allCards.Add(CreateCard("#*#*#*#", 4, 2, 10000));
-        allCards.Add(CreateCard("(#+#)*(#+#)", 4, 3, 400));
-        allCards.Add(CreateCard("(#+#+#)*#", 4, 4, 100));
-        allCards.Add(CreateCard("(#+#+#+#)*#", 5, 5, 1600));
-        allCards.Add(CreateCard("(#+#+#)*(#+#)", 5, 6, 2400));
-        allCards.Add(CreateCard("(#+#+#)*#*#", 5, 7, 24000));
-        allCards.Add(CreateCard("(#+#)*(#+#)*#", 5, 8, 32000));
-        allCards.Add(CreateCard("(#+#)*#*#*#", 5, 9, 320000));
-        allCards.Add(CreateCard("#*#*#*#*#", 5, 10, 3200000));
-        allCards.Add(CreateCard("(#+#+#+#+#)*#", 6, 11, 4500));
-        allCards.Add(CreateCard("(#+#+#+#)*(#+#)", 6, 12, 7200));
-        allCards.Add(CreateCard("(#+#+#)*(#+#+#)", 6, 13, 8100));
-        allCards.Add(CreateCard("(#+#+#+#)*#*#", 6, 14, 108000));
-        allCards.Add(CreateCard("(#+#+#)*(#+#)*#", 6, 15, 162000));
-        allCards.Add(CreateCard("(#+#)*(#+#)*(#+#)", 6, 16, 216000));
-        allCards.Add(CreateCard("(#+#+#)*#*#*#", 6, 17, 2430000));
-        allCards.Add(CreateCard("(#+#)*(#+#)*#*#", 6, 18, 3240000));
-        allCards.Add(CreateCard("(#+#)*#*#*#*#", 6, 19, 48600000));
-        allCards.Add(CreateCard("#*#*#*#*#*#", 6, 20, 729000000));
+        allCards.Add(CreateCard("#*#*#", 3, 0, 10));
+        allCards.Add(CreateCard("(#+#)*#*#", 4, 1, 20));
+        allCards.Add(CreateCard("#*#*#*#", 4, 2, 100));
+        allCards.Add(CreateCard("(#+#)*(#+#)", 4, 3, 4));
+        allCards.Add(CreateCard("(#+#+#)*#", 4, 4, 1));
+        allCards.Add(CreateCard("(#+#+#+#)*#", 5, 5, 16));
+        allCards.Add(CreateCard("(#+#+#)*(#+#)", 5, 6, 24));
+        allCards.Add(CreateCard("(#+#+#)*#*#", 5, 7, 240));
+        allCards.Add(CreateCard("(#+#)*(#+#)*#", 5, 8, 320));
+        allCards.Add(CreateCard("(#+#)*#*#*#", 5, 9, 3200));
+        allCards.Add(CreateCard("#*#*#*#*#", 5, 10, 32000));
+        allCards.Add(CreateCard("(#+#+#+#+#)*#", 6, 11, 45));
+        allCards.Add(CreateCard("(#+#+#+#)*(#+#)", 6, 12, 72));
+        allCards.Add(CreateCard("(#+#+#)*(#+#+#)", 6, 13, 81));
+        allCards.Add(CreateCard("(#+#+#+#)*#*#", 6, 14, 1080));
+        allCards.Add(CreateCard("(#+#+#)*(#+#)*#", 6, 15, 16200));
+        allCards.Add(CreateCard("(#+#)*(#+#)*(#+#)", 6, 16, 2160));
+        allCards.Add(CreateCard("(#+#+#)*#*#*#", 6, 17, 24300));
+        allCards.Add(CreateCard("(#+#)*(#+#)*#*#", 6, 18, 32400));
+        allCards.Add(CreateCard("(#+#)*#*#*#*#", 6, 19, 486000));
+        allCards.Add(CreateCard("#*#*#*#*#*#", 6, 20, 7290000));
 
         Debug.Log($"成功初始化 {allCards.Count} 张公式卡！");
     }
