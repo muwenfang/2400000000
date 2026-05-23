@@ -66,6 +66,7 @@ public class BlessingManager : MonoBehaviour
     public BigInteger loan = BigInteger.Zero;// 贷款金额
     public int minimalismMultiplier = 0;//极简主义
     public int minimalismCount = 0;//极简主义数量
+    public int pragmatismDeleteCount = 0;
 
 
     private void Awake()
@@ -117,6 +118,7 @@ public class BlessingManager : MonoBehaviour
         materialismFixedRate = 0; //唯物主义
         minimalismMultiplier = 0f;//极简主义
         minimalismCount = 0;//极简主义数量
+        pragmatismDeleteCount = 0;
         GetCurrentPriceMultiplier(); //重置折扣
 
     }
@@ -436,7 +438,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.Minimalism:
                 // 极简主义 可叠加：本局游戏每删除过一次游戏卡或填空卡，获得1永久倍率
-                minimalismMultiplier = ShopManager.Instance.totalRemovedNumberCards + ShopManager.Instance.totalRemovedFormulaCards;
+                minimalismMultiplier = ShopManager.Instance.totalRemovedNumberCards + ShopManager.Instance.totalRemovedFormulaCards + pragmatismDeleteCount;
                 totalMultiplierBonus += minimalismMultiplier;
                 minimalismCount++;
                 Debug.Log("你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数");
@@ -795,6 +797,7 @@ public class BlessingManager : MonoBehaviour
         hasUnstoppable = 0;  // 势如破竹
         minimalismMultiplier = 0f; //极简主义
         minimalismCount = 0;//极简主义数量
+        pragmatismDeleteCount = 0;
     }
 
     /// <summary>
@@ -913,6 +916,10 @@ public class BlessingManager : MonoBehaviour
             Debug.LogError("实用主义：PlayerCardInventory 未找到！");
             return;
         }
+
+        pragmatismDeleteCount += formulaCards.Count - 1;
+        if (BlessingManager.Instance.minimalismCount != 0)
+           totalMultiplierBonus += (formulaCards.Count - 1) * minimalismCount;
 
         // 获取当前所有公式卡
         List<FormulaCardData> formulaCards = PlayerCardInventory.Instance.formulaCards;
