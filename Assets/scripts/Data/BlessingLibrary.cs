@@ -130,7 +130,7 @@ public class BlessingLibrary : ScriptableObject
             name: "老千",
             description: "择一张数字卡，将其替换为一张随机的数字卡",
             type: BlessingData.BlessingType.CardCheat,
-            basePrice: 8000,
+            basePrice: 10000,
             isStackable: true
         
         ));
@@ -221,7 +221,7 @@ public class BlessingLibrary : ScriptableObject
             name: "友情折扣",
             description: "你每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%（最多-80%)",
             type: BlessingData.BlessingType.FriendDiscount,
-            basePrice: 20000,
+            basePrice: 30000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -233,7 +233,7 @@ public class BlessingLibrary : ScriptableObject
             name: "眷顾",
             description: "你每拥有一个祝福，所有数字卡、填空卡与祝福的价格-1%（最多-70%）",
             type: BlessingData.BlessingType.Bless,
-            basePrice: 100000,
+            basePrice: 150000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -350,7 +350,7 @@ public class BlessingLibrary : ScriptableObject
             name: "节节高",
             description: "大于等于9的绿色数字递增后将变为{1}；触发此效果时，你的倍率永久+50",
             type: BlessingData.BlessingType.RisingUp,
-            basePrice: 50000,
+            basePrice: 30000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
