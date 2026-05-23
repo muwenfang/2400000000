@@ -1196,7 +1196,7 @@ public class ShopManager : MonoBehaviour
             Debug.Log($"祝福槽位{slotIndex}：{randomBlessing.blessingName}，价格 {item.price}");
     }
 
-    #region
+    #region 冷却系统接口
     // ===== 刷新商店的冷却配置 =====
     public void SetCooldownDuration(float newPurchaseCooldown, float newUnlockCooldown)
     {
@@ -1232,7 +1232,7 @@ public class ShopManager : MonoBehaviour
             Debug.Log("[ShopManager] 已重置所有冷却");
         }
     }
-    #endregion 
+    #endregion  
 
     private float GetBaseBlessingPriceMultiplier()
     {
@@ -1258,7 +1258,7 @@ public class ShopManager : MonoBehaviour
 
     public float GetCurrentFormulaCardPriceMultiplier()
     {
-        return GetBaseBlessingPriceMultiplier() * GetDifficultyMultiplier(DifficultySettingType.FormulaCardPrice);
+        return GetBaseBlessingPriceMultiplier() * GetDifficultyMultiplier(DifficultySettingType.FormulaCardPrice) * 100;
     }
 
     public float GetCurrentBlessingPriceMultiplier()

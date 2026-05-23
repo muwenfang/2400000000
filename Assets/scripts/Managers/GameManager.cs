@@ -44,10 +44,10 @@ public class GameManager : MonoBehaviour
 
     [Header("结算动画配置")]
     [Tooltip("显示本回合得分的停留时间（秒）")]
-    public float roundScoreDisplayTime = 1.0f;
+    public float roundScoreDisplayTime = 0.7f;
 
     [Tooltip("显示总分更新的停留时间（秒）")]
-    public float totalScoreDisplayTime = 1.0f;
+    public float totalScoreDisplayTime = 0.7f;
 
     //阶段点数数据
     public List<BigInteger> stagePointRequirements = new List<BigInteger>()

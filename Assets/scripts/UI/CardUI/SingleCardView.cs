@@ -21,6 +21,8 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
     public Color diceColor = Color.red;            // 骰子数字：红色
     public Color normalColor = Color.black;        // 普通数字：黑色
 
+    public Text pointsText;
+
     // 缓存绑定的实例，用于精准刷新UI
     public NumberCardInstance boundInstance;
     /// <summary>
