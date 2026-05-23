@@ -770,10 +770,14 @@ public class ShopManager : MonoBehaviour
         if (deletedCard is NumberCardInstance)
         {
             totalRemovedNumberCards++;
+            if (BlessingManager.Instance.minimalismCount != 0)
+            { BlessingManager.Instance.totalMultiplierBonus += BlessingManager.Instance.minimalismCount; }
         }
         else if (deletedCard is FormulaCardData)
         {
             totalRemovedFormulaCards++;
+            if (BlessingManager.Instance.minimalismCount != 0)
+            { BlessingManager.Instance.totalMultiplierBonus += BlessingManager.Instance.minimalismCount; }
         }
 
         // 5. 更新UI与冷却
