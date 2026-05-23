@@ -42,6 +42,7 @@ public class UIManager : MonoBehaviour
     public GameObject settingPanel; // 设置界面
     public GameObject confirmationPanel;// 确认界面
     public GameObject StaffListPanel;// 制作人员界面
+
     //public GameObject confirmationPanel;// 确认对话框
 
     [Header("游戏信息显示")]
@@ -49,6 +50,8 @@ public class UIManager : MonoBehaviour
     public Text roundText;               // 当前回合
     public Text stageRequirementText;    // 阶段要求点数
     public Text targetRoundText;        // 显示目标回合的文本组件
+    public Button courseButtonc;             // 教程按钮
+    public Button courseButtons;             // 教程按钮
 
     [Header("点数获得提示")]
     public Text pointsGainText; // 显示获得的点数数值
@@ -106,6 +109,17 @@ public class UIManager : MonoBehaviour
                     targetPointPanel.transform.SetAsLastSibling();
                 }
             }
+            if(panelToShow == gameUIPanel && courseButtonc != null)
+            {
+                courseButtonc.gameObject.SetActive(true);
+                courseButtonc.transform.SetAsLastSibling();
+            }
+            else if(panelToShow == shopPanel && courseButtons != null)
+            {
+                courseButtons.gameObject.SetActive(true);
+                courseButtons.transform.SetAsLastSibling();
+            }
+
         }
         if (panelToShow == gameUIPanel || panelToShow == myBlessPanel || panelToShow == myNumberCardPanel || panelToShow == myFormulaCardPanel)
         {
@@ -123,6 +137,7 @@ public class UIManager : MonoBehaviour
                 LockPanel.gameObject.SetActive(false);
             }
         }
+
         Debug.Log($"已激活并置顶面板: {panelToShow.name}");
     }
     public void HideAllPanel()
@@ -235,7 +250,7 @@ public class UIManager : MonoBehaviour
 
     #region 游戏信息更新
     /// <summary>
-    /// 更新点数显示
+    /// 更新现有点数显示
     /// </summary>
     public void UpdatePointsDisplay(System.Numerics.BigInteger points)
     {
@@ -264,7 +279,7 @@ public class UIManager : MonoBehaviour
     {
         if (stageRequirementText != null)
         {
-            stageRequirementText.text = $"{FormatBigNumber(requirement)}";
+            stageRequirementText.text = $"$ {FormatBigNumber(requirement)}";
         }
     }
     /// <summary>

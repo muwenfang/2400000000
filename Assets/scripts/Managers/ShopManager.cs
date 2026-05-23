@@ -114,7 +114,7 @@ public class ShopManager : MonoBehaviour
     public void InitializeRefreshCost()
     {
         BigInteger refreshCost = CalculateRefreshCost();
-        refreshCostText.text = "cost: " + FormatBigNumber(refreshCost);
+        refreshCostText.text = "$ " + FormatBigNumber(refreshCost);
     }
 
     public void InitializeShop()

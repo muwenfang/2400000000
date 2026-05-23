@@ -400,7 +400,7 @@ public class ShowMyFormula : MonoBehaviour
             deletionCostPanel.gameObject.SetActive(true);   
             deletionCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
 
-            deletionCostText.text = "一        " + FormatBigNumber(cost).ToString();
+            deletionCostText.text = "一          " + FormatBigNumber(cost).ToString();
 
             Debug.Log($"[ShowMyFormula] 更新UI");
         }
