@@ -116,7 +116,7 @@ public class BlessingManager : MonoBehaviour
         shortSightCurrentBonus = 0f;      
         dialecticalPricePercent = 0f;
         materialismFixedRate = 0; //唯物主义
-        minimalismMultiplier = 0f;//极简主义
+        minimalismMultiplier = 0;//极简主义
         minimalismCount = 0;//极简主义数量
         pragmatismDeleteCount = 0;
         GetCurrentPriceMultiplier(); //重置折扣
@@ -795,7 +795,7 @@ public class BlessingManager : MonoBehaviour
         dialecticalPricePercent = 0f;
         hasLoanWallet = 0;  // 贷款钱包
         hasUnstoppable = 0;  // 势如破竹
-        minimalismMultiplier = 0f; //极简主义
+        minimalismMultiplier = 0; //极简主义
         minimalismCount = 0;//极简主义数量
         pragmatismDeleteCount = 0;
     }
@@ -917,14 +917,14 @@ public class BlessingManager : MonoBehaviour
             return;
         }
 
-        pragmatismDeleteCount += formulaCards.Count - 1;
-        if (BlessingManager.Instance.minimalismCount != 0)
-           totalMultiplierBonus += (formulaCards.Count - 1) * minimalismCount;
-
         // 获取当前所有公式卡
         List<FormulaCardData> formulaCards = PlayerCardInventory.Instance.formulaCards;
         if (formulaCards == null || formulaCards.Count <= 1)
             return;
+
+        pragmatismDeleteCount += formulaCards.Count - 1;
+        if (BlessingManager.Instance.minimalismCount != 0)
+            totalMultiplierBonus += (formulaCards.Count - 1) * minimalismCount;
 
         // 按名称排序（保证只留一张）
         formulaCards.Sort((a, b) => b.CardPrice.CompareTo(a.CardPrice));

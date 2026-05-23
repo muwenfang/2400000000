@@ -416,11 +416,12 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 37,
             name: "贷款钱包",
-            description:"你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数",
+            description: "你获得你已获得点数的3倍的绝对值的点数，记录此点数，此后每回合你失去该点数15%的点数",
             type: BlessingData.BlessingType.LoanWallet,
             basePrice: 0,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
 
         //  极简主义
         allBlessings.Add(CreateBlessing(
