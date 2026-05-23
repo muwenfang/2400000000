@@ -69,7 +69,8 @@ public class BlessingData : ScriptableObject
         GamblingGearUpgraded, // 赌具升级
         GamblingGodSage,      // 赌神传说
         Unstoppable,          // 势如破竹
-        LoanWallet           // 贷款钱包
+        LoanWallet,           // 贷款钱包
+        Minimalism            // 极简主义
     }
 
     /// <summary>

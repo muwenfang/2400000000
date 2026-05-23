@@ -421,6 +421,15 @@ public class BlessingLibrary : ScriptableObject
             basePrice: 0,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+
+        //  极简主义
+        allBlessings.Add(CreateBlessing(
+            id: 38,
+            name: "极简主义",
+            description: "本局游戏每删除过一次游戏卡或填空卡，获得1永久倍率",
+            type: BlessingData.BlessingType.Minimalism,
+            basePrice: 100000,
+            isStackable: true
         ));
 
         Debug.Log($" 成功初始化 {allBlessings.Count} 个祝福！");
