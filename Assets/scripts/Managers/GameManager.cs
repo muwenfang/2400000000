@@ -44,10 +44,13 @@ public class GameManager : MonoBehaviour
 
     [Header("结算动画配置")]
     [Tooltip("显示本回合得分的停留时间（秒）")]
-    public float roundScoreDisplayTime = 0.7f;
+    public float roundScoreDisplayTime = 0.6f;
 
     [Tooltip("显示总分更新的停留时间（秒）")]
-    public float totalScoreDisplayTime = 0.7f;
+    public float totalScoreDisplayTime = 0.5f;
+
+    [Tooltip("按槽位依次显示单卡结算值的间隔（秒）")]
+    public float cardScoreDisplayTime = 0.25f;
 
     //阶段点数数据
     public List<BigInteger> stagePointRequirements = new List<BigInteger>()
@@ -230,7 +233,16 @@ public class GameManager : MonoBehaviour
         // 3. 停留0.3秒
         yield return new WaitForSeconds(0.3f);
 
-        // 4. 计算结果
+        // 4. 先按槽位顺序显示每张卡本次实际结算出的点数
+        List<BigInteger> rawCardScores = FormulaCalculator.GetCardValuesForDisplay(formula.selectedNumberCards, false);
+        List<BigInteger> adjustedCardScores = FormulaCalculator.GetCardValuesForDisplay(formula.selectedNumberCards, true);
+        yield return StartCoroutine(UIManager.Instance.ShowSelectedCardScoreSequence(
+            formula.selectedNumberCards,
+            rawCardScores,
+            adjustedCardScores,
+            cardScoreDisplayTime));
+
+        // 5. 计算结果
         BigInteger baseScore = formula.CalculateResult();
         //打头阵：原始结算结果第一位强制变9 
         if (blessingManager != null && blessingManager.hasLeadingCharge)
@@ -276,7 +288,7 @@ public class GameManager : MonoBehaviour
             Debug.Log($"【统计数据】更新本局最高结算点: {roundMaxCalculationValue}");
         }
 
-        // 启动分步显示协程
+        // 启动原有分步显示协程
         StartCoroutine(ShowScoreStepByStep(baseScore, totalMultiplier, finalScore));
     }
     
@@ -294,6 +306,8 @@ public class GameManager : MonoBehaviour
         AddPoints(finalScore);
 
         yield return new WaitForSeconds(totalScoreDisplayTime);
+
+        UIManager.Instance.HideAllCardScoreOverlays();
 
         // 第3步：进入商店
         EndTurn();

@@ -125,43 +125,6 @@ public class ShopNumberCardSlot : MonoBehaviour
     }
 
     /// <summary>
-    /// 价格格式化：>9位用科学计数法(3位有效数字，截断不四舍五入)，≤9位纯数字
-    /// </summary>
-    private string FormatPrice(System.Numerics.BigInteger price)
-    {
-        // 9位数阈值：1000000000（10亿）
-        System.Numerics.BigInteger threshold = 1000000000;
-
-        if (System.Numerics.BigInteger.Abs(price) >= threshold)
-        {
-            string numStr = price.ToString();
-            bool isNegative = numStr.StartsWith("-");
-            if (isNegative) 
-                numStr = numStr.Substring(1);
-
-            int len = numStr.Length;
-            // 截取前3位，截断不四舍五入
-            string digits = numStr.Substring(0, System.Math.Min(3, len));
-
-            // 不足3位补0，保证显示 8.00e12 格式
-            while (digits.Length < 3)
-                digits += "0";
-
-            // 拼接成 X.XXeYY
-            string decimalPart = digits[0] + "." + digits.Substring(1);
-            int exponent = len - 1;
-            string result = $"{decimalPart}e{exponent}";
-        
-            return isNegative ? "-" + result : result;
-        }
-        else
-        {
-            // 小于9位数：直接显示纯数字
-            return price.ToString();
-        }
-    }
-
-    /// <summary>
     /// 更新价格显示
     /// </summary>
 void UpdatePriceDisplay(BigInteger price, bool sold)
@@ -178,7 +141,7 @@ void UpdatePriceDisplay(BigInteger price, bool sold)
     }
     else
     {
-        string priceStr = FormatPrice(price);
+        string priceStr = NumberDisplayFormatter.Format(price);
         priceText.text = $"${priceStr}";
         priceText.color = Color.black;
     }
@@ -270,7 +233,7 @@ void UpdatePriceDisplay(BigInteger price, bool sold)
         if (unlockCostText == null) return;
 
         BigInteger unlockCost = ShopManager.Instance.CalculateNumberSlotUnlockCost();
-        unlockCostText.text = $"$ {unlockCost}";
+        unlockCostText.text = $"$ {NumberDisplayFormatter.Format(unlockCost)}";
 
         // 根据点数情况改变颜色
         if (GameManager.Instance.currentPoints >= unlockCost)

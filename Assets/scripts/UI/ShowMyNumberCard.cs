@@ -173,27 +173,7 @@ public class ShowMyNumberCard : MonoBehaviour
     }
     public string FormatBigNumber(BigInteger number)
     {
-        BigInteger threshold = 1000000000;
-
-        if (BigInteger.Abs(number) >= threshold)
-        {
-            string numStr = number.ToString();
-            bool isNegative = numStr.StartsWith("-");
-            if (isNegative) numStr = numStr.Substring(1);
-
-            int len = numStr.Length;
-            string digits = numStr.Substring(0, System.Math.Min(3, len));
-            while (digits.Length < 3) digits += "0";
-
-            string decimalPart = digits[0] + "." + digits.Substring(1);
-            int exponent = len - 1;
-            string result = $"{decimalPart}e{exponent}";
-            return isNegative ? "-" + result : result;
-        }
-        else
-        {
-            return number.ToString();
-        }
+        return NumberDisplayFormatter.Format(number);
     }
     void GenerateNumberCards()
     {

@@ -230,37 +230,8 @@ public static class FormulaCalculator
             throw new Exception("数字数量不匹配公式需求");
         }
 
-        // 1. 提取卡牌值
-        var values = numbers.ConvertAll(n => n.GetOutPutValue());
-
-        //祝福平衡节制：每次计算判定结果最大和最小的数字卡的判定结果变为所有参与计算的数字卡本轮判定结果的均值（向下取整）
-        if (BlessingManager.Instance.hasTemperlance == 1)
-        {
-            BigInteger sum = 0;
-            BigInteger average = 0;
-            foreach (var value in values)
-            {
-                sum += value;
-            }
-            average = (sum / values.Count) ;
-
-            int maxIndex = 0;
-            int minIndex = 0;
-            for (int i = 1; i < values.Count; i++)
-            {
-                if (values[i] > values[maxIndex])
-                {
-                    maxIndex = i;
-                }
-                else if (values[i] < values[minIndex])
-                {
-                    minIndex = i;
-                }
-            }
-
-            values[maxIndex] = average;
-            values[minIndex] = average;
-        }
+        // 1. 提取参与公式运算的卡牌值
+        var values = GetCardValuesForDisplay(numbers, true);
 
 
         // 2. 验证 Pattern 中 # 的数量
@@ -310,6 +281,67 @@ public static class FormulaCalculator
         }
 
         return result;
+    }
+
+    /// <summary>
+    /// 获取每张数字卡本次结算显示/计算使用的点数。
+    /// applyCalculationBlessings 为 true 时，会应用影响单卡计算值的祝福效果。
+    /// </summary>
+    public static List<BigInteger> GetCardValuesForDisplay(List<NumberCardInstance> numbers, bool applyCalculationBlessings)
+    {
+        if (numbers == null || numbers.Count == 0)
+        {
+            return new List<BigInteger>();
+        }
+
+        var values = numbers.ConvertAll(n => n != null ? n.GetOutPutValue() : BigInteger.Zero);
+
+        if (applyCalculationBlessings)
+        {
+            ApplyCardValueCalculationBlessings(values);
+        }
+
+        return values;
+    }
+
+    /// <summary>
+    /// 对单卡结算值应用会影响最终公式计算的祝福。
+    /// </summary>
+    static void ApplyCardValueCalculationBlessings(List<BigInteger> values)
+    {
+        if (values == null || values.Count == 0 || BlessingManager.Instance == null)
+        {
+            return;
+        }
+
+        // 平衡节制：最大和最小的数字卡改为所有参与计算卡牌的平均值（向下取整）
+        if (BlessingManager.Instance.hasTemperlance == 1)
+        {
+            BigInteger sum = 0;
+            foreach (var value in values)
+            {
+                sum += value;
+            }
+
+            BigInteger average = sum / values.Count;
+            int maxIndex = 0;
+            int minIndex = 0;
+
+            for (int i = 1; i < values.Count; i++)
+            {
+                if (values[i] > values[maxIndex])
+                {
+                    maxIndex = i;
+                }
+                else if (values[i] < values[minIndex])
+                {
+                    minIndex = i;
+                }
+            }
+
+            values[maxIndex] = average;
+            values[minIndex] = average;
+        }
     }
 
     /// <summary>

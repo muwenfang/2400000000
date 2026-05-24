@@ -242,18 +242,7 @@ public class DataDisplayManager : MonoBehaviour
     // 大于9位 → 8.00e12 格式，小于等于9位正常显示
     public static string FormatToNiceDisplay(BigInteger number)
     {
-        if (number < 1000000000)
-            return number.ToString();
-
-        string s = number.ToString();
-        int exponent = s.Length - 1;
-
-        char c0 = s[0];
-        char c1 = s.Length > 1 ? s[1] : '0';
-        char c2 = s.Length > 2 ? s[2] : '0';
-        char c3 = s.Length > 3 ? s[3] : '0';
-
-        return $"{c0}.{c1}{c2}{c3}e{exponent}";
+        return NumberDisplayFormatter.Format(number);
     }
 
         // 字符串版本（存档用）
@@ -262,9 +251,6 @@ public class DataDisplayManager : MonoBehaviour
         if (string.IsNullOrEmpty(numStr) || numStr == "0")
             return "0";
 
-        if (BigInteger.TryParse(numStr, out BigInteger result))
-            return FormatToNiceDisplay(result);
-
-        return numStr;
+        return NumberDisplayFormatter.Format(numStr);
     }
 }

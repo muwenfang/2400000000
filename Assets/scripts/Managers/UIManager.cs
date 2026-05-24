@@ -24,6 +24,8 @@ public class UIManager : MonoBehaviour
     public GameObject formulaCardPrefab;
     [Header("祝福卡牌预制体")] 
     public GameObject blessingCardPrefab;
+    [Header("结算覆盖层预制体")]
+    public GameObject scoreDisplayPrefab;
 
     [Header("UI 面板引用")]
     public GameObject startMenuPanel; // 在 Inspector 中拖入主菜单面板
@@ -72,6 +74,14 @@ public class UIManager : MonoBehaviour
     public GameObject shopNumberCardPrefab; // 数字卡商店槽位Prefab（带ShopNumberCardSlot组件）
     public GameObject shopFormulaCardPrefab; // 公式卡商店槽位Prefab（带ShopFormulaCardSlot组件）
     public GameObject shopBlessingCardPrefab; // 祝福卡商店槽位Prefab（带ShopBlessCardSlot组件）
+
+    class CardScoreOverlayCache
+    {
+        public GameObject rootObject;
+        public Text text;
+    }
+
+    readonly Dictionary<GameObject, CardScoreOverlayCache> cardScoreOverlayCache = new Dictionary<GameObject, CardScoreOverlayCache>();
 
     void Awake()
     {
@@ -385,27 +395,7 @@ public class UIManager : MonoBehaviour
     /// </summary>
     string FormatBigNumber(System.Numerics.BigInteger number)
     {
-        System.Numerics.BigInteger threshold = 10000000000;
-
-        if (System.Numerics.BigInteger.Abs(number) > threshold)
-        {
-            // 保留4位有效数字
-           string numStr = number.ToString();
-           bool isNegative = numStr.StartsWith("-");
-           if (isNegative) numStr = numStr.Substring(1);
-
-            int len = numStr.Length;
-            string digits = numStr.Substring(0, System.Math.Min(4, len)); // 取前4位
-
-           string decimalPart = digits[0] + "." + digits.Substring(1);
-            int exponent = len - 1;
-
-            string result = $"{decimalPart}e{exponent}";
-            return isNegative ? "-" + result : result;
-        }
-
-        // 100亿以内正常显示
-        return ((long)number).ToString("N0");
+        return NumberDisplayFormatter.Format(number);
     }
     
     public void ShowPlayerData()
@@ -706,6 +696,7 @@ public class UIManager : MonoBehaviour
 
     #endregion
 
+    #region 结算动态展示
     /// <summary>
     /// 刷新选中卡牌的UI显示（结算时投骰子后调用）
     /// 用于显示投掷骰子和递增+1后的新值
@@ -743,6 +734,220 @@ public class UIManager : MonoBehaviour
         }
         Debug.Log("[UIManager] 选中卡牌显示已刷新");
     }
+
+    public IEnumerator ShowSelectedCardScoreSequence(List<NumberCardInstance> selectedCards,
+        List<System.Numerics.BigInteger> rawValues,
+        List<System.Numerics.BigInteger> adjustedValues,
+        float perCardDisplayTime)
+    {
+        if (selectedCards == null || selectedCards.Count == 0)
+        {
+            yield break;
+        }
+
+        HideAllCardScoreOverlays();
+
+        List<Component> orderedViews = GetOrderedSelectedCardViews(selectedCards);
+
+        for (int i = 0; i < selectedCards.Count; i++)
+        {
+            if (i < rawValues.Count && orderedViews[i] != null)
+            {
+                ShowCardScoreOverlay(orderedViews[i].gameObject, FormatBigNumber(rawValues[i]));
+            }
+
+            yield return new WaitForSeconds(perCardDisplayTime);
+        }
+
+        if (ShouldRefreshAdjustedValues(rawValues, adjustedValues))
+        {
+            for (int i = 0; i < selectedCards.Count; i++)
+            {
+                if (i < adjustedValues.Count && orderedViews[i] != null)
+                {
+                    ShowCardScoreOverlay(orderedViews[i].gameObject, FormatBigNumber(adjustedValues[i]));
+                }
+            }
+
+            yield return new WaitForSeconds(perCardDisplayTime);
+        }
+    }
+
+    public void HideAllCardScoreOverlays()
+    {
+        List<GameObject> staleKeys = null;
+
+        foreach (var kvp in cardScoreOverlayCache)
+        {
+            if (kvp.Key == null || kvp.Value == null || kvp.Value.rootObject == null)
+            {
+                staleKeys ??= new List<GameObject>();
+                staleKeys.Add(kvp.Key);
+                continue;
+            }
+
+            kvp.Value.rootObject.SetActive(false);
+        }
+
+        if (staleKeys != null)
+        {
+            foreach (var key in staleKeys)
+            {
+                cardScoreOverlayCache.Remove(key);
+            }
+        }
+    }
+
+    List<Component> GetOrderedSelectedCardViews(List<NumberCardInstance> selectedCards)
+    {
+        Dictionary<NumberCardInstance, Component> cardToView = new Dictionary<NumberCardInstance, Component>();
+        var allSingleViews = FindObjectsOfType<SingleNumberView>(true);
+        var allCompositeViews = FindObjectsOfType<CompositeNumberView>(true);
+
+        foreach (var view in allSingleViews)
+        {
+            if (view != null && view.boundInstance != null && !cardToView.ContainsKey(view.boundInstance))
+            {
+                cardToView.Add(view.boundInstance, view);
+            }
+        }
+
+        foreach (var view in allCompositeViews)
+        {
+            if (view != null && view.boundInstance != null && !cardToView.ContainsKey(view.boundInstance))
+            {
+                cardToView.Add(view.boundInstance, view);
+            }
+        }
+
+        List<Component> orderedViews = new List<Component>(selectedCards.Count);
+        for (int i = 0; i < selectedCards.Count; i++)
+        {
+            Component resolvedView = null;
+            if (selectedCards[i] != null)
+            {
+                cardToView.TryGetValue(selectedCards[i], out resolvedView);
+            }
+
+            if (resolvedView == null)
+            {
+                Debug.LogWarning($"[UIManager] 槽位 {i} 未找到对应的卡牌视图，无法显示结算覆盖层");
+            }
+
+            orderedViews.Add(resolvedView);
+        }
+
+        return orderedViews;
+    }
+
+    bool ShouldRefreshAdjustedValues(List<System.Numerics.BigInteger> rawValues, List<System.Numerics.BigInteger> adjustedValues)
+    {
+        if (rawValues == null || adjustedValues == null || rawValues.Count != adjustedValues.Count)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < rawValues.Count; i++)
+        {
+            if (rawValues[i] != adjustedValues[i])
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    void ShowCardScoreOverlay(GameObject cardRoot, string displayText)
+    {
+        CardScoreOverlayCache overlay = GetOrCreateCardScoreOverlay(cardRoot);
+        if (overlay == null || overlay.rootObject == null || overlay.text == null)
+        {
+            Debug.LogWarning("[UIManager] 结算覆盖层创建失败，无法显示卡牌点数");
+            return;
+        }
+
+        overlay.text.text = displayText;
+        overlay.rootObject.SetActive(true);
+        overlay.rootObject.transform.SetAsLastSibling();
+    }
+
+    CardScoreOverlayCache GetOrCreateCardScoreOverlay(GameObject cardRoot)
+    {
+        if (cardRoot == null)
+        {
+            return null;
+        }
+
+        if (cardScoreOverlayCache.TryGetValue(cardRoot, out CardScoreOverlayCache cachedOverlay) &&
+            cachedOverlay != null &&
+            cachedOverlay.rootObject != null &&
+            cachedOverlay.text != null)
+        {
+            return cachedOverlay;
+        }
+
+        if (scoreDisplayPrefab == null)
+        {
+            Debug.LogWarning("[UIManager] scoreDisplayPrefab 未在 Inspector 中绑定，无法显示卡牌结算点数覆盖层");
+            return null;
+        }
+
+        GameObject overlayRoot = CreateCardScoreOverlayObject(cardRoot);
+        if (overlayRoot == null)
+        {
+            return null;
+        }
+
+        Text overlayText = overlayRoot.GetComponentInChildren<Text>(true);
+        if (overlayText == null)
+        {
+            Debug.LogWarning("[UIManager] 结算覆盖层缺少 Text 组件");
+            return null;
+        }
+
+        DisableOverlayRaycast(overlayRoot);
+        overlayRoot.SetActive(false);
+
+        CardScoreOverlayCache newOverlay = new CardScoreOverlayCache
+        {
+            rootObject = overlayRoot,
+            text = overlayText
+        };
+
+        cardScoreOverlayCache[cardRoot] = newOverlay;
+        return newOverlay;
+    }
+
+    GameObject CreateCardScoreOverlayObject(GameObject cardRoot)
+    {
+        GameObject overlayRoot = Instantiate(scoreDisplayPrefab, cardRoot.transform, false);
+
+        RectTransform overlayRect = overlayRoot.GetComponent<RectTransform>();
+        if (overlayRect != null)
+        {
+            overlayRect.anchoredPosition = UnityEngine.Vector2.zero;
+            overlayRect.localScale = UnityEngine.Vector3.one;
+            overlayRect.localRotation = UnityEngine.Quaternion.identity;
+        }
+
+        return overlayRoot;
+    }
+
+    void DisableOverlayRaycast(GameObject overlayRoot)
+    {
+        if (overlayRoot == null)
+        {
+            return;
+        }
+
+        Graphic[] graphics = overlayRoot.GetComponentsInChildren<Graphic>(true);
+        foreach (var graphic in graphics)
+        {
+            graphic.raycastTarget = false;
+        }
+    }
+    #endregion
     #region 工具方法
     void ClearArea(Transform area)
     {
