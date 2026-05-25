@@ -16,7 +16,7 @@ MonoBehaviour:
   blessingName: "\u5927\u6210\u529F"
   description: "\u4EFB\u610F\u9AB0\u5B50\u88AB\u5224\u5B9A\u4E3A\u6700\u5927\u503C\u65F6\uFF0C\u83B7\u5F97\u7B49\u540C\u4E8E\u8BE5\u9AB0\u5B50\u7B49\u7EA7\u7684\u6C38\u4E45\u500D\u7387"
   basePrice: 300000
-  isStackable: 1
+  isStackable: 0
   blessingType: 39
   effectValue: 0
   bonusPoints: 0
