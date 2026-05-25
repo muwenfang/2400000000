@@ -89,7 +89,7 @@ public class GameManager : MonoBehaviour
         // 重置本局统计数据
         ResetRoundStatistics();
 
-        currentPoints = 0;
+        currentPoints = 10000000000000;
 
         currentRound = 1;
 
@@ -168,6 +168,11 @@ public class GameManager : MonoBehaviour
         Debug.Log("开始回合");
         ChangeState(GameState.PlayerTurn);
         Debug.Assert(currentState == GameState.PlayerTurn);
+        // 祝福：日积月累倍率
+        if(blessingManager.dayAfterDayCount > 0)
+        {
+            blessingManager.dayAfterDayMul += blessingManager.dayAfterDayCount;
+        }
         
         if (blessingManager != null)
         {
@@ -486,7 +491,6 @@ public class GameManager : MonoBehaviour
              UIManager.Instance.UpdatePointsDisplay(currentPoints);
              Debug.Log($"总分更新: {currentPoints}");
          }
-
 
         //打开商店界面
         currentState = GameState.Shop;

@@ -70,7 +70,8 @@ public class BlessingData : ScriptableObject
         GamblingGodSage,      // 赌神传说
         Unstoppable,          // 势如破竹
         LoanWallet,           // 贷款钱包
-        Minimalism            // 极简主义
+        Minimalism,           // 极简主义
+        DayAfterDay           // 日积月累
     }
 
     /// <summary>
