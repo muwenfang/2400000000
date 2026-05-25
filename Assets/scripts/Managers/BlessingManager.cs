@@ -67,6 +67,9 @@ public class BlessingManager : MonoBehaviour
     public int pragmatismDeleteCount = 0;
     public int dayAfterDayCount = 0; // 日积月累数量
     public int dayAfterDayMul = 0;   // 日积月累倍率
+    public int hasHastyAppreciation = 0; // 走马观花
+    public int hastyAppreciationBonus = 0;// 走马观花的临时倍率
+
     public int bigSuccessCount = 0;      // 大成功数量
     public int bigSuccessMul = 0;        // 大成功累计倍率
     
@@ -120,6 +123,8 @@ public class BlessingManager : MonoBehaviour
         pragmatismDeleteCount = 0;
         dayAfterDayCount = 0; // 日积月累数量
         dayAfterDayMul = 0;   // 日积月累倍率
+        hasHastyAppreciation = 0; // 走马观花
+        hastyAppreciationBonus = 0;// 走马观花的临时倍率
         bigSuccessCount = 0;      // 大成功数量
         bigSuccessMul = 0;        // 大成功累计倍率
         GetCurrentPriceMultiplier(); //重置折扣
@@ -350,7 +355,7 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.Materialism:
-                // 唯物主义：获得当前祝福数量×2永久倍率 → 清空所有祝福（包括自己）
+                // 唯物主义：获得当前祝福数量×5永久倍率 → 清空所有祝福（包括自己）
                 int totalBlessCount = GetTotalBlessingCount();
                 materialismFixedRate = totalBlessCount * 5; // 永久倍率，不会被清空
                 ClearAllBlessings();
@@ -403,7 +408,6 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.RisingUp:
                 //节节高 - 不可叠加：大于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20
                 hasRisingUp = 1;
-                
                 Debug.Log("节节高效果已激活");
                 break;
 
@@ -454,6 +458,13 @@ public class BlessingManager : MonoBehaviour
                 // 日积月累  可叠加：每回合获得1永久倍率
                 dayAfterDayCount++;
                 break;
+
+            case BlessingData.BlessingType.HastyAppreciation:
+                // 走马观花  不可叠加：每刷新一次商店，下回合获得1临时倍率
+                hasHastyAppreciation = 1;
+                Debug.Log("走马观花效果已激活");
+                break;
+
         
             case BlessingData.BlessingType.BigSuccess:
                 bigSuccessCount++;
@@ -641,7 +652,13 @@ public class BlessingManager : MonoBehaviour
         int numberCardCount = PlayerCardInventory.Instance.GetAllNumberCards().Count;
         return CardMasterCount * numberCardCount;
     }
-    
+
+    public int CalculateHastyAppreciationBonus()
+    {
+        if (hasHastyAppreciation == 0) return 0;
+        return ShopManager.Instance.refreshCount; // 每刷新一次商店，下回合获得1临时倍率
+    }
+
     /// <summary>
     /// 获取当前总倍率加成
     /// </summary>
@@ -797,6 +814,8 @@ public class BlessingManager : MonoBehaviour
         pragmatismDeleteCount = 0;
         dayAfterDayCount = 0; // 日积月累数量
         dayAfterDayMul = 0;   // 日积月累倍率
+        hasHastyAppreciation = 0; // 走马观花
+        hastyAppreciationBonus = 0;// 走马观花的临时倍率
         bigSuccessCount = 0;      // 大成功数量
         bigSuccessMul = 0;        // 大成功累计倍率
     }
@@ -830,6 +849,8 @@ public class BlessingManager : MonoBehaviour
         total += CalculateAllGodsInPlaceBonus();
         total += CalculateCardMasterBonus();
         total += materialismFixedRate;// 唯物主义
+        total += dayAfterDayMul;// 日积月累
+        total += hastyAppreciationBonus;// 走马观花
         total += dayAfterDayMul;  // 日积月累
         total += bigSuccessMul;  // 大成功
         return total;

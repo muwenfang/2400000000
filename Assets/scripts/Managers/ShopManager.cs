@@ -668,6 +668,9 @@ public class ShopManager : MonoBehaviour
         // 每次离开商店时，重置当回合展示过的记录
         ResetCurrentRoundBlessings();
 
+        // 计算祝福走马观花的临时倍率
+        BlessingManager.Instance.hastyAppreciationBonus = BlessingManager.Instance.CalculateHastyAppreciationBonus();
+
         //重置刷新次数
         refreshCount = 0;
     }

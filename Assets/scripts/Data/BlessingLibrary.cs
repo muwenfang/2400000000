@@ -432,6 +432,16 @@ public class BlessingLibrary : ScriptableObject
             isStackable: true
         ));
 
+        //  走马观花
+        allBlessings.Add(CreateBlessing(
+            id: 41,
+            name: "走马观花",
+            description: "每刷新一次商店，下回合获得1临时倍率",
+            type: BlessingData.BlessingType.HastyAppreciation,
+            basePrice: 50000,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
         //  日积月累
         allBlessings.Add(CreateBlessing(
             id: 43,

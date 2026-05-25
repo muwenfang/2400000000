@@ -72,6 +72,7 @@ public class BlessingData : ScriptableObject
         LoanWallet,           // 贷款钱包
         Minimalism,           // 极简主义
         DayAfterDay,          // 日积月累
+        HastyAppreciation     // 走马观花
         BigSuccess            // 大成功
     }
 
