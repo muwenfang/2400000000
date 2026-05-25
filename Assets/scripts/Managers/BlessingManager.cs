@@ -67,7 +67,9 @@ public class BlessingManager : MonoBehaviour
     public int pragmatismDeleteCount = 0;
     public int dayAfterDayCount = 0; // 日积月累数量
     public int dayAfterDayMul = 0;   // 日积月累倍率
-
+    public int bigSuccessCount = 0;      // 大成功数量
+    public int bigSuccessMul = 0;        // 大成功累计倍率
+    
     private void Awake()
     {
         if (Instance == null)
@@ -118,6 +120,8 @@ public class BlessingManager : MonoBehaviour
         pragmatismDeleteCount = 0;
         dayAfterDayCount = 0; // 日积月累数量
         dayAfterDayMul = 0;   // 日积月累倍率
+        bigSuccessCount = 0;      // 大成功数量
+        bigSuccessMul = 0;        // 大成功累计倍率
         GetCurrentPriceMultiplier(); //重置折扣
 
     }
@@ -449,6 +453,11 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.DayAfterDay:
                 // 日积月累  可叠加：每回合获得1永久倍率
                 dayAfterDayCount++;
+                break;
+        
+            case BlessingData.BlessingType.BigSuccess:
+                bigSuccessCount++;
+                Debug.Log("大成功 已激活！骰子掷出最大值时获得对应等级永久倍率");
                 break;
         }
     }
@@ -788,6 +797,8 @@ public class BlessingManager : MonoBehaviour
         pragmatismDeleteCount = 0;
         dayAfterDayCount = 0; // 日积月累数量
         dayAfterDayMul = 0;   // 日积月累倍率
+        bigSuccessCount = 0;      // 大成功数量
+        bigSuccessMul = 0;        // 大成功累计倍率
     }
 
     /// <summary>
@@ -819,7 +830,8 @@ public class BlessingManager : MonoBehaviour
         total += CalculateAllGodsInPlaceBonus();
         total += CalculateCardMasterBonus();
         total += materialismFixedRate;// 唯物主义
-        total += dayAfterDayMul;// 日积月累
+        total += dayAfterDayMul;  // 日积月累
+        total += bigSuccessMul;  // 大成功
         return total;
     }
 
@@ -1218,4 +1230,19 @@ public class BlessingManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 骰子面数 → 等级
+    /// </summary>
+    public int GetDiceRank(int sides)
+    {
+        return sides switch
+        {
+            4 => 1,
+            6 => 2,
+            8 => 3,
+            12 => 4,
+            20 => 5,
+            _ => 0
+        };
+    }
 }       
