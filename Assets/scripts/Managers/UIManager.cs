@@ -26,6 +26,11 @@ public class UIManager : MonoBehaviour
     public GameObject blessingCardPrefab;
     [Header("结算覆盖层预制体")]
     public GameObject scoreDisplayPrefab;
+    [Header("结算卡面数字动画")]
+    [Tooltip("骰子和递增数字在结算刷新时的放大动画总时长（秒）")]
+    public float settlementValuePopDuration = 0.8f;
+    [Tooltip("结算刷新时文本放大的倍率")]
+    public float settlementValuePopScaleMultiplier = 2.5f;
 
     [Header("UI 面板引用")]
     public GameObject startMenuPanel; // 在 Inspector 中拖入主菜单面板
@@ -701,16 +706,17 @@ public class UIManager : MonoBehaviour
     /// 刷新选中卡牌的UI显示（结算时投骰子后调用）
     /// 用于显示投掷骰子和递增+1后的新值
     /// </summary>
-    public void RefreshSelectedCardsDisplay(List<NumberCardInstance> selectedCards)
+    public IEnumerator RefreshSelectedCardsDisplay(List<NumberCardInstance> selectedCards)
     {
         if (selectedCards == null || selectedCards.Count == 0)
         {
             Debug.LogWarning("[UIManager] 选中卡牌列表为空，无法刷新");
-            return;
+            yield break;
         }
 
         var allSingleViews = FindObjectsOfType<SingleNumberView>(true);
         var allCompositeViews = FindObjectsOfType<CompositeNumberView>(true);
+        bool hasAnimatedValue = false;
 
         // 刷新单数字卡
         int singleRefreshCount = 0;
@@ -719,6 +725,7 @@ public class UIManager : MonoBehaviour
             if (view.boundInstance != null && selectedCards.Contains(view.boundInstance))
             {
                 view.BindInstance(view.boundInstance);
+                hasAnimatedValue |= view.PlaySettlementValuePopAnimation(settlementValuePopDuration, settlementValuePopScaleMultiplier);
                 singleRefreshCount++;
             }
         }
@@ -729,10 +736,16 @@ public class UIManager : MonoBehaviour
             if (view.boundInstance != null && selectedCards.Contains(view.boundInstance))
             {
                 view.BindInstance(view.boundInstance);
+                hasAnimatedValue |= view.PlaySettlementValuePopAnimation(settlementValuePopDuration, settlementValuePopScaleMultiplier);
                 compositeRefreshCount++;
             }
         }
         Debug.Log("[UIManager] 选中卡牌显示已刷新");
+
+        if (hasAnimatedValue)
+        {
+            yield return new WaitForSeconds(settlementValuePopDuration);
+        }
     }
 
     public IEnumerator ShowSelectedCardScoreSequence(List<NumberCardInstance> selectedCards,

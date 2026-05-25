@@ -25,6 +25,12 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
 
     //缓存绑定的实例，用于精准刷新UI
     public NumberCardInstance boundInstance;
+    Coroutine aTextPopCoroutine;
+    Coroutine bTextPopCoroutine;
+    Vector3 cachedATextScale = Vector3.one;
+    Vector3 cachedBTextScale = Vector3.one;
+    bool hasCachedATextScale;
+    bool hasCachedBTextScale;
 
     private void OnEnable()
     {
@@ -88,6 +94,7 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
     {
         // 确保组件存在
         EnsureComponentsExist();
+        CacheTextScales();
 
         aText.text = data.partA.value.ToString();
         bText.text = data.partB.value.ToString();
@@ -115,6 +122,7 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         this.boundInstance = instance;
         // 确保组件存在
         EnsureComponentsExist();
+        CacheTextScales();
 
         // 设置 Part A
         SetPartDisplay(aText, diceIconA, instance.cardData.partA, instance.currentA, instance.isPrepared, showPreparedDiceValue);
@@ -124,6 +132,75 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         {
             SetPartDisplay(bText, diceIconB, instance.cardData.partB, instance.currentB, instance.isPrepared, showPreparedDiceValue);
         }
+    }
+
+    public bool PlaySettlementValuePopAnimation(float totalDuration, float peakScaleMultiplier)
+    {
+        if (boundInstance == null)
+        {
+            return false;
+        }
+
+        CacheTextScales();
+        bool hasPlayedAnimation = false;
+
+        if (ShouldAnimateSettlementValue(boundInstance.cardData.partA))
+        {
+            if (aTextPopCoroutine != null)
+            {
+                StopCoroutine(aTextPopCoroutine);
+            }
+
+            aText.rectTransform.localScale = cachedATextScale;
+            aTextPopCoroutine = StartCoroutine(PlayATextPopAnimation(totalDuration, peakScaleMultiplier));
+            hasPlayedAnimation = true;
+        }
+
+        if (ShouldAnimateSettlementValue(boundInstance.cardData.partB))
+        {
+            if (bTextPopCoroutine != null)
+            {
+                StopCoroutine(bTextPopCoroutine);
+            }
+
+            bText.rectTransform.localScale = cachedBTextScale;
+            bTextPopCoroutine = StartCoroutine(PlayBTextPopAnimation(totalDuration, peakScaleMultiplier));
+            hasPlayedAnimation = true;
+        }
+
+        return hasPlayedAnimation;
+    }
+
+    IEnumerator PlayATextPopAnimation(float totalDuration, float peakScaleMultiplier)
+    {
+        yield return SettlementValuePopAnimation.Play(aText.rectTransform, cachedATextScale, totalDuration, peakScaleMultiplier);
+        aTextPopCoroutine = null;
+    }
+
+    IEnumerator PlayBTextPopAnimation(float totalDuration, float peakScaleMultiplier)
+    {
+        yield return SettlementValuePopAnimation.Play(bText.rectTransform, cachedBTextScale, totalDuration, peakScaleMultiplier);
+        bTextPopCoroutine = null;
+    }
+
+    void CacheTextScales()
+    {
+        if (aText != null && !hasCachedATextScale)
+        {
+            cachedATextScale = aText.rectTransform.localScale;
+            hasCachedATextScale = true;
+        }
+
+        if (bText != null && !hasCachedBTextScale)
+        {
+            cachedBTextScale = bText.rectTransform.localScale;
+            hasCachedBTextScale = true;
+        }
+    }
+
+    bool ShouldAnimateSettlementValue(NumberComponent component)
+    {
+        return component != null && (component.isDice || component.isIncremental);
     }
 
     /// <summary>

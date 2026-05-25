@@ -25,6 +25,9 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
 
     // 缓存绑定的实例，用于精准刷新UI
     public NumberCardInstance boundInstance;
+    Coroutine valueTextPopCoroutine;
+    Vector3 cachedValueTextScale = Vector3.one;
+    bool hasCachedValueTextScale;
     /// <summary>
     /// 绑定静态卡牌数据（初始值）
     /// </summary>
@@ -32,6 +35,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
     {
         if (valueText == null || data == null) return;
 
+        CacheValueTextScale();
         valueText.text = data.partA.value.ToString();
         valueText.color = normalColor;
 
@@ -49,6 +53,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
         if (valueText == null || instance == null) return;
 
         this.boundInstance = instance; // 缓存实例
+        CacheValueTextScale();
         var component = instance.cardData.partA;
         int currentValue = instance.currentA;
 
@@ -100,6 +105,47 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
         }
     }
 
+    public bool PlaySettlementValuePopAnimation(float totalDuration, float peakScaleMultiplier)
+    {
+        if (valueText == null || boundInstance == null || !ShouldAnimateSettlementValue(boundInstance.cardData.partA))
+        {
+            return false;
+        }
+
+        CacheValueTextScale();
+
+        if (valueTextPopCoroutine != null)
+        {
+            StopCoroutine(valueTextPopCoroutine);
+        }
+
+        valueText.rectTransform.localScale = cachedValueTextScale;
+        valueTextPopCoroutine = StartCoroutine(PlayValueTextPopAnimation(totalDuration, peakScaleMultiplier));
+        return true;
+    }
+
+    IEnumerator PlayValueTextPopAnimation(float totalDuration, float peakScaleMultiplier)
+    {
+        yield return SettlementValuePopAnimation.Play(valueText.rectTransform, cachedValueTextScale, totalDuration, peakScaleMultiplier);
+        valueTextPopCoroutine = null;
+    }
+
+    void CacheValueTextScale()
+    {
+        if (valueText == null || hasCachedValueTextScale)
+        {
+            return;
+        }
+
+        cachedValueTextScale = valueText.rectTransform.localScale;
+        hasCachedValueTextScale = true;
+    }
+
+    bool ShouldAnimateSettlementValue(NumberComponent component)
+    {
+        return component != null && (component.isDice || component.isIncremental);
+    }
+
     /// <summary>
     /// 设置骰子图标
     /// </summary>
@@ -127,5 +173,68 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
             Debug.LogWarning($"[SingleNumberView] 无法找到面数为 {diceSides} 的骰子图标");
             diceIcon.gameObject.SetActive(false);
         }
+    }
+}
+
+static class SettlementValuePopAnimation
+{
+    /// <summary>
+    /// 结算时让文本快速放大后恢复，并在剩余时间内保持正常大小。
+    /// </summary>
+    public static IEnumerator Play(Transform target, Vector3 baseScale, float totalDuration, float peakScaleMultiplier)
+    {
+        if (target == null)
+        {
+            yield break;
+        }
+
+        float clampedDuration = Mathf.Max(0f, totalDuration);
+        float clampedScaleMultiplier = Mathf.Max(1f, peakScaleMultiplier);
+        Vector3 popScale = baseScale * clampedScaleMultiplier;
+
+        if (clampedDuration <= Mathf.Epsilon)
+        {
+            target.localScale = baseScale;
+            yield break;
+        }
+
+        float growDuration = clampedDuration * 0.2f;
+        float shrinkDuration = clampedDuration * 0.2f;
+        float holdDuration = Mathf.Max(0f, clampedDuration - growDuration - shrinkDuration);
+
+        yield return LerpScale(target, baseScale, popScale, growDuration);
+        yield return LerpScale(target, popScale, baseScale, shrinkDuration);
+
+        target.localScale = baseScale;
+
+        if (holdDuration > 0f)
+        {
+            yield return new WaitForSeconds(holdDuration);
+        }
+    }
+
+    static IEnumerator LerpScale(Transform target, Vector3 fromScale, Vector3 toScale, float duration)
+    {
+        if (target == null)
+        {
+            yield break;
+        }
+
+        if (duration <= Mathf.Epsilon)
+        {
+            target.localScale = toScale;
+            yield break;
+        }
+
+        float elapsed = 0f;
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            float progress = Mathf.Clamp01(elapsed / duration);
+            target.localScale = Vector3.LerpUnclamped(fromScale, toScale, progress);
+            yield return null;
+        }
+
+        target.localScale = toScale;
     }
 }
