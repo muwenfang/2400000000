@@ -432,6 +432,16 @@ public class BlessingLibrary : ScriptableObject
             isStackable: true
         ));
 
+        //  延迟满足
+        allBlessings.Add(CreateBlessing(
+            id: 39,
+            name: "延迟满足",
+            description: "立即获得-5永久倍率，5回合后获得10永久倍率",
+            type: BlessingData.BlessingType.DelaySatisfaction,
+            basePrice: 0,
+            isStackable: true
+        ));
+        
         //  大成功
         allBlessings.Add(CreateBlessing(
             id: 40,
@@ -478,7 +488,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 44,
             name: "皆空",
-            description: "购买此祝福后，失去所有点数与永久倍率，然后获得失去点数的0.01%的永久倍率（向下取整）",
+            description: "购买此祝福后，失去所有点数与永久倍率，然后获得失去点数的0.01%的永久倍率（向下取整且不超过24亿）",
             type: BlessingData.BlessingType.AllisVoid,
             basePrice: 2400000000L,
             isStackable: false,

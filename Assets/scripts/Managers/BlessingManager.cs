@@ -86,6 +86,14 @@ public class BlessingManager : MonoBehaviour
         InitializeBlessingSystem();
     }
 
+    // 延迟满足单条记录
+    public struct DelayRecord
+    {
+        public int remainTurn;
+        public int rewardMul;
+    }
+    public List<DelayRecord> delaySatisfactionList = new List<DelayRecord>();
+    
     /// <summary>
     /// 初始化祝福系统
     /// </summary>
@@ -126,6 +134,7 @@ public class BlessingManager : MonoBehaviour
         hastyAppreciationBonus = 0;// 走马观花的临时倍率
         bigSuccessCount = 0;      // 大成功数量
         bigSuccessMul = 0;        // 大成功累计倍率
+        delaySatisfactionList.Clear();  //延迟满足
         GetCurrentPriceMultiplier(); //重置折扣
 
     }
@@ -461,7 +470,7 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.HastyAppreciation:
                 // 走马观花  不可叠加：每刷新一次商店，下回合获得1临时倍率
                 hasHastyAppreciation = 1;
-                Debug.Log("走马观花效果已激活");
+                Debug.Log($"走马观花效果已激活,hasHastyAppreciation = {hasHastyAppreciation}");
                 break;
 
         
@@ -474,7 +483,7 @@ public class BlessingManager : MonoBehaviour
                 // 反物质能  可叠加：失去240000点数，获得10永久倍率；特殊地，若此时你的点数变为负数，额外获得10永久倍率
                 GameManager.Instance.AddPoints(-240000);
                 totalMultiplierBonus += 10;
-                Debug.Log("反物质能 已激活！");
+                Debug.Log($"反物质能已激活！现在的永久倍率为{totalMultiplierBonus}");
                 if (GameManager.Instance.currentPoints < 0)
                 {
                     totalMultiplierBonus += 10;
@@ -483,9 +492,23 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.AllisVoid:
-                // 皆空  不可叠加：购买此祝福后，失去所有点数与永久倍率，然后获得失去点数的0.01%的永久倍率（向下取整）
+                // 皆空  不可叠加：购买此祝福后，失去所有点数与永久倍率，然后获得失去点数的0.01%的永久倍率（向下取整且不超过24亿）
+                BigInteger newRate = GameManager.Instance.currentPoints / 10000;
                 GameManager.Instance.AddPoints(-GameManager.Instance.currentPoints); // 点数变为0
-                totalMultiplierBonus = (long)(GameManager.Instance.currentPoints / 10000);
+                Debug.Log($"祝福皆空已激活,新增的永久倍率为{newRate}");
+                totalMultiplierBonus = (long)(newRate > 2400000000 ? 2400000000 : newRate);
+                Debug.Log($"现如今的永久倍率为{totalMultiplierBonus}");
+                break;
+
+            case BlessingData.BlessingType.DelaySatisfaction:
+                // 延迟满足：立即获得-5永久倍率；5回合后获得10永久倍率
+                totalMultiplierBonus -= 5;
+                delaySatisfactionList.Add(new DelayRecord
+                {
+                    remainTurn = 5,
+                    rewardMul = 10
+                });
+                Debug.Log("延迟满足：立即-5永久倍率，5回合后获取+10倍率");
                 break;
         }
     }
@@ -672,8 +695,10 @@ public class BlessingManager : MonoBehaviour
 
     public int CalculateHastyAppreciationBonus()
     {
-        if (hasHastyAppreciation == 0) return 0;
-        return ShopManager.Instance.refreshCount; // 每刷新一次商店，下回合获得1临时倍率
+        if (hasHastyAppreciation == 0) 
+            return 0;
+        else 
+            return ShopManager.Instance.refreshCount; // 每刷新一次商店，下回合获得1临时倍率
     }
 
     /// <summary>
@@ -835,6 +860,7 @@ public class BlessingManager : MonoBehaviour
         hastyAppreciationBonus = 0;// 走马观花的临时倍率
         bigSuccessCount = 0;      // 大成功数量
         bigSuccessMul = 0;        // 大成功累计倍率
+        delaySatisfactionList.Clear();  //延迟满足
     }
 
     /// <summary>
@@ -868,7 +894,7 @@ public class BlessingManager : MonoBehaviour
         total += materialismFixedRate;// 唯物主义
         total += dayAfterDayMul;// 日积月累
         total += hastyAppreciationBonus;// 走马观花
-        
+        Debug.Log($"走马观花临时倍率为{hastyAppreciationBonus}");
         total += bigSuccessMul;  // 大成功
         return total;
     }
@@ -1282,5 +1308,36 @@ public class BlessingManager : MonoBehaviour
             20 => 5,
             _ => 0
         };
+    }
+    //延迟满足分开计数的方法
+    public void UpdateDelaySatisfactionPerRound()
+    {
+        List<DelayRecord> toRemove = new List<DelayRecord>();
+
+        // 用 for 循环代替 foreach，就可以安全修改结构体成员
+        for (int i = 0; i < delaySatisfactionList.Count; i++)
+        {
+            DelayRecord record = delaySatisfactionList[i];
+            record.remainTurn--;
+
+            if (record.remainTurn <= 0)
+            {
+                // 倒计时结束，发放倍率
+                totalMultiplierBonus += record.rewardMul;
+                toRemove.Add(record);
+                Debug.Log("延迟满足倒计时结束，发放 10 永久倍率");
+            }
+            else
+            {
+                // 更新剩余回合数
+                delaySatisfactionList[i] = record;
+            }
+        }
+
+        // 移除已完成的记录
+        foreach (var item in toRemove)
+        {
+            delaySatisfactionList.Remove(item);
+        }
     }
 }       

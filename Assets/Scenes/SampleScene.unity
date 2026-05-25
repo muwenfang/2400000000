@@ -904,7 +904,7 @@ RectTransform:
   m_AnchorMin: {x: 0, y: 0}
   m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: -200.00002, y: -200}
+  m_SizeDelta: {x: -400, y: -300}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &81683921
 MonoBehaviour:
@@ -919,7 +919,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.8050314, g: 0.8050314, b: 0.8050314, a: 0.7137255}
+  m_Color: {r: 0.13836467, g: 0.13836467, b: 0.13836467, a: 0.9607843}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4502,7 +4502,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.8627451}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.9607843}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -4710,8 +4710,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 412, y: -265}
-  m_SizeDelta: {x: 561.65, y: 210.99}
+  m_AnchoredPosition: {x: 400.2675, y: -251.96}
+  m_SizeDelta: {x: 538.1853, y: 184.92}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &514407554
 MonoBehaviour:
@@ -8321,7 +8321,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0, g: 0, b: 0, a: 0.8627451}
+  m_Color: {r: 0, g: 0, b: 0, a: 0.9607843}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -10097,6 +10097,8 @@ MonoBehaviour:
   formulaCardPrefab: {fileID: 668247699028066706, guid: 6176010d6ec59924d8a0de00445230e6, type: 3}
   blessingCardPrefab: {fileID: 1286960250995469681, guid: 50c6e8a9b0dac1542baaa37189e68448, type: 3}
   scoreDisplayPrefab: {fileID: 5114142390309307103, guid: 44b8abeb88328414d9a59728e3e85b8a, type: 3}
+  settlementValuePopDuration: 0.5
+  settlementValuePopScaleMultiplier: 1.18
   startMenuPanel: {fileID: 1453600651}
   gameUIPanel: {fileID: 303656478}
   gameOverPanel: {fileID: 1933999771}
@@ -11831,7 +11833,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 524433307102169145, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_Color.a
-      value: 0.8627451
+      value: 0.9607843
       objectReference: {fileID: 0}
     - target: {fileID: 524433307102169145, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_Color.b
@@ -18077,7 +18079,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
+  m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -18520,8 +18522,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -423, y: -265}
-  m_SizeDelta: {x: 561.6401, y: 210.9889}
+  m_AnchoredPosition: {x: -407.35675, y: -251.96405}
+  m_SizeDelta: {x: 530.3536, y: 184.917}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1983804401
 MonoBehaviour:

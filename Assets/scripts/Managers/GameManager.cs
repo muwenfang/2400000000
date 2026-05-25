@@ -44,7 +44,7 @@ public class GameManager : MonoBehaviour
 
     [Header("结算动画配置")]
     [Tooltip("显示本回合得分的停留时间（秒）")]
-    public float roundScoreDisplayTime = 0.6f;
+    public float roundScoreDisplayTime = 0.5f;
 
     [Tooltip("显示总分更新的停留时间（秒）")]
     public float totalScoreDisplayTime = 0.5f;
@@ -168,6 +168,8 @@ public class GameManager : MonoBehaviour
         Debug.Log("开始回合");
         ChangeState(GameState.PlayerTurn);
         Debug.Assert(currentState == GameState.PlayerTurn);
+        // 祝福：延迟满足
+        BlessingManager.Instance.UpdateDelaySatisfactionPerRound();
         // 祝福：日积月累倍率
         if(blessingManager.dayAfterDayCount > 0)
         {
@@ -233,12 +235,9 @@ public class GameManager : MonoBehaviour
         }
 
         // 2. 刷新UI显示投掷和递增后的结果
-        UIManager.Instance.RefreshSelectedCardsDisplay(formula.selectedNumberCards);
+        yield return StartCoroutine(UIManager.Instance.RefreshSelectedCardsDisplay(formula.selectedNumberCards));
 
-        // 3. 停留0.3秒
-        yield return new WaitForSeconds(0.3f);
-
-        // 4. 先按槽位顺序显示每张卡本次实际结算出的点数
+        // 3. 先按槽位顺序显示每张卡本次实际结算出的点数
         List<BigInteger> rawCardScores = FormulaCalculator.GetCardValuesForDisplay(formula.selectedNumberCards, false);
         List<BigInteger> adjustedCardScores = FormulaCalculator.GetCardValuesForDisplay(formula.selectedNumberCards, true);
         yield return StartCoroutine(UIManager.Instance.ShowSelectedCardScoreSequence(
@@ -247,7 +246,7 @@ public class GameManager : MonoBehaviour
             adjustedCardScores,
             cardScoreDisplayTime));
 
-        // 5. 计算结果
+        // 4. 计算结果
         BigInteger baseScore = formula.CalculateResult();
         //打头阵：原始结算结果第一位强制变9 
         if (blessingManager != null && blessingManager.hasLeadingCharge)
@@ -563,8 +562,7 @@ public class GameManager : MonoBehaviour
         if (currentState != GameState.Shop)
             return;
 
-        // 1. 关闭商店UI
-        shopManager.CloseShop();
+
         // 2. 增加回合数
         currentRound++;
         // 3. 更新回合数显示

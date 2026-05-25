@@ -163,11 +163,17 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
             return;
         }
 
-        // 1. 如果是从槽位里拖出来的，通知槽位清空数据
+        // 1. 如果是从槽位里拖出来的，先约定“未成功放入新槽位时回手牌区”
+        // 这样可以避免 ClearSlot 清掉数据后，OnEndDrag 又因为 originalParent 是槽位而把 UI 放回原槽位。
         if (currentSlot != null)
         {
+            desiredDropParent = CardManager.Instance != null ? CardManager.Instance.handCardParent : null;
             currentSlot.ClearSlot();
             currentSlot = null;
+        }
+        else
+        {
+            desiredDropParent = null;
         }
         isPlacedInSlot = false; // 开始拖拽时重置标记
 
