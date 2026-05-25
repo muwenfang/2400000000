@@ -493,9 +493,11 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.AllisVoid:
                 // 皆空  不可叠加：购买此祝福后，失去所有点数与永久倍率，然后获得失去点数的0.01%的永久倍率（向下取整且不超过24亿）
-                GameManager.Instance.AddPoints(-GameManager.Instance.currentPoints); // 点数变为0
                 BigInteger newRate = GameManager.Instance.currentPoints / 10000;
+                GameManager.Instance.AddPoints(-GameManager.Instance.currentPoints); // 点数变为0
+                Debug.Log($"祝福皆空已激活,新增的永久倍率为{newRate}");
                 totalMultiplierBonus = (long)(newRate > 2400000000 ? 2400000000 : newRate);
+                Debug.Log($"现如今的永久倍率为{totalMultiplierBonus}");
                 break;
 
             case BlessingData.BlessingType.DelaySatisfaction:
