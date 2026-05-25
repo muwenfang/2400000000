@@ -868,7 +868,7 @@ public class BlessingManager : MonoBehaviour
         total += materialismFixedRate;// 唯物主义
         total += dayAfterDayMul;// 日积月累
         total += hastyAppreciationBonus;// 走马观花
-        total += dayAfterDayMul;  // 日积月累
+        
         total += bigSuccessMul;  // 大成功
         return total;
     }
