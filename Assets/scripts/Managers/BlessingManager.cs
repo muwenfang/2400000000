@@ -86,6 +86,14 @@ public class BlessingManager : MonoBehaviour
         InitializeBlessingSystem();
     }
 
+    // 延迟满足单条记录
+    public struct DelayRecord
+    {
+        public int remainTurn;
+        public int rewardMul;
+    }
+    public List<DelayRecord> delaySatisfactionList = new List<DelayRecord>();
+    
     /// <summary>
     /// 初始化祝福系统
     /// </summary>
@@ -126,6 +134,7 @@ public class BlessingManager : MonoBehaviour
         hastyAppreciationBonus = 0;// 走马观花的临时倍率
         bigSuccessCount = 0;      // 大成功数量
         bigSuccessMul = 0;        // 大成功累计倍率
+        delaySatisfactionList.Clear();  //延迟满足
         GetCurrentPriceMultiplier(); //重置折扣
 
     }
@@ -487,6 +496,17 @@ public class BlessingManager : MonoBehaviour
                 GameManager.Instance.AddPoints(-GameManager.Instance.currentPoints); // 点数变为0
                 totalMultiplierBonus = (long)(GameManager.Instance.currentPoints / 10000);
                 break;
+
+            case BlessingData.BlessingType.DelaySatisfaction:
+                // 延迟满足：立即获得-5永久倍率；5回合后获得10永久倍率
+                totalMultiplierBonus -= 5;
+                delaySatisfactionList.Add(new DelayRecord
+                {
+                    remainTurn = 5,
+                    rewardMul = 10
+                });
+                Debug.Log("延迟满足：立即-5永久倍率，5回合后获取+10倍率");
+                break;
         }
     }
 
@@ -835,6 +855,7 @@ public class BlessingManager : MonoBehaviour
         hastyAppreciationBonus = 0;// 走马观花的临时倍率
         bigSuccessCount = 0;      // 大成功数量
         bigSuccessMul = 0;        // 大成功累计倍率
+        delaySatisfactionList.Clear();  //延迟满足
     }
 
     /// <summary>
@@ -1282,5 +1303,36 @@ public class BlessingManager : MonoBehaviour
             20 => 5,
             _ => 0
         };
+    }
+    //延迟满足分开计数的方法
+    public void UpdateDelaySatisfactionPerRound()
+    {
+        List<DelayRecord> toRemove = new List<DelayRecord>();
+
+        // 用 for 循环代替 foreach，就可以安全修改结构体成员
+        for (int i = 0; i < delaySatisfactionList.Count; i++)
+        {
+            DelayRecord record = delaySatisfactionList[i];
+            record.remainTurn--;
+
+            if (record.remainTurn <= 0)
+            {
+                // 倒计时结束，发放倍率
+                totalMultiplierBonus += record.rewardMul;
+                toRemove.Add(record);
+                Debug.Log("延迟满足倒计时结束，发放 10 永久倍率");
+            }
+            else
+            {
+                // 更新剩余回合数
+                delaySatisfactionList[i] = record;
+            }
+        }
+
+        // 移除已完成的记录
+        foreach (var item in toRemove)
+        {
+            delaySatisfactionList.Remove(item);
+        }
     }
 }       
