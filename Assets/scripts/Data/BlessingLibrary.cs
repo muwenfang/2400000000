@@ -337,7 +337,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 30,
             name: "短视",
-            description: "倍率+10；每回合倍率-1",
+            description: "永久倍率+10；每回合结束永久倍率-1",
             type: BlessingData.BlessingType.ShortSight,
             basePrice: 500,
             isStackable: true

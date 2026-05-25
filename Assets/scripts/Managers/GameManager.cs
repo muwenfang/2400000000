@@ -493,9 +493,9 @@ public class GameManager : MonoBehaviour
         shopManager.OpenShop();
         ChangeState(GameState.Shop);
         // 短视倍率缩减
-        if (blessingManager != null)
+        if (blessingManager != null && BlessingManager.Instance.shortSightCount > 0)
         {
-            blessingManager.OnNewRound_ShortSightDecay();
+            BlessingManager.Instance.totalMultiplierBonus -= BlessingManager.Instance.shortSightCount;
         }
     }
 

@@ -59,7 +59,6 @@ public class BlessingManager : MonoBehaviour
     public float blessDiscountPerBlessing = 0f;// 眷顾
     public float maxBlessDiscountPercent = 70f;// 眷顾上限
     public int shortSightCount = 0;// 短视数量
-    public float shortSightCurrentBonus = 0f;// 短视当前剩余倍率加成
     public int materialismFixedRate = 0;// 唯物主义一次性倍率
     public int hasUnstoppable = 0;// 势如破竹
     public int hasLoanWallet = 0;// 贷款钱包
@@ -112,8 +111,7 @@ public class BlessingManager : MonoBehaviour
         dialecticalAccumulatedMultiplier = 0f;  
         ApplyPragmatism = 0;    
         hasGodOfGambler = false;  
-        shortSightCount = 0;                
-        shortSightCurrentBonus = 0f;      
+        shortSightCount = 0;                     
         dialecticalPricePercent = 0f;
         materialismFixedRate = 0; //唯物主义
         minimalismMultiplier = 0;//极简主义
@@ -391,8 +389,8 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.ShortSight:
-                //短视 - 可叠加：倍率+10；每回合倍率-1
-                shortSightCurrentBonus += 10f;
+                //短视 - 可叠加：永久倍率+10；每回合结束永久倍率-1
+                totalMultiplierBonus += 10f;
                 shortSightCount++;
                 Debug.Log("短视效果已激活");
                 break;
@@ -629,22 +627,6 @@ public class BlessingManager : MonoBehaviour
         int numberCardCount = PlayerCardInventory.Instance.GetAllNumberCards().Count;
         return CardMasterCount * numberCardCount;
     }
-
-    /// <summary>
-    /// 获取短视的额外倍率
-    /// </summary>
-   public void OnNewRound_ShortSightDecay()
-    {
-        if (shortSightCount <= 0)
-        {
-            shortSightCurrentBonus = 0;
-            return;
-        }
-
-        // 每回合结束 -1/层
-        shortSightCurrentBonus -= shortSightCount;
-    }
-
     
     /// <summary>
     /// 获取当前总倍率加成
@@ -790,8 +772,7 @@ public class BlessingManager : MonoBehaviour
         globalPriceDiscountPercent = 0f;    // 友情折扣
         blessDiscountPerBlessing = 0f;      // 眷顾
         maxBlessDiscountPercent = 80f;
-        shortSightCount = 0;                
-        shortSightCurrentBonus = 0f;      
+        shortSightCount = 0;                     
         GetCurrentPriceMultiplier(); // 强制刷新价格
         hasGodOfGambler = false;
         ApplyPragmatism = 0;//实用主义
@@ -832,7 +813,6 @@ public class BlessingManager : MonoBehaviour
         total += CalculateAllGodsInPlaceBonus();
         total += CalculateCardMasterBonus();
         total += dialecticalAccumulatedMultiplier;//辩证主义
-        total += shortSightCurrentBonus;//短视
         total += materialismFixedRate;// 唯物主义
 
         return total;
