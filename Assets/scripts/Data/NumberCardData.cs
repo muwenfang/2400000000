@@ -116,7 +116,15 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             }
 
             Debug.Log($"投掷骰子 {cardData.cardName} Part A: {currentA}");
-            BlessingManager.Instance.CheckGambleToWin(currentA);
+            BlessingManager.Instance.CheckGambleToWin(currentA);// 赌为赢判定
+            // 大成功
+            int sidesA = cardData.partA.diceSides;
+            if (currentA == sidesA && BlessingManager.Instance.bigSuccessCount > 0)
+            {
+                int rank = BlessingManager.Instance.GetDiceRank(sidesA);
+                BlessingManager.Instance.bigSuccessMul += rank;
+                Debug.Log($"【大成功】{sidesA}面骰掷出最大值！获得 {rank} 永久倍率");
+            }     
         }
 
         if (cardData.partB != null && cardData.partB.isDice)
@@ -140,7 +148,15 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             }
 
             Debug.Log($"投掷骰子 {cardData.cardName} Part B: {currentB}");
-            BlessingManager.Instance.CheckGambleToWin(currentB);
+            BlessingManager.Instance.CheckGambleToWin(currentB);// 赌为赢判定
+            // 大成功
+            int sidesB = cardData.partB.diceSides;
+            if (currentB == sidesB && BlessingManager.Instance.bigSuccessCount > 0)
+            {
+                int rank = BlessingManager.Instance.GetDiceRank(sidesB);
+                BlessingManager.Instance.bigSuccessMul += rank;
+                Debug.Log($"【大成功】{sidesB}面骰掷出最大值！获得 {rank} 永久倍率");
+            }
         }
 
         // 更新递增值（+1）

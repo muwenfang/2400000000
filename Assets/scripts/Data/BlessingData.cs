@@ -71,7 +71,8 @@ public class BlessingData : ScriptableObject
         Unstoppable,          // 势如破竹
         LoanWallet,           // 贷款钱包
         Minimalism,           // 极简主义
-        DayAfterDay           // 日积月累
+        DayAfterDay,          // 日积月累
+        BigSuccess            // 大成功
     }
 
     /// <summary>
