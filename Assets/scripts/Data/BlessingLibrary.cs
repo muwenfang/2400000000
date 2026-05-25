@@ -337,7 +337,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 30,
             name: "短视",
-            description: "倍率+10；每回合倍率-1",
+            description: "永久倍率+10；每回合结束永久倍率-1",
             type: BlessingData.BlessingType.ShortSight,
             basePrice: 500,
             isStackable: true
@@ -432,6 +432,69 @@ public class BlessingLibrary : ScriptableObject
             isStackable: true
         ));
 
+        //  延迟满足
+        allBlessings.Add(CreateBlessing(
+            id: 39,
+            name: "延迟满足",
+            description: "立即获得-5永久倍率，5回合后获得10永久倍率",
+            type: BlessingData.BlessingType.DelaySatisfaction,
+            basePrice: 0,
+            isStackable: true
+        ));
+        
+        //  大成功
+        allBlessings.Add(CreateBlessing(
+            id: 40,
+            name: "大成功",
+            description: "任意骰子被判定为最大值时，获取等同于该骰子等级的永久倍率",
+            type: BlessingData.BlessingType.BigSuccess,
+            basePrice: 300000,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+
+        //  走马观花
+        allBlessings.Add(CreateBlessing(
+            id: 41,
+            name: "走马观花",
+            description: "每刷新一次商店，下回合获得1临时倍率",
+            type: BlessingData.BlessingType.HastyAppreciation,
+            basePrice: 50000,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+
+        //  日积月累
+        allBlessings.Add(CreateBlessing(
+            id: 42,
+            name: "日积月累",
+            description: "每回合获得1永久倍率",
+            type: BlessingData.BlessingType.DayAfterDay,
+            basePrice: 100000,
+            isStackable: true
+        ));
+
+        //  反物质能
+        allBlessings.Add(CreateBlessing(
+            id: 43,
+            name: "反物质能",
+            description: "失去240000点数，获得10永久倍率；特殊地，若此时你的点数变为负数，额外获得10永久倍率",
+            type: BlessingData.BlessingType.AntimatterEnergy,
+            basePrice: 0,
+            isStackable: true
+        ));
+
+        //  皆空
+        allBlessings.Add(CreateBlessing(
+            id: 44,
+            name: "皆空",
+            description: "购买此祝福后，失去所有点数与永久倍率，然后获得失去点数的0.01%的永久倍率（向下取整且不超过24亿）",
+            type: BlessingData.BlessingType.AllisVoid,
+            basePrice: 2400000000L,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+
         Debug.Log($" 成功初始化 {allBlessings.Count} 个祝福！");
     }
 
@@ -439,7 +502,7 @@ public class BlessingLibrary : ScriptableObject
     /// 创建单个祝福（运行时创建）
     /// </summary>
     private BlessingData CreateBlessing(int id, string name, string description,
-        BlessingData.BlessingType type, int basePrice, bool isStackable,
+        BlessingData.BlessingType type, long basePrice, bool isStackable,
         float effectValue = 0f, int bonusPoints = 0, BlessingData.
         RefreshBehavior refreshBehavior = BlessingData.RefreshBehavior.AlwaysRefresh)
     {

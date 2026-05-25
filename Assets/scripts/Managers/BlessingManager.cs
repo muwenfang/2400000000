@@ -32,9 +32,9 @@ public class BlessingManager : MonoBehaviour
 
 
     [Header("祝福效果累积")]
-    public float totalMultiplierBonus = 0f; // 倍率加成
+    public long totalMultiplierBonus = 0; // 倍率加成
     public int totalDialecticalCount = 0;   // '辩证主义'购买次数
-    private float AllGodsCount = 0;          // 众神归位数量 
+    private int AllGodsCount = 0;          // 众神归位数量 
     private int LuckTurnsCount = 0;           //是否激活转运，1是激活
     private bool hasJackpot7 = false;        //是否激活逢7过
     private int CardMasterCount = 0;       //是否激活卡牌大师 
@@ -49,8 +49,7 @@ public class BlessingManager : MonoBehaviour
     public int hasTemperlance = 0;       // 是否拥有平衡节制
     private readonly BigInteger GambleToWinReward = 2400000000; // 赌为赢奖励的点数    
     public bool hasIdealism = false;  //唯心主义
-    public Dictionary<int, int> idealismDiceResults = new Dictionary<int, int>();  //唯心主义储存不同等级骰子出目的字典   
-    public float dialecticalAccumulatedMultiplier = 0f; // 辩证主义累积的回合倍率
+    public Dictionary<int, int> idealismDiceResults = new Dictionary<int, int>();  //唯心主义储存不同等级骰子出目的字典 
     public float dialecticalPricePercent = 0f; // 辩证主义：每回合累积的价格涨幅（每回合+1%）
     public int ApplyPragmatism = 0;//实用主义
     public bool hasGodOfGambler = false;//赌神传说
@@ -59,7 +58,6 @@ public class BlessingManager : MonoBehaviour
     public float blessDiscountPerBlessing = 0f;// 眷顾
     public float maxBlessDiscountPercent = 70f;// 眷顾上限
     public int shortSightCount = 0;// 短视数量
-    public float shortSightCurrentBonus = 0f;// 短视当前剩余倍率加成
     public int materialismFixedRate = 0;// 唯物主义一次性倍率
     public int hasUnstoppable = 0;// 势如破竹
     public int hasLoanWallet = 0;// 贷款钱包
@@ -67,8 +65,13 @@ public class BlessingManager : MonoBehaviour
     public int minimalismMultiplier = 0;//极简主义
     public int minimalismCount = 0;//极简主义数量
     public int pragmatismDeleteCount = 0;
-
-
+    public int dayAfterDayCount = 0; // 日积月累数量
+    public int dayAfterDayMul = 0;   // 日积月累倍率
+    public int hasHastyAppreciation = 0; // 走马观花
+    public int hastyAppreciationBonus = 0;// 走马观花的临时倍率
+    public int bigSuccessCount = 0;      // 大成功数量
+    public int bigSuccessMul = 0;        // 大成功累计倍率
+    
     private void Awake()
     {
         if (Instance == null)
@@ -83,6 +86,14 @@ public class BlessingManager : MonoBehaviour
         InitializeBlessingSystem();
     }
 
+    // 延迟满足单条记录
+    public struct DelayRecord
+    {
+        public int remainTurn;
+        public int rewardMul;
+    }
+    public List<DelayRecord> delaySatisfactionList = new List<DelayRecord>();
+    
     /// <summary>
     /// 初始化祝福系统
     /// </summary>
@@ -91,7 +102,7 @@ public class BlessingManager : MonoBehaviour
         ownedBlessings.Clear();
         blessingTypeCount.Clear();
         blessingsEverPurchased.Clear();
-        totalMultiplierBonus = 0f;
+        totalMultiplierBonus = 0;
         totalDialecticalCount = 0;
         AllGodsCount = 0;
         LuckTurnsCount = 0;
@@ -108,17 +119,22 @@ public class BlessingManager : MonoBehaviour
         hasEnergySpread = 0;
         hasRisingUp = 0;
         hasTemperlance = 0;
-        wishCoinPurchaseCount = 0;
-        dialecticalAccumulatedMultiplier = 0f;  
+        wishCoinPurchaseCount = 0; 
         ApplyPragmatism = 0;    
         hasGodOfGambler = false;  
-        shortSightCount = 0;                
-        shortSightCurrentBonus = 0f;      
+        shortSightCount = 0;                     
         dialecticalPricePercent = 0f;
         materialismFixedRate = 0; //唯物主义
         minimalismMultiplier = 0;//极简主义
         minimalismCount = 0;//极简主义数量
         pragmatismDeleteCount = 0;
+        dayAfterDayCount = 0; // 日积月累数量
+        dayAfterDayMul = 0;   // 日积月累倍率
+        hasHastyAppreciation = 0; // 走马观花
+        hastyAppreciationBonus = 0;// 走马观花的临时倍率
+        bigSuccessCount = 0;      // 大成功数量
+        bigSuccessMul = 0;        // 大成功累计倍率
+        delaySatisfactionList.Clear();  //延迟满足
         GetCurrentPriceMultiplier(); //重置折扣
 
     }
@@ -300,13 +316,13 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.DoubleDown:
                 // 倍投 - 倍率+1,价格翻倍
-                totalMultiplierBonus += blessingData.effectValue;
+                totalMultiplierBonus += 1;
                 Debug.Log("倍投效果已激活");
                 break;
 
             case BlessingData.BlessingType.Raise:
                 // 加注 - 倍率+1,价格+500
-                totalMultiplierBonus += blessingData.effectValue;
+                totalMultiplierBonus += 1;
                 Debug.Log("加注效果已激活");
                 break;
 
@@ -347,7 +363,7 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.Materialism:
-                // 唯物主义：获得当前祝福数量×2永久倍率 → 清空所有祝福（包括自己）
+                // 唯物主义：获得当前祝福数量×5永久倍率 → 清空所有祝福（包括自己）
                 int totalBlessCount = GetTotalBlessingCount();
                 materialismFixedRate = totalBlessCount * 5; // 永久倍率，不会被清空
                 ClearAllBlessings();
@@ -391,8 +407,8 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.ShortSight:
-                //短视 - 可叠加：倍率+10；每回合倍率-1
-                shortSightCurrentBonus += 10f;
+                //短视 - 可叠加：永久倍率+10；每回合结束永久倍率-1
+                totalMultiplierBonus += 10;
                 shortSightCount++;
                 Debug.Log("短视效果已激活");
                 break;
@@ -400,7 +416,6 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.RisingUp:
                 //节节高 - 不可叠加：大于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20
                 hasRisingUp = 1;
-                
                 Debug.Log("节节高效果已激活");
                 break;
 
@@ -446,7 +461,53 @@ public class BlessingManager : MonoBehaviour
                     $"实用主义删除次数{pragmatismDeleteCount}," +
                     $"极简主义数量{minimalismCount}"); 
                 break;
+            
+            case BlessingData.BlessingType.DayAfterDay:
+                // 日积月累  可叠加：每回合获得1永久倍率
+                dayAfterDayCount++;
+                break;
 
+            case BlessingData.BlessingType.HastyAppreciation:
+                // 走马观花  不可叠加：每刷新一次商店，下回合获得1临时倍率
+                hasHastyAppreciation = 1;
+                Debug.Log("走马观花效果已激活");
+                break;
+
+        
+            case BlessingData.BlessingType.BigSuccess:
+                bigSuccessCount++;
+                Debug.Log("大成功 已激活！骰子掷出最大值时获得对应等级永久倍率");
+                break;
+
+            case BlessingData.BlessingType.AntimatterEnergy:
+                // 反物质能  可叠加：失去240000点数，获得10永久倍率；特殊地，若此时你的点数变为负数，额外获得10永久倍率
+                GameManager.Instance.AddPoints(-240000);
+                totalMultiplierBonus += 10;
+                Debug.Log("反物质能 已激活！");
+                if (GameManager.Instance.currentPoints < 0)
+                {
+                    totalMultiplierBonus += 10;
+                    Debug.Log("反物质能触发额外加成：点数变为负数，额外获得10永久倍率");
+                }
+                break;
+
+            case BlessingData.BlessingType.AllisVoid:
+                // 皆空  不可叠加：购买此祝福后，失去所有点数与永久倍率，然后获得失去点数的0.01%的永久倍率（向下取整且不超过24亿）
+                GameManager.Instance.AddPoints(-GameManager.Instance.currentPoints); // 点数变为0
+                BigInteger newRate = GameManager.Instance.currentPoints / 10000;
+                totalMultiplierBonus = (long)(newRate > 2400000000 ? 2400000000 : newRate);
+                break;
+
+            case BlessingData.BlessingType.DelaySatisfaction:
+                // 延迟满足：立即获得-5永久倍率；5回合后获得10永久倍率
+                totalMultiplierBonus -= 5;
+                delaySatisfactionList.Add(new DelayRecord
+                {
+                    remainTurn = 5,
+                    rewardMul = 10
+                });
+                Debug.Log("延迟满足：立即-5永久倍率，5回合后获取+10倍率");
+                break;
         }
     }
 
@@ -587,18 +648,18 @@ public class BlessingManager : MonoBehaviour
     /// <summary>
     /// 计算“逢七过”的倍率
     /// </summary>
-    private float CalculateJackpot7Bonus()
+    private int CalculateJackpot7Bonus()
     {
-        if (!hasJackpot7) return 0f;
-        return 7f;
+        if (!hasJackpot7) return 0;
+        return 7;
     }
 
     /// <summary>
     /// 计算“众神归位”的倍率
     /// </summary>
-    private float CalculateAllGodsInPlaceBonus()
+    private int CalculateAllGodsInPlaceBonus()
     {
-        if (AllGodsCount <= 0) return 0f;
+        if (AllGodsCount <= 0) return 0;
         int totalBlessingCount = GetTotalBlessingCount();
         return totalBlessingCount * AllGodsCount;
     }
@@ -623,33 +684,23 @@ public class BlessingManager : MonoBehaviour
     /// <summary>
     /// 获取卡牌大师的额外倍率
     /// </summary>
-    private float CalculateCardMasterBonus()
+    private int CalculateCardMasterBonus()
     {
-        if (CardMasterCount <= 0) return 0f;
+        if (CardMasterCount <= 0) return 0;
         int numberCardCount = PlayerCardInventory.Instance.GetAllNumberCards().Count;
         return CardMasterCount * numberCardCount;
     }
 
-    /// <summary>
-    /// 获取短视的额外倍率
-    /// </summary>
-   public void OnNewRound_ShortSightDecay()
+    public int CalculateHastyAppreciationBonus()
     {
-        if (shortSightCount <= 0)
-        {
-            shortSightCurrentBonus = 0;
-            return;
-        }
-
-        // 每回合结束 -1/层
-        shortSightCurrentBonus -= shortSightCount;
+        if (hasHastyAppreciation == 0) return 0;
+        return ShopManager.Instance.refreshCount; // 每刷新一次商店，下回合获得1临时倍率
     }
 
-    
     /// <summary>
     /// 获取当前总倍率加成
     /// </summary>
-    public float GetTotalMultiplierBonus()
+    public BigInteger GetTotalMultiplierBonus()
     {
         return totalMultiplierBonus;
     }
@@ -769,7 +820,7 @@ public class BlessingManager : MonoBehaviour
         ownedBlessings.Clear();
         blessingTypeCount.Clear();
         blessingsEverPurchased.Clear();
-        totalMultiplierBonus = 0f;
+        totalMultiplierBonus = 0;
         totalDialecticalCount = 0;
         AllGodsCount = 0;
         LuckTurnsCount = 0;
@@ -785,13 +836,11 @@ public class BlessingManager : MonoBehaviour
         hasEnergySpread = 0;
         hasRisingUp = 0;
         hasTemperlance = 0;
-        dialecticalAccumulatedMultiplier = 0f;
         wishCoinPurchaseCount = 0;
         globalPriceDiscountPercent = 0f;    // 友情折扣
         blessDiscountPerBlessing = 0f;      // 眷顾
         maxBlessDiscountPercent = 80f;
-        shortSightCount = 0;                
-        shortSightCurrentBonus = 0f;      
+        shortSightCount = 0;                     
         GetCurrentPriceMultiplier(); // 强制刷新价格
         hasGodOfGambler = false;
         ApplyPragmatism = 0;//实用主义
@@ -801,6 +850,13 @@ public class BlessingManager : MonoBehaviour
         minimalismMultiplier = 0; //极简主义
         minimalismCount = 0;//极简主义数量
         pragmatismDeleteCount = 0;
+        dayAfterDayCount = 0; // 日积月累数量
+        dayAfterDayMul = 0;   // 日积月累倍率
+        hasHastyAppreciation = 0; // 走马观花
+        hastyAppreciationBonus = 0;// 走马观花的临时倍率
+        bigSuccessCount = 0;      // 大成功数量
+        bigSuccessMul = 0;        // 大成功累计倍率
+        delaySatisfactionList.Clear();  //延迟满足
     }
 
     /// <summary>
@@ -823,18 +879,19 @@ public class BlessingManager : MonoBehaviour
     /// <summary>
     /// 获取最终总祝福倍率
     /// </summary>
-    public float GetFinalBlessingMultiplier()
+    public long GetFinalBlessingMultiplier()
     {
-        float total = totalMultiplierBonus;
+        long total = totalMultiplierBonus;
 
         // 各类祝福倍率加成
         total += CalculateJackpot7Bonus();
         total += CalculateAllGodsInPlaceBonus();
         total += CalculateCardMasterBonus();
-        total += dialecticalAccumulatedMultiplier;//辩证主义
-        total += shortSightCurrentBonus;//短视
         total += materialismFixedRate;// 唯物主义
-
+        total += dayAfterDayMul;// 日积月累
+        total += hastyAppreciationBonus;// 走马观花
+        
+        total += bigSuccessMul;  // 大成功
         return total;
     }
 
@@ -899,7 +956,7 @@ public class BlessingManager : MonoBehaviour
         if (layer <= 0) return;
 
         // 1. 永久倍率+1/每层
-        dialecticalAccumulatedMultiplier += layer;
+        totalMultiplierBonus += layer;
         // 2. 每回合得24点/每层
         GameManager.Instance.AddPoints(24 * layer);
         // 3. 全局价格永久+1%/每层
@@ -1233,4 +1290,50 @@ public class BlessingManager : MonoBehaviour
         }
     }
 
+    /// <summary>
+    /// 骰子面数 → 等级
+    /// </summary>
+    public int GetDiceRank(int sides)
+    {
+        return sides switch
+        {
+            4 => 1,
+            6 => 2,
+            8 => 3,
+            12 => 4,
+            20 => 5,
+            _ => 0
+        };
+    }
+    //延迟满足分开计数的方法
+    public void UpdateDelaySatisfactionPerRound()
+    {
+        List<DelayRecord> toRemove = new List<DelayRecord>();
+
+        // 用 for 循环代替 foreach，就可以安全修改结构体成员
+        for (int i = 0; i < delaySatisfactionList.Count; i++)
+        {
+            DelayRecord record = delaySatisfactionList[i];
+            record.remainTurn--;
+
+            if (record.remainTurn <= 0)
+            {
+                // 倒计时结束，发放倍率
+                totalMultiplierBonus += record.rewardMul;
+                toRemove.Add(record);
+                Debug.Log("延迟满足倒计时结束，发放 10 永久倍率");
+            }
+            else
+            {
+                // 更新剩余回合数
+                delaySatisfactionList[i] = record;
+            }
+        }
+
+        // 移除已完成的记录
+        foreach (var item in toRemove)
+        {
+            delaySatisfactionList.Remove(item);
+        }
+    }
 }       

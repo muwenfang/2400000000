@@ -10,14 +10,14 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 56b1e2f934b6fe543bb677f86e8aad86, type: 3}
-  m_Name: "30\u77ED\u89C6"
+  m_Name: "41\u8D70\u9A6C\u89C2\u82B1"
   m_EditorClassIdentifier: 
-  blessingId: 30
-  blessingName: "\u77ED\u89C6"
-  description: "\u6C38\u4E45\u500D\u7387+10\uFF1B\u6BCF\u56DE\u5408\u7ED3\u675F\u6C38\u4E45\u500D\u7387-1"
-  basePrice: 500
-  isStackable: 1
-  blessingType: 30
-  effectValue: -1
+  blessingId: 41
+  blessingName: "\u8D70\u9A6C\u89C2\u82B1"
+  description: "\u6BCF\u5237\u65B0\u4E00\u6B21\u5546\u5E97\uFF0C\u4E0B\u56DE\u5408\u83B7\u5F971\u4E34\u65F6\u500D\u7387"
+  basePrice: 50000
+  isStackable: 0
+  blessingType: 39
+  effectValue: 0
   bonusPoints: 0
-  refreshBehavior: 0
+  refreshBehavior: 1
