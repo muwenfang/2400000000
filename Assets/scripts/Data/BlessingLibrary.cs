@@ -439,7 +439,7 @@ public class BlessingLibrary : ScriptableObject
             description: "立即获得-5永久倍率，5回合后获得10永久倍率",
             type: BlessingData.BlessingType.DelaySatisfaction,
             basePrice: 0,
-            isStackable: true,
+            isStackable: true
         ));
         
         //  大成功
