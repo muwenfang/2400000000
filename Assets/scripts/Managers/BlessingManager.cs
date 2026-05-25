@@ -67,7 +67,8 @@ public class BlessingManager : MonoBehaviour
     public int minimalismMultiplier = 0;//极简主义
     public int minimalismCount = 0;//极简主义数量
     public int pragmatismDeleteCount = 0;
-
+    public int dayAfterDayCount = 0; // 日积月累数量
+    public int dayAfterDayMul = 0;   // 日积月累倍率
 
     private void Awake()
     {
@@ -119,6 +120,8 @@ public class BlessingManager : MonoBehaviour
         minimalismMultiplier = 0;//极简主义
         minimalismCount = 0;//极简主义数量
         pragmatismDeleteCount = 0;
+        dayAfterDayCount = 0; // 日积月累数量
+        dayAfterDayMul = 0;   // 日积月累倍率
         GetCurrentPriceMultiplier(); //重置折扣
 
     }
@@ -446,7 +449,11 @@ public class BlessingManager : MonoBehaviour
                     $"实用主义删除次数{pragmatismDeleteCount}," +
                     $"极简主义数量{minimalismCount}"); 
                 break;
-
+            
+            case BlessingData.BlessingType.DayAfterDay:
+                // 日积月累  可叠加：每回合获得1永久倍率
+                dayAfterDayCount++;
+                break;
         }
     }
 
@@ -801,6 +808,8 @@ public class BlessingManager : MonoBehaviour
         minimalismMultiplier = 0; //极简主义
         minimalismCount = 0;//极简主义数量
         pragmatismDeleteCount = 0;
+        dayAfterDayCount = 0; // 日积月累数量
+        dayAfterDayMul = 0;   // 日积月累倍率
     }
 
     /// <summary>
@@ -834,7 +843,7 @@ public class BlessingManager : MonoBehaviour
         total += dialecticalAccumulatedMultiplier;//辩证主义
         total += shortSightCurrentBonus;//短视
         total += materialismFixedRate;// 唯物主义
-
+        total += dayAfterDayMul;// 日积月累
         return total;
     }
 

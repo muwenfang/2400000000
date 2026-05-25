@@ -432,6 +432,16 @@ public class BlessingLibrary : ScriptableObject
             isStackable: true
         ));
 
+        //  日积月累
+        allBlessings.Add(CreateBlessing(
+            id: 43,
+            name: "日积月累",
+            description: "每回合获得1永久倍率",
+            type: BlessingData.BlessingType.DayAfterDay,
+            basePrice: 100000,
+            isStackable: true
+        ));
+        
         Debug.Log($" 成功初始化 {allBlessings.Count} 个祝福！");
     }
 
