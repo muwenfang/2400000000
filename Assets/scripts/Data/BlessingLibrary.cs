@@ -432,6 +432,17 @@ public class BlessingLibrary : ScriptableObject
             isStackable: true
         ));
 
+        //  大成功
+        allBlessings.Add(CreateBlessing(
+            id: 40,
+            name: "大成功",
+            description: "任意骰子被判定为最大值时，获取等同于该骰子等级的永久倍率",
+            type: BlessingData.BlessingType.BigSuccess,
+            basePrice: 300000,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+
         //  走马观花
         allBlessings.Add(CreateBlessing(
             id: 41,
@@ -442,9 +453,10 @@ public class BlessingLibrary : ScriptableObject
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
         ));
+
         //  日积月累
         allBlessings.Add(CreateBlessing(
-            id: 43,
+            id: 42,
             name: "日积月累",
             description: "每回合获得1永久倍率",
             type: BlessingData.BlessingType.DayAfterDay,

@@ -69,7 +69,6 @@ public class BlessingManager : MonoBehaviour
     public int dayAfterDayMul = 0;   // 日积月累倍率
     public int hasHastyAppreciation = 0; // 走马观花
     public int hastyAppreciationBonus = 0;// 走马观花的临时倍率
-
     public int bigSuccessCount = 0;      // 大成功数量
     public int bigSuccessMul = 0;        // 大成功累计倍率
     
