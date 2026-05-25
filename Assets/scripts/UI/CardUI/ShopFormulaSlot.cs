@@ -222,7 +222,7 @@ public class ShopFormulaCardSlot : MonoBehaviour
         if (unlockCostText == null) return;
 
         BigInteger unlockCost = ShopManager.Instance.CalculateFormulaSlotUnlockCost();
-        unlockCostText.text = $"$ {unlockCost}";
+        unlockCostText.text = $"$ {NumberDisplayFormatter.Format(unlockCost)}";
 
         // 根据点数情况改变颜色
         if (GameManager.Instance.currentPoints >= unlockCost)

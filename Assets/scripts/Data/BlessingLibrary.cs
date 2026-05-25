@@ -420,8 +420,7 @@ public class BlessingLibrary : ScriptableObject
             type: BlessingData.BlessingType.LoanWallet,
             basePrice: 0,
             isStackable: false,
-            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
-        ));
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh));
 
         //  极简主义
         allBlessings.Add(CreateBlessing(
