@@ -470,7 +470,7 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.HastyAppreciation:
                 // 走马观花  不可叠加：每刷新一次商店，下回合获得1临时倍率
                 hasHastyAppreciation = 1;
-                Debug.Log("走马观花效果已激活");
+                Debug.Log($"走马观花效果已激活,hasHastyAppreciation = {hasHastyAppreciation}");
                 break;
 
         
@@ -483,7 +483,7 @@ public class BlessingManager : MonoBehaviour
                 // 反物质能  可叠加：失去240000点数，获得10永久倍率；特殊地，若此时你的点数变为负数，额外获得10永久倍率
                 GameManager.Instance.AddPoints(-240000);
                 totalMultiplierBonus += 10;
-                Debug.Log("反物质能 已激活！");
+                Debug.Log($"反物质能已激活！现在的永久倍率为{totalMultiplierBonus}");
                 if (GameManager.Instance.currentPoints < 0)
                 {
                     totalMultiplierBonus += 10;
@@ -693,8 +693,10 @@ public class BlessingManager : MonoBehaviour
 
     public int CalculateHastyAppreciationBonus()
     {
-        if (hasHastyAppreciation == 0) return 0;
-        return ShopManager.Instance.refreshCount; // 每刷新一次商店，下回合获得1临时倍率
+        if (hasHastyAppreciation == 0) 
+            return 0;
+        else 
+            return ShopManager.Instance.refreshCount; // 每刷新一次商店，下回合获得1临时倍率
     }
 
     /// <summary>
@@ -890,7 +892,7 @@ public class BlessingManager : MonoBehaviour
         total += materialismFixedRate;// 唯物主义
         total += dayAfterDayMul;// 日积月累
         total += hastyAppreciationBonus;// 走马观花
-        
+        Debug.Log($"走马观花临时倍率为{hastyAppreciationBonus}");
         total += bigSuccessMul;  // 大成功
         return total;
     }

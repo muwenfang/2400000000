@@ -565,8 +565,7 @@ public class GameManager : MonoBehaviour
         if (currentState != GameState.Shop)
             return;
 
-        // 1. 关闭商店UI
-        shopManager.CloseShop();
+
         // 2. 增加回合数
         currentRound++;
         // 3. 更新回合数显示

@@ -670,6 +670,7 @@ public class ShopManager : MonoBehaviour
 
         // 计算祝福走马观花的临时倍率
         BlessingManager.Instance.hastyAppreciationBonus = BlessingManager.Instance.CalculateHastyAppreciationBonus();
+        Debug.Log($"走马观花临时倍率为{BlessingManager.Instance.hastyAppreciationBonus},刷新次数为{refreshCount}");
 
         //重置刷新次数
         refreshCount = 0;
