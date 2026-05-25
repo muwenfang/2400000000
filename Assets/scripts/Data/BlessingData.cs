@@ -73,7 +73,8 @@ public class BlessingData : ScriptableObject
         Minimalism,           // 极简主义
         DayAfterDay,          // 日积月累
         HastyAppreciation,     // 走马观花
-        BigSuccess            // 大成功
+        BigSuccess,            // 大成功
+        AntimatterEnergy,      // 反物质能
     }
 
     /// <summary>

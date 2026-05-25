@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 56b1e2f934b6fe543bb677f86e8aad86, type: 3}
   m_Name: "42\u65E5\u79EF\u6708\u7D2F"
   m_EditorClassIdentifier: 
-  blessingId: 43
+  blessingId: 42
   blessingName: "\u65E5\u79EF\u6708\u7D2F"
   description: "\u6BCF\u56DE\u5408\u83B7\u5F971\u6C38\u4E45\u500D\u7387"
   basePrice: 100000

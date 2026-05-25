@@ -469,6 +469,18 @@ public class BlessingManager : MonoBehaviour
                 bigSuccessCount++;
                 Debug.Log("大成功 已激活！骰子掷出最大值时获得对应等级永久倍率");
                 break;
+
+            case BlessingData.BlessingType.AntimatterEnergy:
+                // 反物质能  可叠加：失去240000点数，获得10永久倍率；特殊地，若此时你的点数变为负数，额外获得10永久倍率
+                GameManager.Instance.AddPoints(-240000);
+                totalMultiplierBonus += 10;
+                Debug.Log("反物质能 已激活！");
+                if (GameManager.Instance.currentPoints < 0)
+                {
+                    totalMultiplierBonus += 10;
+                    Debug.Log("反物质能触发额外加成：点数变为负数，额外获得10永久倍率");
+                }
+                break;
         }
     }
 
