@@ -39,7 +39,7 @@ public class GameManager : MonoBehaviour
     // 记录本局的统计数据
     [Header("本局统计数据")]
     private BigInteger roundMaxNumberCardValue = 0; // 本局数字卡最大值
-    private float roundMaxMultiplier = 0f; // 本局最高倍率
+    private long roundMaxMultiplier = 0; // 本局最高倍率
     private BigInteger roundMaxCalculationValue = 0; // 本局最高单轮计算值
 
     [Header("结算动画配置")]
@@ -125,7 +125,7 @@ public class GameManager : MonoBehaviour
     private void ResetRoundStatistics()
     {
         roundMaxNumberCardValue = 0;
-        roundMaxMultiplier = 0f;
+        roundMaxMultiplier = 0;
         roundMaxCalculationValue = 0;
     }
     //内卷模式
@@ -264,9 +264,9 @@ public class GameManager : MonoBehaviour
         }
 
         // 计算基础倍率（根据公式卡数量）
-        float baseMultiplier = PlayerCardInventory.Instance.GetFormulaCardCount();
-        float blessingBonusMultiplier = GetCurrentMultiplier();
-        float totalMultiplier = baseMultiplier + blessingBonusMultiplier;
+        int baseMultiplier = PlayerCardInventory.Instance.GetFormulaCardCount();
+        long blessingBonusMultiplier = GetCurrentMultiplier();
+        long totalMultiplier = baseMultiplier + blessingBonusMultiplier;
 
         // 记录本局最高倍率
         if (totalMultiplier > roundMaxMultiplier)
@@ -300,7 +300,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// 分步显示得分的协程
     /// </summary>
-    IEnumerator ShowScoreStepByStep(BigInteger baseScore, float multiplier, BigInteger finalScore)
+    IEnumerator ShowScoreStepByStep(BigInteger baseScore, long multiplier, BigInteger finalScore)
     {
         // 第1步：显示本回合得分（基础分 × 倍率）
         UIManager.Instance.ShowPointsGain(finalScore); // 弹出 "+XXX" 提示
@@ -380,14 +380,14 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// 获取当前倍率
     /// </summary>
-    float GetCurrentMultiplier()
+    long GetCurrentMultiplier()
     {
-        float multiplier = 0f;
+        long multiplier = 0;
 
         // 从祝福管理器获取倍率加成
         if (blessingManager != null)
         {
-            float blessingMultiplier = blessingManager.GetFinalBlessingMultiplier();
+            long blessingMultiplier = blessingManager.GetFinalBlessingMultiplier();
             //赌神传说
             blessingMultiplier += blessingManager.GetGodOfGamblerTempMultiplier();
             multiplier += blessingMultiplier;

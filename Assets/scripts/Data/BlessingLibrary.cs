@@ -474,6 +474,17 @@ public class BlessingLibrary : ScriptableObject
             isStackable: true
         ));
 
+        //  皆空
+        allBlessings.Add(CreateBlessing(
+            id: 44,
+            name: "皆空",
+            description: "购买此祝福后，失去所有点数与永久倍率，然后获得失去点数的0.01%的永久倍率（向下取整）",
+            type: BlessingData.BlessingType.AllisVoid,
+            basePrice: 2400000000L,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+
         Debug.Log($" 成功初始化 {allBlessings.Count} 个祝福！");
     }
 
@@ -481,7 +492,7 @@ public class BlessingLibrary : ScriptableObject
     /// 创建单个祝福（运行时创建）
     /// </summary>
     private BlessingData CreateBlessing(int id, string name, string description,
-        BlessingData.BlessingType type, int basePrice, bool isStackable,
+        BlessingData.BlessingType type, long basePrice, bool isStackable,
         float effectValue = 0f, int bonusPoints = 0, BlessingData.
         RefreshBehavior refreshBehavior = BlessingData.RefreshBehavior.AlwaysRefresh)
     {

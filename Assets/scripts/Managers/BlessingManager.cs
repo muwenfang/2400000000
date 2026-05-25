@@ -32,9 +32,9 @@ public class BlessingManager : MonoBehaviour
 
 
     [Header("祝福效果累积")]
-    public float totalMultiplierBonus = 0f; // 倍率加成
+    public long totalMultiplierBonus = 0; // 倍率加成
     public int totalDialecticalCount = 0;   // '辩证主义'购买次数
-    private float AllGodsCount = 0;          // 众神归位数量 
+    private int AllGodsCount = 0;          // 众神归位数量 
     private int LuckTurnsCount = 0;           //是否激活转运，1是激活
     private bool hasJackpot7 = false;        //是否激活逢7过
     private int CardMasterCount = 0;       //是否激活卡牌大师 
@@ -94,7 +94,7 @@ public class BlessingManager : MonoBehaviour
         ownedBlessings.Clear();
         blessingTypeCount.Clear();
         blessingsEverPurchased.Clear();
-        totalMultiplierBonus = 0f;
+        totalMultiplierBonus = 0;
         totalDialecticalCount = 0;
         AllGodsCount = 0;
         LuckTurnsCount = 0;
@@ -307,13 +307,13 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.DoubleDown:
                 // 倍投 - 倍率+1,价格翻倍
-                totalMultiplierBonus += blessingData.effectValue;
+                totalMultiplierBonus += 1;
                 Debug.Log("倍投效果已激活");
                 break;
 
             case BlessingData.BlessingType.Raise:
                 // 加注 - 倍率+1,价格+500
-                totalMultiplierBonus += blessingData.effectValue;
+                totalMultiplierBonus += 1;
                 Debug.Log("加注效果已激活");
                 break;
 
@@ -399,7 +399,7 @@ public class BlessingManager : MonoBehaviour
 
             case BlessingData.BlessingType.ShortSight:
                 //短视 - 可叠加：永久倍率+10；每回合结束永久倍率-1
-                totalMultiplierBonus += 10f;
+                totalMultiplierBonus += 10;
                 shortSightCount++;
                 Debug.Log("短视效果已激活");
                 break;
@@ -480,6 +480,12 @@ public class BlessingManager : MonoBehaviour
                     totalMultiplierBonus += 10;
                     Debug.Log("反物质能触发额外加成：点数变为负数，额外获得10永久倍率");
                 }
+                break;
+
+            case BlessingData.BlessingType.AllisVoid:
+                // 皆空  不可叠加：购买此祝福后，失去所有点数与永久倍率，然后获得失去点数的0.01%的永久倍率（向下取整）
+                GameManager.Instance.AddPoints(-GameManager.Instance.currentPoints); // 点数变为0
+                totalMultiplierBonus = (long)(GameManager.Instance.currentPoints / 10000);
                 break;
         }
     }
@@ -621,18 +627,18 @@ public class BlessingManager : MonoBehaviour
     /// <summary>
     /// 计算“逢七过”的倍率
     /// </summary>
-    private float CalculateJackpot7Bonus()
+    private int CalculateJackpot7Bonus()
     {
-        if (!hasJackpot7) return 0f;
-        return 7f;
+        if (!hasJackpot7) return 0;
+        return 7;
     }
 
     /// <summary>
     /// 计算“众神归位”的倍率
     /// </summary>
-    private float CalculateAllGodsInPlaceBonus()
+    private int CalculateAllGodsInPlaceBonus()
     {
-        if (AllGodsCount <= 0) return 0f;
+        if (AllGodsCount <= 0) return 0;
         int totalBlessingCount = GetTotalBlessingCount();
         return totalBlessingCount * AllGodsCount;
     }
@@ -657,9 +663,9 @@ public class BlessingManager : MonoBehaviour
     /// <summary>
     /// 获取卡牌大师的额外倍率
     /// </summary>
-    private float CalculateCardMasterBonus()
+    private int CalculateCardMasterBonus()
     {
-        if (CardMasterCount <= 0) return 0f;
+        if (CardMasterCount <= 0) return 0;
         int numberCardCount = PlayerCardInventory.Instance.GetAllNumberCards().Count;
         return CardMasterCount * numberCardCount;
     }
@@ -673,7 +679,7 @@ public class BlessingManager : MonoBehaviour
     /// <summary>
     /// 获取当前总倍率加成
     /// </summary>
-    public float GetTotalMultiplierBonus()
+    public BigInteger GetTotalMultiplierBonus()
     {
         return totalMultiplierBonus;
     }
@@ -793,7 +799,7 @@ public class BlessingManager : MonoBehaviour
         ownedBlessings.Clear();
         blessingTypeCount.Clear();
         blessingsEverPurchased.Clear();
-        totalMultiplierBonus = 0f;
+        totalMultiplierBonus = 0;
         totalDialecticalCount = 0;
         AllGodsCount = 0;
         LuckTurnsCount = 0;
@@ -851,9 +857,9 @@ public class BlessingManager : MonoBehaviour
     /// <summary>
     /// 获取最终总祝福倍率
     /// </summary>
-    public float GetFinalBlessingMultiplier()
+    public long GetFinalBlessingMultiplier()
     {
-        float total = totalMultiplierBonus;
+        long total = totalMultiplierBonus;
 
         // 各类祝福倍率加成
         total += CalculateJackpot7Bonus();

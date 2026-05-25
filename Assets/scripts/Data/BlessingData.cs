@@ -12,7 +12,7 @@ public class BlessingData : ScriptableObject
     public int blessingId;           // 祝福ID
     public string blessingName;      // 祝福名称
     public string description;       // 祝福描述
-    public int basePrice;            // 基础价格
+    public long basePrice;           // 基础价格
     public bool isStackable;         // 是否可叠加
     public BlessingType blessingType;// 祝福类型
 
@@ -75,6 +75,7 @@ public class BlessingData : ScriptableObject
         HastyAppreciation,     // 走马观花
         BigSuccess,            // 大成功
         AntimatterEnergy,      // 反物质能
+        AllisVoid              // 皆空
     }
 
     /// <summary>
