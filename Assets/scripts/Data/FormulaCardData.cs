@@ -448,20 +448,31 @@ public static class FormulaCalculator
     }
 
     /// <summary>
-    /// 解析表达式（加法层）
+    /// 解析表达式（加法层，减法层）
     /// </summary>
     static BigInteger ParseExpression()
     {
         BigInteger value = ParseTerm();
 
-        while (index < expr.Length && expr[index] == '+')
+        while (index < expr.Length)
         {
-            index++; // skip '+'
-
-            BigInteger right = ParseTerm();
-            value += right;
+            if (expr[index] == '+')
+            {
+                index++;
+                BigInteger right = ParseTerm();
+                value += right;
+            }
+            else if (expr[index] == '-')
+            {
+                index++;
+                BigInteger right = ParseTerm();
+                value -= right;
+            }
+            else
+            {
+                break;
+            }
         }
-
         return value;
     }
 
@@ -492,6 +503,13 @@ public static class FormulaCalculator
         {
             Debug.LogError($"ParseFactor: 索引 {index} 超出表达式长度 {expr.Length}");
             throw new Exception("表达式意外结束");
+        }
+
+        // 负号
+        if (expr[index] == '-')
+        {
+            index++;
+            return -ParseFactor();
         }
 
         // 处理括号
