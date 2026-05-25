@@ -175,7 +175,7 @@ public class GameManager : MonoBehaviour
         }
         
         if (blessingManager != null)
-        {
+        {   // 辩证主义每回合增加倍率，点数，价格等效果
             blessingManager.AddDialecticalPerRoundMultiplier();
             // 顺带重置唯心主义骰子结果（原有逻辑）
             blessingManager.NewRound_IdealismReset();

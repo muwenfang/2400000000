@@ -49,8 +49,7 @@ public class BlessingManager : MonoBehaviour
     public int hasTemperlance = 0;       // 是否拥有平衡节制
     private readonly BigInteger GambleToWinReward = 2400000000; // 赌为赢奖励的点数    
     public bool hasIdealism = false;  //唯心主义
-    public Dictionary<int, int> idealismDiceResults = new Dictionary<int, int>();  //唯心主义储存不同等级骰子出目的字典   
-    public float dialecticalAccumulatedMultiplier = 0f; // 辩证主义累积的回合倍率
+    public Dictionary<int, int> idealismDiceResults = new Dictionary<int, int>();  //唯心主义储存不同等级骰子出目的字典 
     public float dialecticalPricePercent = 0f; // 辩证主义：每回合累积的价格涨幅（每回合+1%）
     public int ApplyPragmatism = 0;//实用主义
     public bool hasGodOfGambler = false;//赌神传说
@@ -108,8 +107,7 @@ public class BlessingManager : MonoBehaviour
         hasEnergySpread = 0;
         hasRisingUp = 0;
         hasTemperlance = 0;
-        wishCoinPurchaseCount = 0;
-        dialecticalAccumulatedMultiplier = 0f;  
+        wishCoinPurchaseCount = 0; 
         ApplyPragmatism = 0;    
         hasGodOfGambler = false;  
         shortSightCount = 0;                     
@@ -774,7 +772,6 @@ public class BlessingManager : MonoBehaviour
         hasEnergySpread = 0;
         hasRisingUp = 0;
         hasTemperlance = 0;
-        dialecticalAccumulatedMultiplier = 0f;
         wishCoinPurchaseCount = 0;
         globalPriceDiscountPercent = 0f;    // 友情折扣
         blessDiscountPerBlessing = 0f;      // 眷顾
@@ -821,7 +818,6 @@ public class BlessingManager : MonoBehaviour
         total += CalculateJackpot7Bonus();
         total += CalculateAllGodsInPlaceBonus();
         total += CalculateCardMasterBonus();
-        total += dialecticalAccumulatedMultiplier;//辩证主义
         total += materialismFixedRate;// 唯物主义
         total += dayAfterDayMul;// 日积月累
         return total;
@@ -888,7 +884,7 @@ public class BlessingManager : MonoBehaviour
         if (layer <= 0) return;
 
         // 1. 永久倍率+1/每层
-        dialecticalAccumulatedMultiplier += layer;
+        totalMultiplierBonus += layer;
         // 2. 每回合得24点/每层
         GameManager.Instance.AddPoints(24 * layer);
         // 3. 全局价格永久+1%/每层
