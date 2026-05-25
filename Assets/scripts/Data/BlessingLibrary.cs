@@ -432,6 +432,16 @@ public class BlessingLibrary : ScriptableObject
             isStackable: true
         ));
 
+        //  延迟满足
+        allBlessings.Add(CreateBlessing(
+            id: 39,
+            name: "延迟满足",
+            description: "立即获得-5永久倍率，5回合后获得10永久倍率",
+            type: BlessingData.BlessingType.DelaySatisfaction,
+            basePrice: 0,
+            isStackable: true
+        ));
+        
         //  大成功
         allBlessings.Add(CreateBlessing(
             id: 40,

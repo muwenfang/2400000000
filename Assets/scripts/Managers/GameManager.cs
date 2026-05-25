@@ -168,6 +168,8 @@ public class GameManager : MonoBehaviour
         Debug.Log("开始回合");
         ChangeState(GameState.PlayerTurn);
         Debug.Assert(currentState == GameState.PlayerTurn);
+        // 祝福：延迟满足
+        BlessingManager.Instance.UpdateDelaySatisfactionPerRound();
         // 祝福：日积月累倍率
         if(blessingManager.dayAfterDayCount > 0)
         {
