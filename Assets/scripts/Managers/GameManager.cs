@@ -32,6 +32,8 @@ public class GameManager : MonoBehaviour
     public BlessingManager blessingManager;
     public ShopManager shopManager;
 
+    public FloatingMessage floatingMessage;
+
     public FormulaSlot formulaSlot; // 公式卡槽位引用
 
     // 记录上一回合最大的数字卡
@@ -47,7 +49,7 @@ public class GameManager : MonoBehaviour
     public float roundScoreDisplayTime = 0.5f;
 
     [Tooltip("显示总分更新的停留时间（秒）")]
-    public float totalScoreDisplayTime = 0.5f;
+    public float totalScoreDisplayTime = 0.6f;
 
     [Tooltip("按槽位依次显示单卡结算值的间隔（秒）")]
     public float cardScoreDisplayTime = 0.25f;
@@ -89,7 +91,7 @@ public class GameManager : MonoBehaviour
         // 重置本局统计数据
         ResetRoundStatistics();
 
-        currentPoints = 10000000000000;
+        currentPoints = 999999999990;
 
         currentRound = 1;
 
@@ -303,6 +305,8 @@ public class GameManager : MonoBehaviour
     {
         // 第1步：显示本回合得分（基础分 × 倍率）
         UIManager.Instance.ShowPointsGain(finalScore); // 弹出 "+XXX" 提示
+
+        floatingMessage.SetScoreMessage(finalScore.ToString());//弹窗显示得分
 
         yield return new WaitForSeconds(roundScoreDisplayTime);
 
