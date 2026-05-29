@@ -46,7 +46,7 @@ public class GameManager : MonoBehaviour
 
     [Header("结算动画配置")]
     [Tooltip("显示本回合得分的停留时间（秒）")]
-    public float roundScoreDisplayTime = 0.5f;
+    public float roundScoreDisplayTime = 0.4f;
 
     [Tooltip("显示总分更新的停留时间（秒）")]
     public float totalScoreDisplayTime = 0.6f;
@@ -91,7 +91,7 @@ public class GameManager : MonoBehaviour
         // 重置本局统计数据
         ResetRoundStatistics();
 
-        currentPoints = 999999999990;
+        currentPoints = 0;
 
         currentRound = 1;
 
