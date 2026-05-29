@@ -6329,18 +6329,15 @@ MonoBehaviour:
   blessDiscountPerBlessing: 0
   maxBlessDiscountPercent: 80
   shortSightCount: 0
-  materialismFixedRate: 0
   hasUnstoppable: 0
   hasLoanWallet: 0
   minimalismMultiplier: 0
   minimalismCount: 0
   pragmatismDeleteCount: 0
   dayAfterDayCount: 0
-  dayAfterDayMul: 0
   hasHastyAppreciation: 0
   hastyAppreciationBonus: 0
   bigSuccessCount: 0
-  bigSuccessMul: 0
 --- !u!4 &679115385
 Transform:
   m_ObjectHideFlags: 0
@@ -13544,7 +13541,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8664173881677359796, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_SizeDelta.x
-      value: 226.7915
+      value: 213.9208
       objectReference: {fileID: 0}
     - target: {fileID: 8664173881677359796, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_SizeDelta.y
@@ -13552,7 +13549,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 8664173881677359796, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -831.1808
+      value: -824.7454
       objectReference: {fileID: 0}
     - target: {fileID: 8664173881677359796, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_AnchoredPosition.y
