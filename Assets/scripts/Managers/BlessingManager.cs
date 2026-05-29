@@ -66,7 +66,6 @@ public class BlessingManager : MonoBehaviour
     public int minimalismCount = 0;//极简主义数量
     public int pragmatismDeleteCount = 0;
     public int dayAfterDayCount = 0; // 日积月累数量
-    public int dayAfterDayMul = 0;   // 日积月累倍率
     public int hasHastyAppreciation = 0; // 走马观花
     public int hastyAppreciationBonus = 0;// 走马观花的临时倍率
     public int bigSuccessCount = 0;      // 大成功数量
@@ -128,7 +127,6 @@ public class BlessingManager : MonoBehaviour
         minimalismCount = 0;//极简主义数量
         pragmatismDeleteCount = 0;
         dayAfterDayCount = 0; // 日积月累数量
-        dayAfterDayMul = 0;   // 日积月累倍率
         hasHastyAppreciation = 0; // 走马观花
         hastyAppreciationBonus = 0;// 走马观花的临时倍率
         bigSuccessCount = 0;      // 大成功数量
@@ -854,7 +852,6 @@ public class BlessingManager : MonoBehaviour
         minimalismCount = 0;//极简主义数量
         pragmatismDeleteCount = 0;
         dayAfterDayCount = 0; // 日积月累数量
-        dayAfterDayMul = 0;   // 日积月累倍率
         hasHastyAppreciation = 0; // 走马观花
         hastyAppreciationBonus = 0;// 走马观花的临时倍率
         bigSuccessCount = 0;      // 大成功数量
@@ -890,7 +887,6 @@ public class BlessingManager : MonoBehaviour
         total += CalculateAllGodsInPlaceBonus();
         total += CalculateCardMasterBonus();
         total += materialismFixedRate;// 唯物主义
-        total += dayAfterDayMul;// 日积月累
         total += hastyAppreciationBonus;// 走马观花
         Debug.Log($"走马观花临时倍率为{hastyAppreciationBonus}");
         Debug.Log($"走马观花临时倍率为{hastyAppreciationBonus}");
