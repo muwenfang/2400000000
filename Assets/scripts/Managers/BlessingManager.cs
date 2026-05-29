@@ -58,7 +58,6 @@ public class BlessingManager : MonoBehaviour
     public float blessDiscountPerBlessing = 0f;// 眷顾
     public float maxBlessDiscountPercent = 70f;// 眷顾上限
     public int shortSightCount = 0;// 短视数量
-    public int materialismFixedRate = 0;// 唯物主义一次性倍率
     public int hasUnstoppable = 0;// 势如破竹
     public int hasLoanWallet = 0;// 贷款钱包
     public BigInteger loan = BigInteger.Zero;// 贷款金额
@@ -122,7 +121,6 @@ public class BlessingManager : MonoBehaviour
         hasGodOfGambler = false;  
         shortSightCount = 0;                     
         dialecticalPricePercent = 0f;
-        materialismFixedRate = 0; //唯物主义
         minimalismMultiplier = 0;//极简主义
         minimalismCount = 0;//极简主义数量
         pragmatismDeleteCount = 0;
@@ -361,9 +359,9 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.Materialism:
                 // 唯物主义：获得当前祝福数量×5永久倍率 → 清空所有祝福（包括自己）
                 int totalBlessCount = GetTotalBlessingCount();
-                materialismFixedRate = totalBlessCount * 5; // 永久倍率，不会被清空
+                totalMultiplierBonus += totalBlessCount * 5; // 永久倍率，不会被清空
                 ClearAllBlessings();
-                Debug.Log($"唯物主义触发！获得倍率：{materialismFixedRate}");
+                Debug.Log($"唯物主义触发！获得永久倍率：{totalBlessCount * 5}");
                 break;
 
             case BlessingData.BlessingType.QuitGambling:
@@ -879,14 +877,13 @@ public class BlessingManager : MonoBehaviour
     /// 获取最终总祝福倍率
     /// </summary>
     public long GetFinalBlessingMultiplier()
-    {
+    {   // 获取永久倍率
         long total = totalMultiplierBonus;
 
         // 各类祝福倍率加成
         total += CalculateJackpot7Bonus();
         total += CalculateAllGodsInPlaceBonus();
         total += CalculateCardMasterBonus();
-        total += materialismFixedRate;// 唯物主义
         total += hastyAppreciationBonus;// 走马观花
         Debug.Log($"走马观花临时倍率为{hastyAppreciationBonus}");
         Debug.Log($"走马观花临时倍率为{hastyAppreciationBonus}");
