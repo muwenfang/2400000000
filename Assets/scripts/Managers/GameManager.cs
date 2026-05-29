@@ -175,7 +175,7 @@ public class GameManager : MonoBehaviour
         // 祝福：日积月累倍率
         if(blessingManager.dayAfterDayCount > 0)
         {
-            blessingManager.dayAfterDayMul += blessingManager.dayAfterDayCount;
+            blessingManager.totalMultiplierBonus += blessingManager.dayAfterDayCount;
         }
         
         if (blessingManager != null)

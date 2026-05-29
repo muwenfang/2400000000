@@ -122,7 +122,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             if (currentA == sidesA && BlessingManager.Instance.bigSuccessCount > 0)
             {
                 int rank = BlessingManager.Instance.GetDiceRank(sidesA);
-                BlessingManager.Instance.bigSuccessMul += rank;
+                BlessingManager.Instance.totalMultiplierBonus += rank;
                 Debug.Log($"【大成功】{sidesA}面骰掷出最大值！获得 {rank} 永久倍率");
             }     
         }
@@ -154,7 +154,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             if (currentB == sidesB && BlessingManager.Instance.bigSuccessCount > 0)
             {
                 int rank = BlessingManager.Instance.GetDiceRank(sidesB);
-                BlessingManager.Instance.bigSuccessMul += rank;
+                BlessingManager.Instance.totalMultiplierBonus += rank;
                 Debug.Log($"【大成功】{sidesB}面骰掷出最大值！获得 {rank} 永久倍率");
             }
         }
