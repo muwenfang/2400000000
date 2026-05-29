@@ -70,7 +70,6 @@ public class BlessingManager : MonoBehaviour
     public int hasHastyAppreciation = 0; // 走马观花
     public int hastyAppreciationBonus = 0;// 走马观花的临时倍率
     public int bigSuccessCount = 0;      // 大成功数量
-    public int bigSuccessMul = 0;        // 大成功累计倍率
     
     private void Awake()
     {
@@ -133,7 +132,6 @@ public class BlessingManager : MonoBehaviour
         hasHastyAppreciation = 0; // 走马观花
         hastyAppreciationBonus = 0;// 走马观花的临时倍率
         bigSuccessCount = 0;      // 大成功数量
-        bigSuccessMul = 0;        // 大成功累计倍率
         delaySatisfactionList.Clear();  //延迟满足
         GetCurrentPriceMultiplier(); //重置折扣
 
@@ -475,6 +473,7 @@ public class BlessingManager : MonoBehaviour
 
         
             case BlessingData.BlessingType.BigSuccess:
+                // 大成功  不可叠加：骰子掷出最大值时获得对应等级永久倍率
                 bigSuccessCount++;
                 Debug.Log("大成功 已激活！骰子掷出最大值时获得对应等级永久倍率");
                 break;
@@ -859,7 +858,6 @@ public class BlessingManager : MonoBehaviour
         hasHastyAppreciation = 0; // 走马观花
         hastyAppreciationBonus = 0;// 走马观花的临时倍率
         bigSuccessCount = 0;      // 大成功数量
-        bigSuccessMul = 0;        // 大成功累计倍率
         delaySatisfactionList.Clear();  //延迟满足
     }
 
@@ -895,7 +893,7 @@ public class BlessingManager : MonoBehaviour
         total += dayAfterDayMul;// 日积月累
         total += hastyAppreciationBonus;// 走马观花
         Debug.Log($"走马观花临时倍率为{hastyAppreciationBonus}");
-        total += bigSuccessMul;  // 大成功
+        Debug.Log($"走马观花临时倍率为{hastyAppreciationBonus}");
         return total;
     }
 
