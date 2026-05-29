@@ -1303,9 +1303,8 @@ public class BlessingManager : MonoBehaviour
     //延迟满足分开计数的方法
     public void UpdateDelaySatisfactionPerRound()
     {
-        List<DelayRecord> toRemove = new List<DelayRecord>();
+        List<int> removeIndex = new List<int>();
 
-        // 用 for 循环代替 foreach，就可以安全修改结构体成员
         for (int i = 0; i < delaySatisfactionList.Count; i++)
         {
             DelayRecord record = delaySatisfactionList[i];
@@ -1313,22 +1312,20 @@ public class BlessingManager : MonoBehaviour
 
             if (record.remainTurn <= 0)
             {
-                // 倒计时结束，发放倍率
                 totalMultiplierBonus += record.rewardMul;
-                toRemove.Add(record);
+                removeIndex.Add(i);
                 Debug.Log("延迟满足倒计时结束，发放 10 永久倍率");
             }
             else
             {
-                // 更新剩余回合数
                 delaySatisfactionList[i] = record;
             }
         }
 
-        // 移除已完成的记录
-        foreach (var item in toRemove)
+        // 倒序删除索引，防止列表移位错乱
+        for (int i = removeIndex.Count - 1; i >= 0; i--)
         {
-            delaySatisfactionList.Remove(item);
+            delaySatisfactionList.RemoveAt(removeIndex[i]);
         }
     }
 }       
