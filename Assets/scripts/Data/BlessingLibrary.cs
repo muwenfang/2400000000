@@ -478,7 +478,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 43,
             name: "反物质能",
-            description: "失去240000点数，获得10永久倍率；特殊地，若此时你的点数变为负数，额外获得10永久倍率",
+            description: "失去240000点数，获得10永久倍率；特殊地，若此时你的点数变为负数，额外获得20永久倍率",
             type: BlessingData.BlessingType.AntimatterEnergy,
             basePrice: 0,
             isStackable: true
