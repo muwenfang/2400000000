@@ -97,7 +97,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 9,
             name: "众神归位",
-            description: "你每拥有一个祝福，倍率+1，祝福“众神归位”的价格为（2000000+已拥有祝福数量*200000）",
+            description: "你每拥有一个祝福，倍率+1，祝福“众神归位”的价格为（2000000+已拥有祝福数量*100000）",
             type: BlessingData.BlessingType.AllGodsInPlace,
             basePrice: 2000000,
             isStackable: true
@@ -130,7 +130,7 @@ public class BlessingLibrary : ScriptableObject
             name: "老千",
             description: "择一张数字卡，将其替换为一张随机的数字卡",
             type: BlessingData.BlessingType.CardCheat,
-            basePrice: 10000,
+            basePrice: 20000,
             isStackable: true
         
         ));
@@ -163,7 +163,7 @@ public class BlessingLibrary : ScriptableObject
             name: "卡牌大师",
             description: "你每拥有一张数字卡，倍率+1",
             type: BlessingData.BlessingType.CardMaster,
-            basePrice: 1000000,
+            basePrice: 100000,
             isStackable: true
             
         ));
@@ -245,7 +245,7 @@ public class BlessingLibrary : ScriptableObject
             name: "丰盈宝库",
             description: "每回合第一次商店刷新免费",
             type: BlessingData.BlessingType.RichTreasury,
-            basePrice: 50000,
+            basePrice: 30000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
 
@@ -292,7 +292,7 @@ public class BlessingLibrary : ScriptableObject
             name: "辩证主义",
             description: "每回合倍率永久+1，获得24点，所有卡牌与祝福的价格+1%",
             type: BlessingData.BlessingType.DialecticalViewpoint,
-            basePrice: 2400,
+            basePrice: 24000,
             isStackable: true,
             effectValue: 1f,
             bonusPoints: 24
@@ -397,7 +397,7 @@ public class BlessingLibrary : ScriptableObject
             name: "赌神传说",
             description: "你的所有骰子的判定点数都会转化为本回合的额外临时倍率",
             type: BlessingData.BlessingType.GamblingGodSage,
-            basePrice: 5000000,
+            basePrice: 500000,
             isStackable: false
         ));
 
@@ -407,7 +407,7 @@ public class BlessingLibrary : ScriptableObject
             name: "势如破竹",
             description: "你的绿色数字的正增量将转化为永久倍率",
             type: BlessingData.BlessingType.Unstoppable,
-            basePrice: 5000000,
+            basePrice: 2000000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
         ));
@@ -459,7 +459,7 @@ public class BlessingLibrary : ScriptableObject
             name: "走马观花",
             description: "每刷新一次商店，下回合获得1临时倍率",
             type: BlessingData.BlessingType.HastyAppreciation,
-            basePrice: 50000,
+            basePrice: 20000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
         ));

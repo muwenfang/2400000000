@@ -115,11 +115,11 @@ public class BlessingData : ScriptableObject
         if (blessingType == BlessingType.Raise)
             calculatedPrice += (BigInteger)purchaseCount * 500;
 
-        // 众神归位：每拥有一个祝福，价格+200000
+        // 众神归位：每拥有一个祝福，价格+100000
         if (blessingType == BlessingType.AllGodsInPlace)
         {
             int totalCount = BlessingManager.Instance.GetTotalBlessingCount();
-            calculatedPrice += (BigInteger)totalCount * 200000;
+            calculatedPrice += (BigInteger)totalCount * 100000;
         }
 
         // 理财大师：每次购买后价格翻倍
