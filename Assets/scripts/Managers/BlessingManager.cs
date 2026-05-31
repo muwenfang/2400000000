@@ -32,7 +32,10 @@ public class BlessingManager : MonoBehaviour
 
 
     [Header("祝福效果累积")]
-    public long totalMultiplierBonus = 0; // 倍率加成
+    // 关键变量--永久倍率
+    public long totalMultiplierBonus = 0;
+    // 其他需要记录的效果变量
+
     public int totalDialecticalCount = 0;   // '辩证主义'购买次数
     private int AllGodsCount = 0;          // 众神归位数量 
     private int LuckTurnsCount = 0;           //是否激活转运，1是激活
