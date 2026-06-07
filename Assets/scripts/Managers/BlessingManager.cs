@@ -822,7 +822,6 @@ public class BlessingManager : MonoBehaviour
         ownedBlessings.Clear();
         blessingTypeCount.Clear();
         blessingsEverPurchased.Clear();
-        totalMultiplierBonus = 0;
         totalDialecticalCount = 0;
         AllGodsCount = 0;
         LuckTurnsCount = 0;
