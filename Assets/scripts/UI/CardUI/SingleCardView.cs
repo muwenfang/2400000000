@@ -107,6 +107,11 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
 
     public bool PlaySettlementValuePopAnimation(float totalDuration, float peakScaleMultiplier)
     {
+        if (!gameObject.activeInHierarchy)
+        {
+            return false;
+        }
+
         if (valueText == null || boundInstance == null || !ShouldAnimateSettlementValue(boundInstance.cardData.partA))
         {
             return false;
@@ -120,6 +125,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
         }
 
         valueText.rectTransform.localScale = cachedValueTextScale;
+
         valueTextPopCoroutine = StartCoroutine(PlayValueTextPopAnimation(totalDuration, peakScaleMultiplier));
         return true;
     }
@@ -166,7 +172,6 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
         {
             diceIcon.sprite = icon;
             diceIcon.gameObject.SetActive(true);
-            Debug.Log($"[SingleNumberView] 设置骰子图标，面数: {diceSides}");
         }
         else
         {

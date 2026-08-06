@@ -74,7 +74,6 @@ public class ShopNumberCardSlot : MonoBehaviour
         // 防御性检查：实例对象及其数据
         if (item.cardData == null || item.cardData.cardData == null)
         {
-            Debug.LogError($"ShopNumberCardSlot: slot {index} 的 ShopItem 数据不完整（NumberCardInstance 或其 cardData 为 null）。");
             ShowLockedState();
             return;
         }

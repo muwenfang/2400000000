@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -47,6 +47,23 @@ public class SavingData
 
     /// 全局最高点数（两种模式中最高的）
     public string MaxPoint = "0";
+
+        [Header("=============== 无尽模式数据 ===============")]
+        /// 无尽模式最高回合数
+        public int EndlessMaxRound = 0;
+
+        /// 无尽模式中达到的最高难度等级（内部比较用）
+        public int EndlessMaxDifficultyLevel = 0;
+
+        /// 无尽模式中，最高难度等级对应的回合数
+        public int EndlessMaxDifficultyRound = 0;
+
+        [Header("=============== 通关难度数据 ===============")]
+        /// 通关时的最高难度等级（普通模式通关时记录）
+        public int MaxDifficultyLevel = 0;
+
+        /// 通关最高难度时对应的点数（普通模式结束时）
+        public string MaxDifficultyPoints = "0";
 
     [Header("=============== 设置数据 ===============")]
     /// 商店数字卡价格难度倍率（1.0x - 10.0x，每次 0.5x）

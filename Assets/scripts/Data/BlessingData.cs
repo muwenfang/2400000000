@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using BigInteger = System.Numerics.BigInteger;
@@ -16,9 +16,6 @@ public class BlessingData : ScriptableObject
     public bool isStackable;         // 是否可叠加
     public BlessingType blessingType;// 祝福类型
 
-    // 特定效果参数
-    public float effectValue;        // 效果数值（如倍率、百分比等）
-    public int bonusPoints;          // 奖励点数
 
     /// <summary>
     /// 祝福刷新行为
@@ -73,10 +70,26 @@ public class BlessingData : ScriptableObject
         Minimalism,           // 极简主义
         DelaySatisfaction,    // 延迟满足
         DayAfterDay,          // 日积月累
-        HastyAppreciation,     // 走马观花
-        BigSuccess,            // 大成功
-        AntimatterEnergy,      // 反物质能
-        AllisVoid              // 皆空
+        HastyAppreciation,    // 走马观花
+        BigSuccess,           // 大成功
+        AntimatterEnergy,     // 反物质能
+        AllisVoid,            // 皆空
+        DarkBoxOperation,     // 暗箱操作
+        Reverse,              // 翻转
+        YinYang,              // 阴阳
+        Fall,                 // 坠落
+        Justice,              // 绝对正义
+        LuckyStar,            //幸运星
+        FortuneStar,          //福星
+        DisasterStar,         //祸星
+        WealthStar,           //财星
+        CompassionStar,       //慈爱星
+        Meteor,               //流星
+        MorningStar,          //启明星
+        BigSevenStar,         //大七星
+        FinancialExpert,      //金融专家
+        BettingExpert,        //博彩专家
+        CasinoCommissioner    //赌场专员
     }
 
     /// <summary>
@@ -119,18 +132,13 @@ public class BlessingData : ScriptableObject
         if (blessingType == BlessingType.AllGodsInPlace)
         {
             int totalCount = BlessingManager.Instance.GetTotalBlessingCount();
-            calculatedPrice += (BigInteger)totalCount * 100000;
+            calculatedPrice = 2000000 + (BigInteger)totalCount * 100000;
         }
 
         // 理财大师：每次购买后价格翻倍
         if (blessingType == BlessingType.FinancialMaster)
             for (int i = 0; i < purchaseCount; i++)
                 calculatedPrice *= 2;
-
-        if (priceMultiplier > 0)
-        {
-            calculatedPrice = calculatedPrice * (BigInteger)(priceMultiplier * 100) / 100;
-        }
 
         // 虚无主义保底（最后保底）
         if (blessingType == BlessingType.Nihilism)

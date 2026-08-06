@@ -35,43 +35,57 @@ public class BlessingManager : MonoBehaviour
     // 关键变量--永久倍率
     public long totalMultiplierBonus = 0;
     // 其他需要记录的效果变量
-
-    public int totalDialecticalCount = 0;   // '辩证主义'购买次数
-    private int AllGodsCount = 0;          // 众神归位数量 
-    private int LuckTurnsCount = 0;           //是否激活转运，1是激活
-    private bool hasJackpot7 = false;        //是否激活逢7过
-    private int CardMasterCount = 0;       //是否激活卡牌大师 
-    public int HasRichTreasure = 0;        //是否激活丰盈宝库
-    private BlessingData wishCoinTargetBlessing = null; //许愿币储存的祝福
-    public int wishCoinPurchaseCount = 0; // 许愿币购买次数（每次+1000价格）    // 许愿币购买次数
-    public int nihilismCount = 0;       // 虚无主义数量
-    public bool hasLeadingCharge = false; // 打头阵
-    private bool hasGambleToWin = false; // 是否拥有赌为赢祝福
-    public int hasEnergySpread = 0;      // 是否拥有能量扩散
-    public int hasRisingUp = 0;          // 是否拥有节节高
-    public int hasTemperlance = 0;       // 是否拥有平衡节制
-    private readonly BigInteger GambleToWinReward = 2400000000; // 赌为赢奖励的点数    
-    public bool hasIdealism = false;  //唯心主义
     public Dictionary<int, int> idealismDiceResults = new Dictionary<int, int>();  //唯心主义储存不同等级骰子出目的字典 
-    public float dialecticalPricePercent = 0f; // 辩证主义：每回合累积的价格涨幅（每回合+1%）
-    public int ApplyPragmatism = 0;//实用主义
-    public bool hasGodOfGambler = false;//赌神传说
-    public FormulaCardLibrary formulaCardLibrary;
-    public float globalPriceDiscountPercent = 0f;// 友情折扣
-    public float blessDiscountPerBlessing = 0f;// 眷顾
-    public float maxBlessDiscountPercent = 70f;// 眷顾上限
-    public int shortSightCount = 0;// 短视数量
-    public int hasUnstoppable = 0;// 势如破竹
-    public int hasLoanWallet = 0;// 贷款钱包
-    public BigInteger loan = BigInteger.Zero;// 贷款金额
-    public int minimalismMultiplier = 0;//极简主义
-    public int minimalismCount = 0;//极简主义数量
-    public int pragmatismDeleteCount = 0;
-    public int dayAfterDayCount = 0; // 日积月累数量
-    public int hasHastyAppreciation = 0; // 走马观花
-    public int hastyAppreciationBonus = 0;// 走马观花的临时倍率
-    public int bigSuccessCount = 0;      // 大成功数量
-    
+    private readonly BigInteger GambleToWinReward = 2400000000; // 赌为赢奖励的点数    
+    public int totalDialecticalCount = 0;               // 辩证主义购买次数
+    private int AllGodsCount = 0;                       // 众神归位数量 
+    private int LuckTurnsCount = 0;                     //是否激活转运
+    private bool hasJackpot7 = false;                   //是否激活逢7过
+    private int CardMasterCount = 0;                    //是否激活卡牌大师 
+    public int HasRichTreasure = 0;                     //是否激活丰盈宝库
+    private BlessingData wishCoinTargetBlessing = null; //许愿币储存的祝福
+    public int wishCoinPurchaseCount = 0;               // 许愿币购买次数
+    public int nihilismCount = 0;                       // 虚无主义数量
+    private BlessingData darkBoxTargetBlessing = null;  // 暗箱操作选中的目标祝福
+    public int darkBoxPurchaseCount = 0;                // 暗箱操作购买次数
+    public bool hasLeadingCharge = false;               // 打头阵
+    private bool hasGambleToWin = false;                // 是否拥有赌为赢祝福
+    public int hasEnergySpread = 0;                     // 是否拥有能量扩散
+    public int hasRisingUp = 0;                         // 是否拥有节节高
+    public int hasTemperlance = 0;                      // 是否拥有平衡节制
+    public bool hasIdealism = false;                    //唯心主义
+    public float dialecticalPricePercent = 0f;          // 辩证主义
+    public int ApplyPragmatism = 0;                     //实用主义
+    public bool hasGodOfGambler = false;                //赌神传说
+    public float globalPriceDiscountPercent = 0f;       // 友情折扣
+    public float blessDiscountPerBlessing = 0f;         // 眷顾
+    public float maxBlessDiscountPercent = 70f;         // 眷顾上限
+    public int shortSightCount = 0;                     // 短视数量
+    public int reverse = 0;                             // 翻转
+    public bool hasYinYang = false;                     // 阴阳
+    public bool hasFall = false;                        // 坠落
+    public int hasUnstoppable = 0;                      // 势如破竹
+    public int hasLoanWallet = 0;                       // 贷款钱包
+    public BigInteger loan = BigInteger.Zero;           // 贷款金额
+    public int minimalismMultiplier = 0;                //极简主义
+    public int minimalismCount = 0;                     //极简主义数量
+    public int pragmatismDeleteCount = 0;               //实用主义删除次数
+    public int dayAfterDayCount = 0;                    // 日积月累数量
+    public int hasHastyAppreciation = 0;                // 走马观花
+    public int hastyAppreciationBonus = 0;              // 走马观花的临时倍率
+    public int bigSuccessCount = 0;                     // 大成功数量
+    public bool hasJustice = false;                     // 绝对正义
+    public int luckyStarCount = 0;                      // 幸运星数量
+    public int fortuneStarCount = 0;                    // 福星数量
+    public int meteor = 0;                              // 流星
+    public int wealthStarCount = 0;                     //财星
+    public int disasterStarCount = 0;                   //祸星
+    public int morningsStarCount = 0;                   //启明星
+    public int compassionStarCount = 0;                 //慈爱星
+    public int bigSevenStarCount = 0;                   //大七星
+    public bool hasFinancialExpert = false;             //金融专家
+    public bool hasBettingExpert = false;               //博彩专家
+    public bool hasCasinoCommissioner = false;          //赌场专员
     private void Awake()
     {
         if (Instance == null)
@@ -132,6 +146,11 @@ public class BlessingManager : MonoBehaviour
         hastyAppreciationBonus = 0;// 走马观花的临时倍率
         bigSuccessCount = 0;      // 大成功数量
         delaySatisfactionList.Clear();  //延迟满足
+        darkBoxTargetBlessing = null;   // 暗箱操作目标祝福
+        darkBoxPurchaseCount = 0;       // 暗箱操作购买次数
+        hasYinYang = false;             // 阴阳
+        hasFall = false;                // 坠落
+        reverse = 0;                    // 翻转
         GetCurrentPriceMultiplier(); //重置折扣
 
     }
@@ -508,6 +527,31 @@ public class BlessingManager : MonoBehaviour
                 });
                 Debug.Log("延迟满足：立即-5永久倍率，5回合后获取+10倍率");
                 break;
+
+            case BlessingData.BlessingType.DarkBoxOperation:
+                // 暗箱操作：选择一个已拥有的可叠加祝福，下次商店刷新时该祝福以-2倍价格出现并扣2倍点数
+                darkBoxPurchaseCount++;
+                ActivateDarkBoxSelection();
+                break;
+
+            case BlessingData.BlessingType.Reverse:
+                // 翻转：购买后点数立即变为相反数
+                reverse++;
+                GameManager.Instance.currentPoints = -GameManager.Instance.currentPoints;
+                Debug.Log($"翻转祝福触发：点数取反，当前点数: {GameManager.Instance.currentPoints}");
+                break;
+
+            case BlessingData.BlessingType.YinYang:
+                // 阴阳：每回合开始时点数取反（逻辑在 GameManager.StartPlayerTurn 中）
+                hasYinYang = true;
+                Debug.Log("阴阳祝福激活：每回合开始时点数将取反");
+                break;
+
+            case BlessingData.BlessingType.Fall:
+                // 坠落：计算结果为负数时扣点翻5倍（逻辑在 GameManager.AddPoints 中）
+                hasFall = true;
+                Debug.Log("坠落祝福激活：负数计算结果将翻5倍扣除");
+                break;
         }
     }
 
@@ -627,6 +671,52 @@ public class BlessingManager : MonoBehaviour
     {
         wishCoinTargetBlessing = null;
     }
+
+    // ====================== 暗箱操作 ======================
+    /// <summary>
+    /// 暗箱操作：打开选择UI，从已拥有的可叠加祝福中选择一个
+    /// </summary>
+    private void ActivateDarkBoxSelection()
+    {
+        CardSelectionManager.Instance.StartCardSelection(
+        CardSelectionManager.SelectionMode.DarkBoxSelect,
+        OnDarkBoxBlessingSelected);
+        UIManager.Instance.OpenDarkBoxBlessSelection();
+    }
+
+    /// <summary>
+    /// 暗箱操作：玩家选择祝福后的回调
+    /// </summary>
+    private void OnDarkBoxBlessingSelected(object selectedObject)
+    {
+        if (!(selectedObject is BlessingData selectedBlessing) || selectedBlessing == null)
+        {
+            Debug.LogError("暗箱操作选择无效！");
+            return;
+        }
+
+        // 保存目标祝福
+        darkBoxTargetBlessing = selectedBlessing;
+        Debug.Log($"暗箱操作已锁定：下次商店必出【{selectedBlessing.blessingName}】，扣除2倍点数");
+        UIManager.Instance.CloseDarkBoxBlessSelection();
+    }
+
+    /// <summary>
+    /// 商店获取暗箱操作锁定的祝福（ShopManager 调用）
+    /// </summary>
+    public BlessingData GetDarkBoxTargetBlessing()
+    {
+        return darkBoxTargetBlessing;
+    }
+
+    /// <summary>
+    /// 暗箱操作效果已使用（商店刷新后调用）
+    /// </summary>
+    public void ConsumeDarkBox()
+    {
+        darkBoxTargetBlessing = null;
+    }
+
     
     
     /// <summary>
@@ -856,6 +946,11 @@ public class BlessingManager : MonoBehaviour
         hastyAppreciationBonus = 0;// 走马观花的临时倍率
         bigSuccessCount = 0;      // 大成功数量
         delaySatisfactionList.Clear();  //延迟满足
+        darkBoxTargetBlessing = null;   // 暗箱操作目标祝福
+        darkBoxPurchaseCount = 0;       // 暗箱操作购买次数
+        hasYinYang = false;             // 阴阳
+        hasFall = false;                // 坠落
+        reverse = 0;                    // 翻转
     }
 
     /// <summary>
@@ -887,8 +982,6 @@ public class BlessingManager : MonoBehaviour
         total += CalculateAllGodsInPlaceBonus();
         total += CalculateCardMasterBonus();
         total += hastyAppreciationBonus;// 走马观花
-        Debug.Log($"走马观花临时倍率为{hastyAppreciationBonus}");
-        Debug.Log($"走马观花临时倍率为{hastyAppreciationBonus}");
         return total;
     }
 

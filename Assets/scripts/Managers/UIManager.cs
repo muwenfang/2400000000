@@ -412,15 +412,12 @@ public class UIManager : MonoBehaviour
     {
         ShowPanel(settingPanel);
 
-        if (settingPanel != null)
+        // 使用场景中已配置好的 DifficultySettingsManager 单例（根级 GameObject），
+        // 而非在 settingPanel 上 AddComponent 创建无 Inspector 绑定的新实例。
+        // settingPanel 和 DifficultySettingManager 在场景中是两个独立的 GameObject。
+        if (DifficultySettingsManager.Instance != null)
         {
-            DifficultySettingsManager difficultySettingsManager = settingPanel.GetComponent<DifficultySettingsManager>();
-            if (difficultySettingsManager == null)
-            {
-                difficultySettingsManager = settingPanel.AddComponent<DifficultySettingsManager>();
-            }
-
-            difficultySettingsManager.Initialize();
+            DifficultySettingsManager.Instance.Initialize();
         }
     }
     #endregion
@@ -1007,6 +1004,42 @@ public class UIManager : MonoBehaviour
     }
     #endregion
 
+    #region 暗箱操作祝福选择（暗箱操作专用）
+    /// <summary>
+    /// 打开暗箱操作祝福选择界面（只显示可叠加的已拥有祝福）
+    /// </summary>
+    public void OpenDarkBoxBlessSelection()
+    {
+        // 直接打开你现有的祝福面板
+        myBlessPanel.SetActive(true);
+        HideDeletionCostPanelsForBlessView();
+        myBlessPanel.transform.SetAsLastSibling();
+
+        // 调用专属刷新（只显示可叠加祝福）
+        ShowMyBlessings showScript = myBlessPanel.GetComponent<ShowMyBlessings>();
+        if (showScript != null)
+        {
+            showScript.ShowOnlyStackableOwnedBlessings();
+        }
+    }
+
+    /// <summary>
+    /// 关闭暗箱操作选择，恢复正常祝福面板显示
+    /// </summary>
+    public void CloseDarkBoxBlessSelection()
+    {
+        myBlessPanel.SetActive(false);
+
+        // 恢复正常祝福显示
+        ShowMyBlessings showScript = myBlessPanel.GetComponent<ShowMyBlessings>();
+        if (showScript != null)
+        {
+            showScript.ClearTempDarkBoxButtons();
+            showScript.RefreshAllBlessings();
+        }
+    }
+    #endregion
+
     #region 老千
     // 老千：打开数字卡选择面板
     public void OpenCardCheatNumberSelection()
@@ -1059,5 +1092,15 @@ public class UIManager : MonoBehaviour
     }
     #endregion
 
+    /// <summary>
+    /// 关闭商店界面
+    /// </summary>
+    public void CloseShop()
+    {
+        if (shopPanel != null)
+            shopPanel.SetActive(false);
+        if (myCardButton != null)
+            myCardButton.SetActive(false);
+    }
 
 }

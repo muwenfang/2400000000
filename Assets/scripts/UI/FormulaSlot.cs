@@ -105,9 +105,6 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler
             return;
         }
 
-        Debug.Log($"接收卡牌: {draggedCard.BoundCard.cardData.cardName} → 值: {draggedCard.BoundCard.GetOutPutValue()}");
-        Debug.Log(filledNumberCardCount);
-
         // 使用 PlayerController 的封装方法完成父级设置与定位（保证一致性）
         draggedCard.OnDroppedIntoSlot(transform);
 

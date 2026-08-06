@@ -1,4 +1,4 @@
-ï»¿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -6,17 +6,17 @@ using UnityEngine.UI;
 
 public class ShowMyFormula : MonoBehaviour
 {
-    [Header("å®¹å™¨å¼•ç”¨")]
+    [Header("ÈİÆ÷ÒıÓÃ")]
     public Transform contentRoot;
 
-    [Header("æ»šåŠ¨é…ç½®")]
-    public ScrollRect scrollRect; // å…³é”®ï¼šéœ€è¦ç»‘å®š ScrollRect ç»„ä»¶
+    [Header("¹ö¶¯ÅäÖÃ")]
+    public ScrollRect scrollRect; // ¹Ø¼ü£ºĞèÒª°ó¶¨ ScrollRect ×é¼ş
 
-    [Header("æ˜¾ç¤ºè®¾ç½®")]
+    [Header("ÏÔÊ¾ÉèÖÃ")]
     public float cardScale = 1.0f;
 
-    [Header("åˆ å¡åŠŸèƒ½é…ç½®")]
-    [Tooltip("åˆ é™¤å…¬å¼å¡æŒ‰é’® - ä»Inspectoræ‹–å…¥")]
+    [Header("É¾¿¨¹¦ÄÜÅäÖÃ")]
+    [Tooltip("É¾³ı¹«Ê½¿¨°´Å¥ - ´ÓInspectorÍÏÈë")]
     public Button deleteFormulaCardButton;
 
     public GameObject deletionCostPanel;
@@ -25,26 +25,26 @@ public class ShowMyFormula : MonoBehaviour
 
     private List<Button> activeDeletionButtons = new List<Button>();
 
-    [Header("é¢œè‰²é…ç½®")]
-    public Color incrementalColor = Color.green;   // é€’å¢æ•°å­—ï¼šç»¿è‰²
-    public Color diceColor = Color.red; // éª°å­æ•°å­—ï¼šçº¢è‰²
-    public Color normalColor = Color.black;        // æ™®é€šæ•°å­—ï¼šé»‘è‰²
+    [Header("ÑÕÉ«ÅäÖÃ")]
+    public Color incrementalColor = Color.green;   // µİÔöÊı×Ö£ºÂÌÉ«
+    public Color diceColor = Color.red; // ÷»×ÓÊı×Ö£ººìÉ«
+    public Color normalColor = Color.black;        // ÆÕÍ¨Êı×Ö£ººÚÉ«
 
     private void OnEnable()
     {
         InitializeScrollRect();
         RefreshAllCards();
 
-        // æ ¹æ®å½“å‰çš„SelectionModeæ¿€æ´»å¯¹åº”çš„button
+        // ¸ù¾İµ±Ç°µÄSelectionMode¼¤»î¶ÔÓ¦µÄbutton
         ActivateButtonsBasedOnMode();
     }
     private void OnDisable()
     {
-        // ç¦ç”¨åˆ å¡æŒ‰é’®
+        // ½ûÓÃÉ¾¿¨°´Å¥
         if (deleteFormulaCardButton != null)
             deleteFormulaCardButton.gameObject.SetActive(false);
 
-        // æ¸…é™¤æ¿€æ´»çš„æŒ‰é’®ç›‘å¬
+        // Çå³ı¼¤»îµÄ°´Å¥¼àÌı
         foreach (var btn in activeDeletionButtons)
         {
             if (btn != null)
@@ -54,25 +54,25 @@ public class ShowMyFormula : MonoBehaviour
     }
 
     /// <summary>
-    /// æ ¹æ®å½“å‰é€‰æ‹©æ¨¡å¼æ¿€æ´»å¯¹åº”çš„button
+    /// ¸ù¾İµ±Ç°Ñ¡ÔñÄ£Ê½¼¤»î¶ÔÓ¦µÄbutton
     /// </summary>
     private void ActivateButtonsBasedOnMode()
     {
         var mode = CardSelectionManager.Instance.GetCurrentMode();
 
-        // åˆ å¡æ¨¡å¼ï¼šæ¿€æ´»å…¬å¼å¡çš„åˆ é™¤æŒ‰é’®
+        // É¾¿¨Ä£Ê½£º¼¤»î¹«Ê½¿¨µÄÉ¾³ı°´Å¥
         if (mode == CardSelectionManager.SelectionMode.RemoveCard)
         {
             ActivateFormulaCardDeletionButtons();
         }
         else
         {
-            //ä¸åœ¨åˆ é™¤æ¨¡å¼æ—¶ï¼Œç¦ç”¨æ‰€æœ‰æŒ‰é’®
+            //²»ÔÚÉ¾³ıÄ£Ê½Ê±£¬½ûÓÃËùÓĞ°´Å¥
             DeactivateAllDeletionButtons();
         }
     }
     /// <summary>
-    /// ç¦ç”¨æ‰€æœ‰åˆ é™¤æŒ‰é’®ï¼ˆå½“ä¸åœ¨åˆ é™¤æ¨¡å¼æ—¶ï¼‰
+    /// ½ûÓÃËùÓĞÉ¾³ı°´Å¥£¨µ±²»ÔÚÉ¾³ıÄ£Ê½Ê±£©
     /// </summary>
     private void DeactivateAllDeletionButtons()
     {
@@ -87,13 +87,13 @@ public class ShowMyFormula : MonoBehaviour
         activeDeletionButtons.Clear();
     }
     /// <summary>
-    /// æ¿€æ´»å…¬å¼å¡çš„åˆ é™¤æŒ‰é’®
+    /// ¼¤»î¹«Ê½¿¨µÄÉ¾³ı°´Å¥
     /// </summary>
     private void ActivateFormulaCardDeletionButtons()
     {
         var deck = CardManager.Instance.formulaCardDeck;
 
-        // æ¸…é™¤ä¹‹å‰çš„æŒ‰é’®ç›‘å¬
+        // Çå³ıÖ®Ç°µÄ°´Å¥¼àÌı
         foreach (var btn in activeDeletionButtons)
         {
             if (btn != null)
@@ -103,7 +103,7 @@ public class ShowMyFormula : MonoBehaviour
 
         int activatedCount = 0;
 
-        // è·å–æ‰€æœ‰å…¬å¼å¡UIç»„ä»¶
+        // »ñÈ¡ËùÓĞ¹«Ê½¿¨UI×é¼ş
         FormulaCardUI[] formulaCardUIs = contentRoot.GetComponentsInChildren<FormulaCardUI>();
 
         foreach (var formulaUI in formulaCardUIs)
@@ -111,19 +111,19 @@ public class ShowMyFormula : MonoBehaviour
             if (formulaUI == null) continue;
 
 
-            // æŸ¥æ‰¾æˆ–æ·»åŠ åˆ é™¤æŒ‰é’®
+            // ²éÕÒ»òÌí¼ÓÉ¾³ı°´Å¥
             Button deleteBtn = formulaUI.GetComponent<Button>();
             if (deleteBtn == null)
             {
                 deleteBtn = formulaUI.GetComponentInChildren<Button>();
             }
-            // æœç´¢Buttonï¼ŒåŒ…æ‹¬è¢«ç¦ç”¨çš„è„šæœ¬
+            // ËÑË÷Button£¬°üÀ¨±»½ûÓÃµÄ½Å±¾
             deleteBtn = FindButtonIncludingDisabled(formulaUI.gameObject);
 
-            // æ¸…é™¤ä¹‹å‰çš„ç›‘å¬
+            // Çå³ıÖ®Ç°µÄ¼àÌı
             deleteBtn.onClick.RemoveAllListeners();
 
-            // è·å–å…¬å¼å¡æ•°æ®
+            // »ñÈ¡¹«Ê½¿¨Êı¾İ
             FormulaCardData formulaData = formulaUI.GetFormulaCardData();
             if (formulaData != null)
             {
@@ -132,89 +132,89 @@ public class ShowMyFormula : MonoBehaviour
                     deleteBtn.enabled = true;
                 }
 
-                //æ¿€æ´»Buttonæ‰€åœ¨çš„ç‰©ä½“ï¼ˆå…³é”®ï¼ï¼‰
+                //¼¤»îButtonËùÔÚµÄÎïÌå£¨¹Ø¼ü£¡£©
                 Transform buttonTransform = deleteBtn.transform;
                 while (buttonTransform != null)
                 {
                     if (!buttonTransform.gameObject.activeSelf)
                     {
                         buttonTransform.gameObject.SetActive(true);
-                        Debug.Log($"[ShowMyFormula] æ¿€æ´»äº†ç‰©ä½“");
+                        Debug.Log($"[ShowMyFormula] ¼¤»îÁËÎïÌå");
                     }
 
-                    // æ£€æŸ¥æ˜¯å¦åˆ°è¾¾äº†FormulaUIæˆ–å…¶ä»–å®¹å™¨
+                    // ¼ì²éÊÇ·ñµ½´ïÁËFormulaUI»òÆäËûÈİÆ÷
                     if (buttonTransform.gameObject.GetComponent<FormulaCardUI>() != null)
                     {
-                        //Debug.Log($"[ShowMyFormula] å·²åˆ°è¾¾FormulaCardUIå®¹å™¨");
+                        //Debug.Log($"[ShowMyFormula] ÒÑµ½´ïFormulaCardUIÈİÆ÷");
                         break;
                     }
 
                     buttonTransform = buttonTransform.parent;
                 }
 
-                //ç¡®ä¿Buttonå¯äº¤äº’
+                //È·±£Button¿É½»»¥
                 if (!deleteBtn.interactable)
                 {
                     deleteBtn.interactable = true;
                 }
 
-                //æ·»åŠ åˆ é™¤å›è°ƒ
+                //Ìí¼ÓÉ¾³ı»Øµ÷
                 FormulaCardData cardData = formulaData;
                 deleteBtn.onClick.AddListener(() => OnFormulaCardDeleteSelected(cardData));
 
-                // è®°å½•æŒ‰é’®
+                // ¼ÇÂ¼°´Å¥
                 activeDeletionButtons.Add(deleteBtn);
 
                 activatedCount++;
 
-                Debug.Log($"[ShowMyFormula] æˆåŠŸæ¿€æ´»å…¬å¼å¡åˆ é™¤æŒ‰é’®");
+                Debug.Log($"[ShowMyFormula] ³É¹¦¼¤»î¹«Ê½¿¨É¾³ı°´Å¥");
             }
             else
             {
-                Debug.LogError($"[ShowMyFormula] æ— æ³•è·å–FormulaCardDataï¼š{formulaUI.gameObject.name}");
+                Debug.LogError($"[ShowMyFormula] ÎŞ·¨»ñÈ¡FormulaCardData£º{formulaUI.gameObject.name}");
             }
         
         }
     }
     /// <summary>
-    /// å…³é”®æ–¹æ³•ï¼šæœç´¢Buttonï¼ŒåŒ…æ‹¬è„šæœ¬è¢«ç¦ç”¨çš„æƒ…å†µ
-    /// è¿™ä¸ªæ–¹æ³•æ¯”GetComponentInChildrenæ›´å…¨é¢
+    /// ¹Ø¼ü·½·¨£ºËÑË÷Button£¬°üÀ¨½Å±¾±»½ûÓÃµÄÇé¿ö
+    /// Õâ¸ö·½·¨±ÈGetComponentInChildren¸üÈ«Ãæ
     /// </summary>
     private Button FindButtonIncludingDisabled(GameObject parent)
     {
         if (parent == null) return null;
 
-        // æ–¹æ¡ˆ1ï¼šå…ˆåœ¨è‡ªå·±èº«ä¸Šæ‰¾
+        // ·½°¸1£ºÏÈÔÚ×Ô¼ºÉíÉÏÕÒ
         Button btn = parent.GetComponent<Button>();
         if (btn != null)
         {
-            Debug.Log($"[ShowMyFormula] åœ¨'{parent.name}'æœ¬èº«æ‰¾åˆ°Button");
+            Debug.Log($"[ShowMyFormula] ÔÚ'{parent.name}'±¾ÉíÕÒµ½Button");
             return btn;
         }
 
-        // æ–¹æ¡ˆ2ï¼šåœ¨æ¿€æ´»çš„å­ç‰©ä½“ä¸­æ‰¾
-        btn = parent.GetComponentInChildren<Button>(false);  // false=åªæ‰¾æ¿€æ´»çš„
+        // ·½°¸2£ºÔÚ¼¤»îµÄ×ÓÎïÌåÖĞÕÒ
+        btn = parent.GetComponentInChildren<Button>(false);  // false=Ö»ÕÒ¼¤»îµÄ
         if (btn != null)
         {
-            Debug.Log($"[ShowMyFormula] åœ¨'{parent.name}'çš„æ¿€æ´»å­ç‰©ä½“ä¸­æ‰¾åˆ°Button");
+            Debug.Log($"[ShowMyFormula] ÔÚ'{parent.name}'µÄ¼¤»î×ÓÎïÌåÖĞÕÒµ½Button");
             return btn;
         }
 
-        // æ–¹æ¡ˆ3ï¼šåœ¨æ‰€æœ‰å­ç‰©ä½“ä¸­æ‰¾ï¼ŒåŒ…æ‹¬éæ¿€æ´»çš„
-        btn = parent.GetComponentInChildren<Button>(true);  // true=åŒ…æ‹¬éæ¿€æ´»çš„
+        // ·½°¸3£ºÔÚËùÓĞ×ÓÎïÌåÖĞÕÒ£¬°üÀ¨·Ç¼¤»îµÄ
+        btn = parent.GetComponentInChildren<Button>(true);  // true=°üÀ¨·Ç¼¤»îµÄ
         if (btn != null)
         {
-            Debug.Log($"[ShowMyFormula] åœ¨'{parent.name}'çš„éæ¿€æ´»å­ç‰©ä½“ä¸­æ‰¾åˆ°Button");
+            Debug.Log($"[ShowMyFormula] ÔÚ'{parent.name}'µÄ·Ç¼¤»î×ÓÎïÌåÖĞÕÒµ½Button");
             return btn;
         }
 
-        // æ–¹æ¡ˆ4ï¼šé€’å½’æœç´¢æ‰€æœ‰åä»£ï¼ˆå¤„ç†åµŒå¥—å¾ˆæ·±çš„æƒ…å†µï¼‰
+        // ·½°¸4£ºµİ¹éËÑË÷ËùÓĞºó´ú£¨´¦ÀíÇ¶Ì×ºÜÉîµÄÇé¿ö£©
         foreach (Transform child in parent.transform)
         {
             btn = FindButtonIncludingDisabled(child.gameObject);
             if (btn != null)
             {
-                Debug.Log($"[ShowMyFormula] åœ¨'{parent.name}'çš„æ·±å±‚å­ç‰©ä½“ä¸­æ‰¾åˆ°Button");
+                Debug.Log($"[ShowMyFormula] ÔÚ'{parent.name}'µÄÉî²ã×ÓÎïÌåÖĞÕÒµ½Button");
                 return btn;
             }
         }
@@ -222,60 +222,60 @@ public class ShowMyFormula : MonoBehaviour
         return null;
     }
     /// <summary>
-    /// å¤„ç†å…¬å¼å¡åˆ é™¤é€‰æ‹©
+    /// ´¦Àí¹«Ê½¿¨É¾³ıÑ¡Ôñ
     /// </summary>
     private void OnFormulaCardDeleteSelected(FormulaCardData selectedFormula)
     {
         if (selectedFormula == null)
         {
-            Debug.LogError("[ShowMyFormula] é€‰æ‹©çš„å…¬å¼å¡ä¸ºç©º");
+            Debug.LogError("[ShowMyFormula] Ñ¡ÔñµÄ¹«Ê½¿¨Îª¿Õ");
             return;
         }
 
-        // è§¦å‘CardSelectionManagerçš„å›è°ƒ
+        // ´¥·¢CardSelectionManagerµÄ»Øµ÷
         CardSelectionManager.Instance.OnCardSelected(selectedFormula);
 
-        // æ‰§è¡Œåˆ å¡é€»è¾‘
+        // Ö´ĞĞÉ¾¿¨Âß¼­
         ExecuteFormulaCardDeletion(selectedFormula);
     }
 
     /// <summary>
-    /// æ‰§è¡Œå…¬å¼å¡åˆ é™¤é€»è¾‘
+    /// Ö´ĞĞ¹«Ê½¿¨É¾³ıÂß¼­
     /// </summary>
     private void ExecuteFormulaCardDeletion(FormulaCardData cardToDelete)
     {
-        // æ•°é‡åˆ¤å®šç§»åˆ°ç‚¹å‡»æ—¶åˆ¤æ–­
+        // ÊıÁ¿ÅĞ¶¨ÒÆµ½µã»÷Ê±ÅĞ¶Ï
         if (!PlayerCardInventory.Instance.CanRemoveFormulaCard())
         {
-            Debug.LogWarning($"[ShowMyFormula] æ— æ³•åˆ é™¤å…¬å¼å¡ï¼šæœ€å°‘éœ€è¦ä¿ç•™ {PlayerCardInventory.Instance.minFormulaCardCount} å¼ ");
+            Debug.LogWarning($"[ShowMyFormula] ÎŞ·¨É¾³ı¹«Ê½¿¨£º×îÉÙĞèÒª±£Áô {PlayerCardInventory.Instance.minFormulaCardCount} ÕÅ");
             return;
         }
 
-        // --- å…ˆé—®å•†åº—èƒ½ä¸èƒ½åˆ  ---
+        // --- ÏÈÎÊÉÌµêÄÜ²»ÄÜÉ¾ ---
         if (ShopManager.Instance != null)
         {
-            if (!ShopManager.Instance.OnCardDeleted(cardToDelete))
+            if (!ShopManager.Instance.OnFormulaCardDeleted(cardToDelete))
             {
-                deletionCost = ShopManager.Instance.CalculateDeletionCost(cardToDelete);
+                deletionCost = ShopManager.Instance.CalculateDeletionCost();
                 return;
             }
         }
-        // ä½¿ç”¨çº¦æŸæ£€æŸ¥æ¥åˆ é™¤å¡ç‰Œ
+        // Ê¹ÓÃÔ¼Êø¼ì²éÀ´É¾³ı¿¨ÅÆ
         bool deleted = PlayerCardInventory.Instance.RemoveFormulaCard(cardToDelete);
 
         if (deleted)
         {
             CardManager.Instance.SyncDeckFromInventory();
-            // åˆ·æ–°æ˜¾ç¤º
+            // Ë¢ĞÂÏÔÊ¾
             RefreshAllCards();
         }
         else
         {
-            Debug.LogWarning("[ShowMyFormula] åˆ é™¤å…¬å¼å¡å¤±è´¥");
+            Debug.LogWarning("[ShowMyFormula] É¾³ı¹«Ê½¿¨Ê§°Ü");
         }
     }
     /// <summary>
-    /// åˆå§‹åŒ–æ»šè½®æ”¯æŒ
+    /// ³õÊ¼»¯¹öÂÖÖ§³Ö
     /// </summary>
     void InitializeScrollRect()
     {
@@ -290,7 +290,7 @@ public class ShowMyFormula : MonoBehaviour
         }
         if (scrollRect == null)
         {
-            // å°è¯•åœ¨çˆ¶ç‰©ä½“çš„çˆ¶ç‰©ä½“æ‰¾
+            // ³¢ÊÔÔÚ¸¸ÎïÌåµÄ¸¸ÎïÌåÕÒ
             Transform parent = contentRoot.parent;
             if (parent != null)
             {
@@ -298,24 +298,24 @@ public class ShowMyFormula : MonoBehaviour
             }
         }
 
-        // ç¡®ä¿ contentRoot æœ‰ LayoutElement
+        // È·±£ contentRoot ÓĞ LayoutElement
         LayoutElement le = contentRoot.GetComponent<LayoutElement>();
         if (le == null)
         {
             le = contentRoot.gameObject.AddComponent<LayoutElement>();
         }
-        le.preferredWidth = -1;      // ä¸è®¾ç½®å®½åº¦çº¦æŸ
-        le.preferredHeight = -1;     // ä¸è®¾ç½®é«˜åº¦çº¦æŸï¼ˆç”±å†…å®¹å†³å®šï¼‰
-        le.flexibleHeight = 1;       // å…è®¸çµæ´»é«˜åº¦
+        le.preferredWidth = -1;      // ²»ÉèÖÃ¿í¶ÈÔ¼Êø
+        le.preferredHeight = -1;     // ²»ÉèÖÃ¸ß¶ÈÔ¼Êø£¨ÓÉÄÚÈİ¾ö¶¨£©
+        le.flexibleHeight = 1;       // ÔÊĞíÁé»î¸ß¶È
 
-        // æ‰¾åˆ°æˆ–åˆ›å»º ScrollRect
+        // ÕÒµ½»ò´´½¨ ScrollRect
         if (scrollRect == null)
         {
-            // å°è¯•åœ¨å½“å‰ç‰©ä½“æ‰¾
+            // ³¢ÊÔÔÚµ±Ç°ÎïÌåÕÒ
             scrollRect = GetComponent<ScrollRect>();
         }
 
-        // å¦‚æœæ²¡æ‰¾åˆ°ï¼Œè‡ªåŠ¨åˆ›å»º
+        // Èç¹ûÃ»ÕÒµ½£¬×Ô¶¯´´½¨
         if (scrollRect == null && contentRoot != null)
         {
             Transform scrollParent = contentRoot.parent;
@@ -327,11 +327,11 @@ public class ShowMyFormula : MonoBehaviour
                 {
                     scrollRect = scrollParent.gameObject.AddComponent<ScrollRect>();
                     scrollRect.content = (RectTransform)contentRoot;
-                    scrollRect.horizontal = false;      // ç¦ç”¨æ°´å¹³æ»šåŠ¨
-                    scrollRect.vertical = true;         // å¯ç”¨å‚ç›´æ»šåŠ¨
+                    scrollRect.horizontal = false;      // ½ûÓÃË®Æ½¹ö¶¯
+                    scrollRect.vertical = true;         // ÆôÓÃ´¹Ö±¹ö¶¯
                     scrollRect.movementType = ScrollRect.MovementType.Elastic;
                     scrollRect.elasticity = 0.1f;
-                    scrollRect.scrollSensitivity = 15;   // è°ƒæ•´æ»šåŠ¨çµæ•åº¦
+                    scrollRect.scrollSensitivity = 15;   // µ÷Õû¹ö¶¯ÁéÃô¶È
 
                     Image image = scrollParent.GetComponent<Image>();
                     if (image == null)
@@ -340,28 +340,28 @@ public class ShowMyFormula : MonoBehaviour
                         image.color = new Color(1, 1, 1, 0.01f);
                     }
 
-                    Debug.Log("[ShowMyCard] è‡ªåŠ¨åˆ›å»ºäº† ScrollRect ç»„ä»¶");
+                    Debug.Log("[ShowMyCard] ×Ô¶¯´´½¨ÁË ScrollRect ×é¼ş");
                 }
             }
         }
 
-        //ç¡®ä¿ contentRoot çˆ¶ç‰©ä½“çš„ RectTransform é…ç½®æ­£ç¡®
+        //È·±£ contentRoot ¸¸ÎïÌåµÄ RectTransform ÅäÖÃÕıÈ·
         RectTransform scrollRectTransform = scrollRect.GetComponent<RectTransform>();
         if (scrollRectTransform != null)
         {
-            // è®¾ç½® ScrollRect çš„å¤§å°çº¦æŸ
+            // ÉèÖÃ ScrollRect µÄ´óĞ¡Ô¼Êø
             LayoutElement scrollLE = scrollRect.GetComponent<LayoutElement>();
             if (scrollLE == null)
             {
                 scrollLE = scrollRect.gameObject.AddComponent<LayoutElement>();
             }
-            scrollLE.preferredHeight = 600;  //è®¾ç½®æ»šåŠ¨åŒºåŸŸçš„é«˜åº¦ï¼ˆå¯æ ¹æ®éœ€è¦è°ƒæ•´ï¼‰
+            scrollLE.preferredHeight = 600;  //ÉèÖÃ¹ö¶¯ÇøÓòµÄ¸ß¶È£¨¿É¸ù¾İĞèÒªµ÷Õû£©
         }
 
     }
     public void RefreshAllCards()
     {
-        // 1. æ¸…ç†æ—§å¡ç‰Œ
+        // 1. ÇåÀí¾É¿¨ÅÆ
         foreach (Transform child in contentRoot)
         {
             Destroy(child.gameObject);
@@ -369,7 +369,7 @@ public class ShowMyFormula : MonoBehaviour
 
         GenerateFormulaCards();
         
-        // 3. å¼ºåˆ¶é‡å»ºå¸ƒå±€
+        // 3. Ç¿ÖÆÖØ½¨²¼¾Ö
         if (contentRoot != null)
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);
@@ -379,12 +379,12 @@ public class ShowMyFormula : MonoBehaviour
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.GetComponent<RectTransform>());
         }
-        // åˆ·æ–°åé‡æ–°æ¿€æ´»æŒ‰é’®
+        // Ë¢ĞÂºóÖØĞÂ¼¤»î°´Å¥
         ActivateButtonsBasedOnMode();
 
         if (ShopManager.Instance != null)
         {
-            deletionCost = ShopManager.Instance.GetNextFormulaCardDeletionCost();
+            deletionCost = ShopManager.Instance.CalculateDeletionCost();
         }
 
         UpdateDeletionUI(deletionCost);
@@ -398,11 +398,11 @@ public class ShowMyFormula : MonoBehaviour
         else
         {
             deletionCostPanel.gameObject.SetActive(true);   
-            deletionCostPanel.transform.SetAsLastSibling(); // ç¡®ä¿åœ¨æœ€å‰é¢æ˜¾ç¤º
+            deletionCostPanel.transform.SetAsLastSibling(); // È·±£ÔÚ×îÇ°ÃæÏÔÊ¾
 
-            deletionCostText.text = "ä¸€          " + FormatBigNumber(cost).ToString();
+            deletionCostText.text = "Ò»          " + FormatBigNumber(cost).ToString();
 
-            Debug.Log($"[ShowMyFormula] æ›´æ–°UI");
+            Debug.Log($"[ShowMyFormula] ¸üĞÂUI");
         }
 
     }
@@ -411,7 +411,7 @@ public class ShowMyFormula : MonoBehaviour
         return NumberDisplayFormatter.Format(number);
     }
     /// <summary>
-    /// é€šç”¨æ–¹æ³•ï¼šè®¾ç½®æ–‡æœ¬å†…å®¹å’Œé¢œè‰²
+    /// Í¨ÓÃ·½·¨£ºÉèÖÃÎÄ±¾ÄÚÈİºÍÑÕÉ«
     /// </summary>
     void SetPartDisplay(Text textComp, NumberComponent component, int currentValue)
     {
@@ -419,19 +419,19 @@ public class ShowMyFormula : MonoBehaviour
 
         if (component.isDice)
         {
-            // éª°å­æ˜¾ç¤ºï¼š~é¢æ•°~ (é»„è‰²)
+            // ÷»×ÓÏÔÊ¾£º~ÃæÊı~ (»ÆÉ«)
             textComp.text = $"~{component.diceSides}~";
             textComp.color = diceColor;
         }
         else if (component.isIncremental)
         {
-            // é€’å¢æ˜¾ç¤ºï¼š{å½“å‰å€¼} (ç»¿è‰²) - è¿™é‡Œä½¿ç”¨äº†å®ä¾‹é‡Œçš„ currentValue
+            // µİÔöÏÔÊ¾£º{µ±Ç°Öµ} (ÂÌÉ«) - ÕâÀïÊ¹ÓÃÁËÊµÀıÀïµÄ currentValue
             textComp.text = $"{{{currentValue}}}";
             textComp.color = incrementalColor;
         }
         else
         {
-            // æ™®é€šæ˜¾ç¤ºï¼šæ•°å€¼ (é»‘è‰²)
+            // ÆÕÍ¨ÏÔÊ¾£ºÊıÖµ (ºÚÉ«)
             textComp.text = currentValue.ToString();
             textComp.color = normalColor;
         }
@@ -439,7 +439,7 @@ public class ShowMyFormula : MonoBehaviour
 
     void GenerateFormulaCards()
     {
-        // ä»PlayerCardInventoryè¯»å–å®æ—¶æ•°æ®ï¼ˆä¸æ•°å­—å¡ä¸€è‡´ï¼‰
+        // ´ÓPlayerCardInventory¶ÁÈ¡ÊµÊ±Êı¾İ£¨ÓëÊı×Ö¿¨Ò»ÖÂ£©
         var deck = PlayerCardInventory.Instance.GetAllFormulaCards();
         var prefab = UIManager.Instance.formulaCardPrefab;
 
@@ -457,45 +457,45 @@ public class ShowMyFormula : MonoBehaviour
         }
     }
 
-    // å¤šå¤šç›Šå–„ï¼šæ˜¾ç¤ºå…¬å¼å¡å¹¶æ·»åŠ æŒ‰é’®
+    // ¶à¶àÒæÉÆ£ºÏÔÊ¾¹«Ê½¿¨²¢Ìí¼Ó°´Å¥
     public void ShowCardsForMoreMoreBetter()
     {
-        // æ¸…ç©ºæ—§å¡ç‰‡
+        // Çå¿Õ¾É¿¨Æ¬
         foreach (Transform child in contentRoot)
             Destroy(child.gameObject);
 
-        // ç”Ÿæˆå¡ç‰‡
+        // Éú³É¿¨Æ¬
         GenerateFormulaCards();
 
-        // è·å–æ‰€æœ‰å¡ç‰‡UI
+        // »ñÈ¡ËùÓĞ¿¨Æ¬UI
         FormulaCardUI[] cards = contentRoot.GetComponentsInChildren<FormulaCardUI>();
 
         foreach (FormulaCardUI cardUI in cards)
         {
-            // è·å–å¡ç‰‡æ•°æ®
+            // »ñÈ¡¿¨Æ¬Êı¾İ
             FormulaCardData data = cardUI.GetFormulaCardData();
             if (data == null) continue;
 
-            // æ‰¾æŒ‰é’®ï¼ˆç”¨ä½ é¡¹ç›®é‡Œç°æˆçš„æ–¹æ³•ï¼‰
+            // ÕÒ°´Å¥£¨ÓÃÄãÏîÄ¿ÀïÏÖ³ÉµÄ·½·¨£©
             Button btn = FindButtonIncludingDisabled(cardUI.gameObject);
             if (btn == null) continue;
 
-            // å¯ç”¨æŒ‰é’®
+            // ÆôÓÃ°´Å¥
             btn.gameObject.SetActive(true);
             btn.interactable = true;
             btn.enabled = true;
 
-            // æ¸…é™¤æ—§äº‹ä»¶
+            // Çå³ı¾ÉÊÂ¼ş
             btn.onClick.RemoveAllListeners();
 
-            // ç»‘å®šç‚¹å‡»ï¼šç›´æ¥é€‰æ‹©è¿™å¼ å…¬å¼å¡
+            // °ó¶¨µã»÷£ºÖ±½ÓÑ¡ÔñÕâÕÅ¹«Ê½¿¨
             btn.onClick.AddListener(() =>
             {
                 CardSelectionManager.Instance.OnCardSelected(data);
             });
         }
 
-        // åˆ·æ–°UI
+        // Ë¢ĞÂUI
         LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);
     }
 }

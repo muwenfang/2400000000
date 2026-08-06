@@ -14,6 +14,7 @@ public class NumberComponent
 {
     public bool isDice = false;//是否为骰子
     public bool isIncremental = false;//是否为递增
+    public bool isGolden = false;//是否为黄金数字
     public int value;//数值（基础值保留int，无溢出风险）
     public int diceSides;//骰子面数（基础值保留int）
 }
@@ -66,10 +67,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         {
             currentA = cardData.partA.diceSides;  // 骰子：用面数初始化
         }
-        //else
-        //{
-        //    currentA = cardData.partA.value;      // 其他：用value初始化
-        //}
+
 
         if (cardData.partB != null)
         {
@@ -77,10 +75,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             {
                 currentB = cardData.partB.diceSides;  // 骰子：用面数初始化
             }
-            //else
-            //{
-            //    currentB = cardData.partB.value;      // 其他：用value初始化
-            //}
+
         }
 
         // 标记为未投掷/未递增状态
@@ -175,7 +170,6 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 if (BlessingManager.Instance.hasUnstoppable == 1)
                     BlessingManager.Instance.totalMultiplierBonus += 1;
             }
-            Debug.Log($"递增卡更新：{cardData.cardName} Part A: {currentA - 1} → {currentA}");
 
         }
 
@@ -193,7 +187,6 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 if (BlessingManager.Instance.hasUnstoppable == 1)
                     BlessingManager.Instance.totalMultiplierBonus += 1;
             }
-            Debug.Log($"递增卡更新：{cardData.cardName} Part B: {currentB - 1} → {currentB}");
 
         }
 
@@ -292,7 +285,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             long expectation = CalculateExpectation(a, b, logic);
 
             // 第二步：倍率修正
-            double X = expectation; // 用期望作为 X
+            double X = Math.Abs((double)expectation); // 用期望作为 X，取绝对值避免负数对数异常
             double rate = 1.0;
 
             // 1. 所有卡牌 × (log2(X) - 1) 倍
@@ -391,15 +384,15 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 long sum = 0;
                 for (int i = 1; i <= 9; i++)
                 {
-                    long valA = a.value + i;
-                    long valB = b.value + i;
+                    long valA = Math.Abs(a.value) + i;
+                    long valB = Math.Abs(b.value) + i;
                     sum += valA * valB;
                 }
                 return sum / 9;
             }
 
-            // 普通加法/乘法，直接BigInteger运算
-            return logic == NumberCardData.LogicalType.Addition ? expA + expB : expA * expB;
+            // 普通加法/乘法，直接BigInteger运算，结果取绝对值
+            return Math.Abs(logic == NumberCardData.LogicalType.Addition ? expA + expB : expA * expB);
         }
     }
 
@@ -410,18 +403,17 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     {
         if (comp.isDice)
         {
-            // 骰子：(面数+1)/2
-            return (comp.diceSides + 1) / 2;
+            return Math.Abs((comp.diceSides + 1) / 2);
         }
         else if (comp.isIncremental)
         {
-            // 递增：value+5
-            return comp.value + 5;
+            // 递增数字期望值 = value + 5（平均递增值），取绝对值
+            return Math.Abs((long)(comp.value + 5));
         }
         else
         {
-            // 普通数字
-            return comp.value;
+            // 普通数字，取绝对值
+            return Math.Abs((long)comp.value);
         }
     }
 
@@ -437,8 +429,8 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         bool bIsInc = b.isIncremental;
 
         // 骰子取面数，其他取数值
-        long x = a.isDice ? a.diceSides : a.value;
-        long y = b.isDice ? b.diceSides : b.value;
+        long x = Math.Abs(a.isDice ? a.diceSides : a.value);
+        long y = Math.Abs(b.isDice ? b.diceSides : b.value);
 
         try
         {
@@ -552,8 +544,10 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     private long RoundPrice(long price)  // 返回值改为 long
     {
         // 输入验证
-        if (price <= 0)
+        if (price == 0)
             return 0;
+        if (price < 0)
+            price = Math.Abs(price); // 负数取绝对值后正常舍入
 
         // 第一步：四舍五入到最近的5的倍数
         long roundedTo5 = (price + 2) / 5 * 5;

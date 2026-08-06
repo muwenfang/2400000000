@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 using static BlessingData;
 
@@ -110,8 +110,7 @@ public class BlessingLibrary : ScriptableObject
             description: "祝福“理财大师”的价格翻倍；你每回合结束时额外获得已拥有点数1%的点数（向下取整）",
             type: BlessingData.BlessingType.FinancialMaster,
             basePrice: 10000,
-            isStackable: true,
-            effectValue: 0.01f
+            isStackable: true
         ));
         
         // 大卡牌包
@@ -142,8 +141,7 @@ public class BlessingLibrary : ScriptableObject
             description: "选择一张填空卡并将其复制",
             type: BlessingData.BlessingType.MoreMoreBetter,
             basePrice: 5000,
-            isStackable: true,
-            effectValue: 1f
+            isStackable: true
         ));
         
         //  好事成双
@@ -293,9 +291,7 @@ public class BlessingLibrary : ScriptableObject
             description: "每回合倍率永久+1，获得24点，所有卡牌与祝福的价格+1%",
             type: BlessingData.BlessingType.DialecticalViewpoint,
             basePrice: 24000,
-            isStackable: true,
-            effectValue: 1f,
-            bonusPoints: 24
+            isStackable: true
         ));
 
         //  经验主义
@@ -495,6 +491,50 @@ public class BlessingLibrary : ScriptableObject
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
         ));
 
+        // 暗箱操作
+        allBlessings.Add(CreateBlessing(
+            id: 45,
+            name: "暗箱操作",
+            description: "选择一个已拥有的可叠加祝福，使其下次刷新时价格为原价格的相反数的2倍，并获得等同于该祝福价格的点数",
+            type: BlessingData.BlessingType.DarkBoxOperation,
+            basePrice: 5000,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.CurrentRoundOnly
+        ));
+
+        // 翻转
+        allBlessings.Add(CreateBlessing(
+            id: 46,
+            name: "翻转",
+            description: "购买此祝福后，点数变为你原有点数的相反数。立即生效",
+            type: BlessingData.BlessingType.Reverse,
+            basePrice: 3000,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.CurrentRoundOnly
+        ));
+
+        // 阴阳
+        allBlessings.Add(CreateBlessing(
+            id: 47,
+            name: "阴阳",
+            description: "每回合开始时，点数变为你原有点数的相反数（最优先生效）",
+            type: BlessingData.BlessingType.YinYang,
+            basePrice: 4000,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+
+        // 坠落
+        allBlessings.Add(CreateBlessing(
+            id: 48,
+            name: "坠落",
+            description: "若结算结果为负数，本回合依靠计算获得的点数翻5倍",
+            type: BlessingData.BlessingType.Fall,
+            basePrice: 4000,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+
         Debug.Log($" 成功初始化 {allBlessings.Count} 个祝福！");
     }
 
@@ -503,7 +543,7 @@ public class BlessingLibrary : ScriptableObject
     /// </summary>
     private BlessingData CreateBlessing(int id, string name, string description,
         BlessingData.BlessingType type, long basePrice, bool isStackable,
-        float effectValue = 0f, int bonusPoints = 0, BlessingData.
+         BlessingData.
         RefreshBehavior refreshBehavior = BlessingData.RefreshBehavior.AlwaysRefresh)
     {
         BlessingData blessing = ScriptableObject.CreateInstance<BlessingData>();
@@ -513,8 +553,6 @@ public class BlessingLibrary : ScriptableObject
         blessing.blessingType = type;
         blessing.basePrice = basePrice;
         blessing.isStackable = isStackable;
-        blessing.effectValue = effectValue;     //效果数值（如倍率、百分比等）
-        blessing.bonusPoints = bonusPoints;     //奖励点数
         blessing.refreshBehavior = refreshBehavior;
         return blessing;
     }

@@ -134,7 +134,7 @@ public class DataSavingManager : MonoBehaviour
     /// 这是数据更新的唯一入口
     /// </summary>
 
-    public void OnGameWin(int gameMode, BigInteger finalPoints, float maxMultiplier, int formulaCardCount, BigInteger numberCardMaxValue, BigInteger maxCalculationValue)
+    public void OnGameWin(int gameMode, BigInteger finalPoints, float maxMultiplier, int formulaCardCount, BigInteger numberCardMaxValue, BigInteger maxCalculationValue, int maxRound = 0, int difficultyLevel = 0)
     {
         Debug.Log($"\n========== 游戏胜利，开始数据更新 ==========");
         Debug.Log($"最终点数：{finalPoints}");
@@ -154,6 +154,19 @@ public class DataSavingManager : MonoBehaviour
         if (gameMode == 0)
         {
             UpdateNormalModeData(finalPoints, maxMultiplier, formulaCardCount, numberCardMaxValue);
+
+            // 更新通关最高难度数据（仅普通模式）
+            if (difficultyLevel > 0)
+            {
+                BigInteger currentMaxDiffPoints = SavingData.StringToBigInteger(currentSavingData.MaxDifficultyPoints);
+                if (difficultyLevel > currentSavingData.MaxDifficultyLevel
+                    || (difficultyLevel == currentSavingData.MaxDifficultyLevel && finalPoints > currentMaxDiffPoints))
+                {
+                    currentSavingData.MaxDifficultyLevel = difficultyLevel;
+                    currentSavingData.MaxDifficultyPoints = finalPoints.ToString();
+                    Debug.Log($"更新通关最高难度：Lv.{difficultyLevel}，点数 {finalPoints}");
+                }
+            }
         }
         else if (gameMode == 1)
         {
@@ -176,6 +189,40 @@ public class DataSavingManager : MonoBehaviour
         SaveDataToFile();
 
         Debug.Log("========== 数据更新完成 ==========\n");
+    }
+
+    /// <summary>
+    /// 无尽模式结束时调用 - 更新无尽模式数据
+    /// </summary>
+    public void OnEndlessGameOver(int round, int difficultyLevel)
+    {
+        Debug.Log($"无尽模式结束 - 回合数：{round}，难度等级：{difficultyLevel}");
+
+        // 更新无尽模式最高回合数
+        if (round > currentSavingData.EndlessMaxRound)
+        {
+            currentSavingData.EndlessMaxRound = round;
+            Debug.Log($"更新无尽模式最高回合数：{round}");
+        }
+
+        // 更新无尽模式最高难度对应回合数
+        if (difficultyLevel > 0)
+        {
+            if (difficultyLevel > currentSavingData.EndlessMaxDifficultyLevel)
+            {
+                currentSavingData.EndlessMaxDifficultyLevel = difficultyLevel;
+                currentSavingData.EndlessMaxDifficultyRound = round;
+                Debug.Log($"更新无尽模式最高难度：Lv.{difficultyLevel}，回合数：{round}");
+            }
+            else if (difficultyLevel == currentSavingData.EndlessMaxDifficultyLevel
+                     && round > currentSavingData.EndlessMaxDifficultyRound)
+            {
+                currentSavingData.EndlessMaxDifficultyRound = round;
+                Debug.Log($"更新无尽模式同难度下最高回合数：{round}");
+            }
+        }
+
+        SaveDataToFile();
     }
 
     /// <summary>

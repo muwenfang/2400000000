@@ -61,7 +61,6 @@ public class CardManager : MonoBehaviour
         numberCardDeck = new List<NumberCardData>(starterNumberCards);
         formulaCardDeck = new List<FormulaCardData>(starterFormulaCards);
 
-        Debug.Log($"同步完成，当前牌堆公式卡数量: {formulaCardDeck.Count}");
     }
 
     /// <summary>
@@ -208,12 +207,9 @@ public class CardManager : MonoBehaviour
             Debug.LogError("公式卡库为空，无法抽取公式卡！");
             return;
         }
-        Debug.Log("正在抽取填空卡牌");
 
         int index = Random.Range(0, formulaCardDeck.Count);
         currentFormulaCard = formulaCardDeck[index];
-
-        Debug.Log("抽到公式卡：" + currentFormulaCard.Name);
 
     }
 
@@ -275,7 +271,6 @@ public class CardManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"[CardManager] 所有槽位已填满，共 {requiredCount} 张卡牌");
         return true;
     }
     public BigInteger CalculateResult()
@@ -292,8 +287,6 @@ public class CardManager : MonoBehaviour
             Debug.LogWarning("卡牌槽位未全部填入，无法结算");
             return 0;
         }
-
-        Debug.Log($"公式：{currentFormulaCard.Pattern}");
 
         BigInteger result = FormulaCalculator.Calculate(currentFormulaCard, selectedNumberCards);
 

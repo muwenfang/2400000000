@@ -79,7 +79,6 @@ public class ShopFormulaCardSlot : MonoBehaviour
     {
         if (formulaData == null)
         {
-            Debug.LogError($"[ShopFormulaCardSlot] 槽位 {slotIndex}: formulaData 为 null");
             return;
         }
         if (formulaNameText != null)

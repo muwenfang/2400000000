@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -27,6 +27,14 @@ public class DataDisplayManager : MonoBehaviour
     [Header("全局统计数据显示 ==========")]
     [SerializeField] private Text globalHighScoreText;          // 全局最高分
     [SerializeField] private Text totalWinsText;                // 总通关次数
+
+    [Header("无尽模式数据显示 ==========")]
+    [SerializeField] private Text endlessMaxRoundText;           // 无尽模式最高回合数
+    [SerializeField] private Text endlessMaxDifficultyRoundText; // 无尽模式最高难度对应回合数
+
+    [Header("通关最高难度数据显示 ==========")]
+    [SerializeField] private Text maxDifficultyLevelText;        // 通关最高难度等级
+    [SerializeField] private Text maxDifficultyPointsText;       // 通关最高难度时对应点数
 
     [Header("本局统计数据显示 ==========")]
     [SerializeField] private GameObject currentGameStatsPanel;   // 本局数据面板
@@ -178,6 +186,36 @@ public class DataDisplayManager : MonoBehaviour
         {
             totalWinsText.text = $"{data.accomplishTimes}次";
         }
+
+        // ===== 无尽模式数据 =====
+        if (endlessMaxRoundText != null)
+        {
+            endlessMaxRoundText.text = data.EndlessMaxRound == 0
+                ? "暂无数据"
+                : $"第 {data.EndlessMaxRound} 回合";
+        }
+
+        if (endlessMaxDifficultyRoundText != null)
+        {
+            endlessMaxDifficultyRoundText.text = data.EndlessMaxDifficultyRound == 0
+                ? "暂无数据"
+                : $"第 {data.EndlessMaxDifficultyRound} 回合";
+        }
+
+        // ===== 通关最高难度数据 =====
+        if (maxDifficultyLevelText != null)
+        {
+            maxDifficultyLevelText.text = data.MaxDifficultyLevel == 0
+                ? "暂无数据"
+                : $"Lv.{data.MaxDifficultyLevel}";
+        }
+
+        if (maxDifficultyPointsText != null)
+        {
+            maxDifficultyPointsText.text = data.MaxDifficultyPoints == "0"
+                ? "暂无数据"
+                : $"{FormatStringToNiceDisplay(data.MaxDifficultyPoints)}";
+    }
     }
 
     /// <summary>

@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -15,7 +15,7 @@ public class GameManager : MonoBehaviour
     public GameState currentState;
 
     // 游戏模式
-    public enum GameMode { Normal = 0, Involution = 1 }
+    public enum GameMode { Normal = 0, Involution = 1, Endless = 2 }
     [Header("游戏模式")]
     public GameMode currentGameMode = GameMode.Normal;
 
@@ -66,12 +66,13 @@ public class GameManager : MonoBehaviour
         4,10,18,26,33,40,47,54,60
     };
 
-    // ====================== 内卷模式 ======================
     [Header("内卷模式")]
     [Tooltip("只在最后一回合检查是否达标")]
     public static bool isInvolutionMode = false; // 静态，全局可访问
     private readonly int finalRound = 60;
-    // ==========================================================
+
+    [Header("无尽模式")]
+    public static bool isEndlessMode = false;
 
     void Awake()
     {
@@ -79,8 +80,6 @@ public class GameManager : MonoBehaviour
     }
     void Start()
     {
-        //EnterMainMenu();
-        //Debug.Log("进入游戏"); 
         ChangeState(GameState.MainMenu);
     }
 
@@ -115,6 +114,9 @@ public class GameManager : MonoBehaviour
         // 执行抽卡逻辑
         cardManager.InitializeStarterDeck();
 
+        // 难度设置：初始数字卡+1
+        ApplyOneMoreCardEffect();
+
         // 开始第一回合
         StartPlayerTurn();
 
@@ -130,6 +132,41 @@ public class GameManager : MonoBehaviour
         roundMaxMultiplier = 0;
         roundMaxCalculationValue = 0;
     }
+
+    /// <summary>
+    /// 难度设置：初始数字卡+1效果
+    /// </summary>
+    private void ApplyOneMoreCardEffect()
+    {
+        if (DifficultySettingsManager.Instance == null) return;
+        if (!DifficultySettingsManager.oneMoreCard) return;
+
+        NumberCardData card = DifficultySettingsManager.Instance.extraStartCard;
+        if (card == null)
+        {
+            // 兜底：从卡牌库中找到值为1的普通数字卡
+            if (cardManager != null && cardManager.numberCardLibrary != null)
+            {
+                foreach (var c in cardManager.numberCardLibrary.allCards)
+                {
+                    if (c.partA != null && c.partA.value == 1
+                        && !c.partA.isDice && !c.partA.isIncremental
+                        && c.logicalType == NumberCardData.LogicalType.Normal
+                        && c.partB == null)
+                    {
+                        card = c;
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (card != null && PlayerCardInventory.Instance != null)
+        {
+            PlayerCardInventory.Instance.AddNumberCard(card);
+            if (cardManager != null) cardManager.SyncDeckFromInventory();
+        }
+    }
     //内卷模式
     public void InitializeGame_invol()
     {   
@@ -140,10 +177,10 @@ public class GameManager : MonoBehaviour
 
         currentPoints = 0;
         GameManager.isInvolutionMode = true;
+        GameManager.isEndlessMode = false;
         //是内卷模式
         blessingManager.hasGodOfGambler = false;
         currentRound = 1;
-        // 确保调用了 ChangeState，这样上面的 UI 逻辑才会跑起来
         ChangeState(GameState.PlayerTurn);
         // 清空祝福系统
         if (blessingManager != null)
@@ -158,10 +195,24 @@ public class GameManager : MonoBehaviour
         // 执行抽卡逻辑
         cardManager.InitializeStarterDeck();
 
+        // 难度设置：初始数字卡+1
+        ApplyOneMoreCardEffect();
+
         // 开始第一回合
         StartPlayerTurn();
 
         //  关键：通知 UI 刷新视觉显示
+        UIManager.Instance.RefreshGameUI();
+    }
+
+    public void EnterEndlessMode()
+    {
+        Debug.Log("进入无尽模式 - 从第61回合开始");
+        GameManager.isEndlessMode = true;
+        GameManager.isInvolutionMode = false;
+        currentRound = 61;
+        ChangeState(GameState.PlayerTurn);
+        StartPlayerTurn();
         UIManager.Instance.RefreshGameUI();
     }
 
@@ -170,6 +221,11 @@ public class GameManager : MonoBehaviour
         Debug.Log("开始回合");
         ChangeState(GameState.PlayerTurn);
         Debug.Assert(currentState == GameState.PlayerTurn);
+        // 阴阳祝福：每回合开始时点数取反（最优先生效，在其他所有祝福之前）
+        if (BlessingManager.Instance != null && BlessingManager.Instance.hasYinYang)
+        {
+            currentPoints = -currentPoints;
+        }
         // 祝福：延迟满足
         BlessingManager.Instance.UpdateDelaySatisfactionPerRound();
         // 祝福：日积月累倍率
@@ -269,6 +325,17 @@ public class GameManager : MonoBehaviour
         long blessingBonusMultiplier = GetCurrentMultiplier();
         long totalMultiplier = baseMultiplier + blessingBonusMultiplier;
 
+        // 黄金数字：将黄金数字的数值增加到倍率中
+        foreach (var card in formula.selectedNumberCards)
+        {
+            if (card.cardData.partA.isGolden || (card.cardData.partB != null && card.cardData.partB.isGolden))
+            {
+                BigInteger goldenValue = card.GetOutPutValue();
+                totalMultiplier += (long)goldenValue;
+                Debug.Log($"黄金数字 {card.cardData.cardName} 增加 {goldenValue} 倍率，当前总倍率: {totalMultiplier}");
+            }
+        }
+
         // 记录本局最高倍率
         if (totalMultiplier > roundMaxMultiplier)
         {
@@ -310,6 +377,11 @@ public class GameManager : MonoBehaviour
 
         yield return new WaitForSeconds(roundScoreDisplayTime);
 
+        // 坠落祝福：计算结果为负数时翻5倍
+        if (BlessingManager.Instance != null && BlessingManager.Instance.hasFall && finalScore < 0)
+        {
+            finalScore *= 5;
+        }
         // 第2步：加入总分并显示
         AddPoints(finalScore);
 
@@ -362,6 +434,12 @@ public class GameManager : MonoBehaviour
     // 添加一个辅助方法，获取下一个结算回合
     public int GetNextStageRound()
     {
+        // 无尽模式：每回合都是结算回合
+        if (GameManager.isEndlessMode)
+        {
+            return currentRound;
+        }
+
         // 内卷模式
         if (GameManager.isInvolutionMode)
         {
@@ -402,6 +480,11 @@ public class GameManager : MonoBehaviour
     
     public void AddPoints(BigInteger points)
     {
+        // 坠落祝福：若计算结果为负数，扣点翻5倍
+        if (BlessingManager.Instance != null && BlessingManager.Instance.hasFall && points < 0)
+        {
+            points = points * 5;
+        }
        currentPoints += points;
        UIManager.Instance.UpdatePointsDisplay(currentPoints);
        Debug.Log($"增加点数：{points}，当前总分：{currentPoints}");
@@ -417,7 +500,7 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
         UIManager.Instance.UpdateRoundDisplay(currentRound);
 
-        // ====================== 【内卷模式核心逻辑】 ======================
+        //  【内卷模式核心逻辑】
         if (GameManager.isInvolutionMode)
         {
             // 只在最后一回合检查
@@ -441,11 +524,33 @@ public class GameManager : MonoBehaviour
             ChangeState(GameState.Shop);
             return;
         }
-        // ==================================================================
 
-        // 原有普通模式逻辑
-        // 检查是否到达阶段结算点
-        if (IsStageRound(currentRound) && !GameManager.isInvolutionMode)
+        //【无尽模式核心逻辑】 
+        if (GameManager.isEndlessMode)
+        {
+            // 第N回合扣除: 24亿 × 10^(N-61)，每回合指数增长
+            stageRequirement = (BigInteger)2400000000 * BigInteger.Pow(10, currentRound - 61);
+            if (currentPoints < stageRequirement)
+            {
+                // 记录无尽模式数据
+                if (DataSavingManager.Instance != null)
+                {
+                    int difficultyLevel = DifficultySettingsManager.Instance != null
+                        ? DifficultySettingsManager.Instance.GetCurrentDifficultyLevel() : 0;
+                    DataSavingManager.Instance.OnEndlessGameOver(currentRound, difficultyLevel);
+                }
+                WinGame(false);
+                return;
+            }
+            else
+            {
+                currentPoints -= stageRequirement;
+                UIManager.Instance.UpdatePointsDisplay(GameManager.Instance.currentPoints);
+            }
+        }
+
+        // 检查是否到达阶段结算点（排除内卷模式和无尽模式，它们有自己的逻辑）
+        if (IsStageRound(currentRound) && !GameManager.isInvolutionMode && !GameManager.isEndlessMode)
         {
             // 获取本阶段的点数要求
             stageRequirement = GetStageRequirementForRound(currentRound);
@@ -580,7 +685,7 @@ public class GameManager : MonoBehaviour
         //加载主菜单界面
         ChangeState(GameState.MainMenu);
         shopManager.deleteCostPanel.SetActive(false);
-        //UIManager.Instance.pointstagePanel.SetActive(false);
+
     }
 
     void WinGame(bool isWin)
@@ -598,7 +703,10 @@ public class GameManager : MonoBehaviour
                     maxMultiplier: roundMaxMultiplier,
                     formulaCardCount: formulaCardCount,
                     numberCardMaxValue: roundMaxNumberCardValue ,
-                    maxCalculationValue:roundMaxCalculationValue  
+                    maxCalculationValue:roundMaxCalculationValue,
+                    maxRound: currentRound,
+                    difficultyLevel: DifficultySettingsManager.Instance != null
+                        ? DifficultySettingsManager.Instance.GetCurrentDifficultyLevel() : 0
                 );
 
                 // 显示本局统计数据

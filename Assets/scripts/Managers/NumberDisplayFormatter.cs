@@ -1,4 +1,4 @@
-﻿using System.Numerics;
+using System.Numerics;
 
 public static class NumberDisplayFormatter
 {
@@ -36,15 +36,17 @@ public static class NumberDisplayFormatter
 
     static string FormatScientific(string raw, string digitsOnly, bool isNegative)
     {
-        string significantDigits = digitsOnly.Substring(0, System.Math.Min(ScientificSignificantDigits, digitsOnly.Length));
-        while (significantDigits.Length < ScientificSignificantDigits)
+        // 取第一位数字 + 小数点 + 后续最多3位小数
+        string leadingDigit = digitsOnly.Substring(0, 1);
+        string decimals = digitsOnly.Substring(1, System.Math.Min(3, digitsOnly.Length - 1));
+        // 不足3位小数时补0
+        while (decimals.Length < 3)
         {
-            significantDigits += "0";
+            decimals += "0";
         }
-
-        string decimalPart = significantDigits[0] + "." + significantDigits.Substring(1);
+        string mantissa = leadingDigit + "." + decimals;
         int exponent = digitsOnly.Length - 1;
-        string result = $"{decimalPart}e{exponent}";
+        string result = $"{mantissa}e{exponent}";
         return isNegative ? "-" + result : result;
     }
 
