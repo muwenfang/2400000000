@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Numerics;
 using System.Linq;
@@ -151,6 +151,18 @@ public class BlessingManager : MonoBehaviour
         hasYinYang = false;             // 阴阳
         hasFall = false;                // 坠落
         reverse = 0;                    // 翻转
+        hasJustice = false;                     // 绝对正义
+        luckyStarCount = 0;                      // 幸运星数量
+        fortuneStarCount = 0;                    // 福星数量
+        meteor = 0;                              // 流星
+        wealthStarCount = 0;                     //财星
+        disasterStarCount = 0;                   //祸星
+        morningsStarCount = 0;                   //启明星
+        compassionStarCount = 0;                 //慈爱星
+        bigSevenStarCount = 0;                   //大七星
+        hasFinancialExpert = false;             //金融专家
+        hasBettingExpert = false;               //博彩专家
+        hasCasinoCommissioner = false;          //赌场专员
         GetCurrentPriceMultiplier(); //重置折扣
 
     }
@@ -550,7 +562,27 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.Fall:
                 // 坠落：计算结果为负数时扣点翻5倍（逻辑在 GameManager.AddPoints 中）
                 hasFall = true;
-                Debug.Log("坠落祝福激活：负数计算结果将翻5倍扣除");
+                Debug.Log("坠落祝福激活：负数计算结果将翻5倍");
+                break;
+
+            case BlessingData.BlessingType.Justice:
+                // 绝对正义：每回合结束时，若点数为负数，则点数变为0
+                hasJustice = true;
+                Debug.Log("绝对正义祝福激活：每回合结束时，点数取绝对值");
+                break;
+
+            case BlessingData.BlessingType.LuckyStar:
+                // 幸运星：立即免费刷新商店（不增加刷新次数）
+                luckyStarCount++;
+                Debug.Log("幸运星祝福激活：商店将免费刷新");
+                ShopManager.Instance.FreeRefreshShop();
+                break;
+
+            case BlessingData.BlessingType.FortuneStar:
+                // 福星：随机选择一个黄金数字+1
+                fortuneStarCount++;
+                ApplyFortuneStarEffect();
+                Debug.Log($"福星祝福激活：当前福星数量 {fortuneStarCount}");
                 break;
         }
     }
@@ -1339,6 +1371,51 @@ public class BlessingManager : MonoBehaviour
             RemoveAllUtopianism();
             Debug.Log("【空想主义】已集齐全部公式卡！获得 24 亿点！");
         }
+    }
+
+    /// <summary>
+    /// 福星祝福效果：随机选择背包中一个黄金数字+1
+    /// </summary>
+    private void ApplyFortuneStarEffect()
+    {
+        var inventory = PlayerCardInventory.Instance;
+        if (inventory == null || inventory.numberCards.Count == 0)
+        {
+            Debug.Log("福星祝福：背包中没有数字卡，无法生效");
+            return;
+        }
+
+        // 筛选出包含黄金数字的卡牌
+        var goldenCards = new List<NumberCardInstance>();
+        foreach (var card in inventory.numberCards)
+        {
+            if (card.cardData.partA.isGolden || (card.cardData.partB != null && card.cardData.partB.isGolden))
+            {
+                goldenCards.Add(card);
+            }
+        }
+
+        if (goldenCards.Count == 0)
+        {
+            Debug.Log("福星祝福：背包中没有黄金数字卡，无法生效");
+            return;
+        }
+
+        // 随机选择一张黄金卡牌
+        var selectedCard = goldenCards[UnityEngine.Random.Range(0, goldenCards.Count)];
+
+        // 收集该卡牌中的所有黄金数字组件
+        var goldenComponents = new List<NumberComponent>();
+        if (selectedCard.cardData.partA.isGolden)
+            goldenComponents.Add(selectedCard.cardData.partA);
+        if (selectedCard.cardData.partB != null && selectedCard.cardData.partB.isGolden)
+            goldenComponents.Add(selectedCard.cardData.partB);
+
+        // 随机选择一个黄金数字组件并+1
+        var selectedComponent = goldenComponents[UnityEngine.Random.Range(0, goldenComponents.Count)];
+        selectedComponent.value += 1;
+
+        Debug.Log($"福星祝福：{selectedCard.cardData.cardName} 的黄金数字 +1，当前值: {selectedComponent.value}");
     }
 
     /// <summary>

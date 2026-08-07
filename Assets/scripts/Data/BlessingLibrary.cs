@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using static BlessingData;
 
@@ -533,6 +533,28 @@ public class BlessingLibrary : ScriptableObject
             basePrice: 4000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+
+        // 幸运星
+        allBlessings.Add(CreateBlessing(
+            id: 49,
+            name: "幸运星",
+            description: "购买时立即免费刷新商店",
+            type: BlessingData.BlessingType.LuckyStar,
+            basePrice: 0,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.AlwaysRefresh
+        ));
+
+        // 福星
+        allBlessings.Add(CreateBlessing(
+            id: 50,
+            name: "福星",
+            description: "随机选择一个黄金数字+1",
+            type: BlessingData.BlessingType.FortuneStar,
+            basePrice: 0,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.AlwaysRefresh
         ));
 
         Debug.Log($" 成功初始化 {allBlessings.Count} 个祝福！");

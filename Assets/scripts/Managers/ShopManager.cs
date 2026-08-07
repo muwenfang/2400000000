@@ -106,6 +106,21 @@ public class ShopManager : MonoBehaviour
         // ---通知 UI 刷新 ---
         UIManager.Instance.RefreshShopUI();
     }
+    /// <summary>
+    /// 免费刷新商店（幸运星触发，不扣费、不增加刷新次数）
+    /// </summary>
+    public void FreeRefreshShop()
+    {
+        // 重新生成商品（不扣费、不增加刷新次数）
+        ResetCurrentRoundBlessings();
+        GenerateNumberCards();
+        GenerateFormulaCards();
+        GenerateBlessings();
+
+        // 刷新 UI
+        UIManager.Instance.RefreshShopUI();
+    }
+
     public void InitializeRefreshCost()
     {
         BigInteger refreshCost = CalculateRefreshCost();

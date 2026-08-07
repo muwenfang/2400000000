@@ -382,6 +382,12 @@ public class GameManager : MonoBehaviour
         {
             finalScore *= 5;
         }
+        //绝对正义
+        if (BlessingManager.Instance != null && BlessingManager.Instance.hasJustice && finalScore < 0)
+        {
+            finalScore = BigInteger.Abs(finalScore);
+        }
+
         // 第2步：加入总分并显示
         AddPoints(finalScore);
 
