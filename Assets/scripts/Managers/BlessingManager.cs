@@ -584,6 +584,12 @@ public class BlessingManager : MonoBehaviour
                 ApplyFortuneStarEffect();
                 Debug.Log($"福星祝福激活：当前福星数量 {fortuneStarCount}");
                 break;
+
+            case BlessingData.BlessingType.WealthStar:
+                // 财星：每回合结算 finalScore × 1.02^wealthStarCount（向下取整）
+                wealthStarCount++;
+                Debug.Log($"财星祝福激活：当前财星数量 {wealthStarCount}");
+                break;
         }
     }
 
@@ -983,6 +989,7 @@ public class BlessingManager : MonoBehaviour
         hasYinYang = false;             // 阴阳
         hasFall = false;                // 坠落
         reverse = 0;                    // 翻转
+        wealthStarCount = 0;            // 财星
     }
 
     /// <summary>

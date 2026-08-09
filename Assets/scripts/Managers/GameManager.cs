@@ -354,6 +354,17 @@ public class GameManager : MonoBehaviour
             finalScore = BigInteger.Zero;
         }
 
+        // 财星效果：finalScore *= 1.02^wealthStarCount（向下取整）
+        if (blessingManager != null && blessingManager.wealthStarCount > 0)
+        {
+            int starCount = blessingManager.wealthStarCount;
+            for (int i = 0; i < starCount; i++)
+            {
+                finalScore = finalScore * 102 / 100;
+            }
+            Debug.Log($"财星效果：×1.02^{starCount}，最终得分: {finalScore}");
+        }
+
         // 记录本回合的结算点数（baseScore，这是一次完整结算的值）
         if (finalScore > roundMaxCalculationValue)
         {
