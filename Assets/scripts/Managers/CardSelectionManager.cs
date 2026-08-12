@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,6 +19,9 @@ public class CardSelectionManager : MonoBehaviour
 
     private SelectionMode currentMode;
     private Action<object> selectionCallback;
+
+    // 模式变更事件：各面板订阅此事件以切换点击行为
+    public event System.Action<SelectionMode> OnSelectionModeChanged;
 
     [Header("冷却配置")]
     [SerializeField] private float selectionCooldown = 0.1f;
@@ -44,8 +47,10 @@ public class CardSelectionManager : MonoBehaviour
         {
             UIManager.Instance.myNumberCardPanel.SetActive(true);
             UIManager.Instance.myFormulaCardPanel.SetActive(true);
-            UIManager.Instance.myBlessPanel.SetActive(true);
         }
+
+        // 通知所有订阅面板切换点击模式
+        OnSelectionModeChanged?.Invoke(mode);
     }
 
     public void OnCardSelected(object selectedObject)
@@ -68,6 +73,9 @@ public class CardSelectionManager : MonoBehaviour
         Debug.Log("[CardSelectionManager] 关闭卡牌选择模式");
         currentMode = SelectionMode.None;
         selectionCallback = null;
+
+        // 通知所有订阅面板切换回普通模式
+        OnSelectionModeChanged?.Invoke(SelectionMode.None);
     }
 
     public SelectionMode GetCurrentMode()
@@ -79,4 +87,7 @@ public class CardSelectionManager : MonoBehaviour
     {
         return currentMode != SelectionMode.None;
     }
+
+    // 便捷属性：判断当前是否为删卡模式
+    public static bool IsDeleteMode => Instance != null && Instance.GetCurrentMode() == SelectionMode.RemoveCard;
 }

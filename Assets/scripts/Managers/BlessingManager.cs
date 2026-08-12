@@ -590,6 +590,18 @@ public class BlessingManager : MonoBehaviour
                 wealthStarCount++;
                 Debug.Log($"财星祝福激活：当前财星数量 {wealthStarCount}");
                 break;
+
+            case BlessingData.BlessingType.DisasterStar:
+                // 祸星：此祝福不会随主动的商店刷新而被刷新。
+                disasterStarCount++;
+                Debug.Log($"祸星祝福激活：当前祸星数量 {disasterStarCount}");
+                break;
+            
+            case BlessingData.BlessingType.CompassionStar:
+                // 慈爱星：下一回合参与计算的绿色数字中最小的一个额外+1
+                compassionStarCount++;
+                Debug.Log($"慈爱星祝福激活：当前慈爱星数量 {compassionStarCount}");
+                break;
         }
     }
 
@@ -990,6 +1002,8 @@ public class BlessingManager : MonoBehaviour
         hasFall = false;                // 坠落
         reverse = 0;                    // 翻转
         wealthStarCount = 0;            // 财星
+        disasterStarCount = 0;          // 祸星
+        compassionStarCount = 0;        // 慈爱星
     }
 
     /// <summary>

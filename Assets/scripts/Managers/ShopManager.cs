@@ -95,8 +95,20 @@ public class ShopManager : MonoBehaviour
     private HashSet<int> currentRoundPurchasedBlessings = new HashSet<int>();
 
 
+        /// <summary>
+        /// 在当前商店访问中被排除在刷新之外的祝福ID（如祸星，仅在首次生成时可能出现，后续刷新不再出现）
+        /// </summary>
+        private HashSet<int> blessingsExcludedFromRefresh = new HashSet<int>();
+
     public void OpenShop()
     {
+        // 清除上次商店访问的排除列表（新回合/新进入商店时重置）
+        blessingsExcludedFromRefresh.Clear();
+
+        
+        // 祸星：首次生成后即从后续刷新中排除（无论是否出现）
+        MarkDisasterStarExcluded();
+        
         GenerateNumberCards();
         GenerateFormulaCards();
         GenerateBlessings();
@@ -530,6 +542,10 @@ public class ShopManager : MonoBehaviour
         {
             if (blessing == null) continue;
 
+            // 检查是否在当前商店访问中被排除（如祸星仅在首次生成可用）
+            if (blessingsExcludedFromRefresh.Contains(blessing.blessingId))
+                continue;
+
             bool isAvailable = false;
 
             switch (blessing.refreshBehavior)
@@ -575,6 +591,16 @@ public class ShopManager : MonoBehaviour
     public void MarkBlessingAsPurchased(int blessingId)
     {
         currentRoundPurchasedBlessings.Add(blessingId);
+    }
+
+    /// <summary>
+    /// 标记祸星为已排除（首次生成后调用，后续刷新不再出现）
+    /// </summary>
+    private void MarkDisasterStarExcluded()
+    {
+        BlessingData disasterStar = blessingLibrary.GetBlessingByType(BlessingData.BlessingType.DisasterStar);
+        if (disasterStar != null)
+            blessingsExcludedFromRefresh.Add(disasterStar.blessingId);
     }
 
     #endregion
@@ -768,40 +794,9 @@ public class ShopManager : MonoBehaviour
     {
         isDeletionMode = false;
 
-        if (selectedObject == null)
-        {
-            Debug.LogWarning("[ShopManager] 删除卡牌选择为空");
-            return;
-        }
-
-        BigInteger deleteCost = CalculateDeletionCost();
-
-        // 扣除点数
-        if (GameManager.Instance.currentPoints < deleteCost)
-        {
-            Debug.Log("点数不足，无法删除卡牌");
-            return;
-        }
-
-        // 删除卡牌
-        if (selectedObject is NumberCardInstance numberCard)
-        {
-            PlayerCardInventory.Instance.RemoveNumberCard(numberCard);
-            totalRemovedNumberCards++;
-            Debug.Log($"删除数字卡：{numberCard.cardData.cardName}");
-        }
-        else if (selectedObject is FormulaCardData formulaCard)
-        {
-            PlayerCardInventory.Instance.RemoveFormulaCard(formulaCard);
-            totalRemovedFormulaCards++;
-            Debug.Log($"删除公式卡：{formulaCard.Name}");
-        }
-
-        // 扣除点数
-        GameManager.Instance.AddPoints(-deleteCost);
-
-        // 刷新 UI
-        InitializeDeletionUI();
+        // 实际的删除操作已通过 CardClickHandler → ShowMyXxx.TryHandleDeleteClick →
+        // ShopManager.OnCardDeleted / OnFormulaCardDeleted 路径处理
+        // 此处仅做状态清理，避免双重扣费
     }
     #endregion
 
@@ -1110,8 +1105,6 @@ public class ShopManager : MonoBehaviour
         numberSlotUnlockTimes++;
 
         InitializeRefreshCost();
-        // 刷新商店
-        GenerateNumberCards();
         UIManager.Instance.RefreshShopUI();
     }
 
@@ -1150,8 +1143,6 @@ public class ShopManager : MonoBehaviour
         formulaSlotUnlockTimes++;
 
         InitializeRefreshCost();
-        // 刷新商店
-        GenerateFormulaCards();
         UIManager.Instance.RefreshShopUI();
     }
 
@@ -1179,8 +1170,6 @@ public class ShopManager : MonoBehaviour
         blessingSlotUnlockTimes++;
 
         InitializeRefreshCost();
-        // 刷新商店
-        GenerateBlessings();
         UIManager.Instance.RefreshShopUI();
     }
 
@@ -1260,6 +1249,13 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     public void CloseShop()
     {
+        // 如果处于删卡模式，先结束选择模式以通知面板关闭点击行为
+        if (isDeletionMode && CardSelectionManager.Instance != null)
+        {
+            CardSelectionManager.Instance.EndCardSelection();
+            isDeletionMode = false;
+        }
+
         if (UIManager.Instance != null)
             UIManager.Instance.CloseShop();
     }

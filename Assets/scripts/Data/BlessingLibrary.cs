@@ -556,7 +556,94 @@ public class BlessingLibrary : ScriptableObject
             isStackable: true,
             refreshBehavior: BlessingData.RefreshBehavior.AlwaysRefresh
         ));
+        
+        //财星
+        allBlessings.Add(CreateBlessing(
+            id: 51,
+            name: "财星",
+            description: "购买此祝福后，下一回合依靠计算获得的点数（合计倍率）*1.02（向下取整）",
+            type: BlessingData.BlessingType.FortuneStar,
+            basePrice: 0,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.AlwaysRefresh
+        ));
 
+        //祸星
+        allBlessings.Add(CreateBlessing(
+            id: 52,
+            name: "祸星",
+            description: "此祝福不会随主动的商店刷新而被刷新",
+            type: BlessingData.BlessingType.DisasterStar,
+            basePrice: 2400000000,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.CurrentRoundOnly
+        ));
+
+        //慈爱星
+        allBlessings.Add(CreateBlessing(
+            id: 53,
+            name: "慈爱星",
+            description: "购买此祝福后，下一回合参与计算的绿色数字中最小的一个额外+1",
+            type: BlessingData.BlessingType.CompassionStar,
+            basePrice: 0,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.CurrentRoundOnly
+        ));
+
+        //启明星
+        allBlessings.Add(CreateBlessing(
+            id: 54,
+            name: "启明星",
+            description: "购买此祝福后，选择一张数字卡：在下一回合一定会抽到它",
+            type: BlessingData.BlessingType.MorningStar,
+            basePrice: 0,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.CurrentRoundOnly
+        ));
+
+        //大七星
+        allBlessings.Add(CreateBlessing(
+            id: 55,
+            name: "大七星",
+            description: "如果可能，失去除自身外所有名称末尾为星字的祝福各一个，然后获得24亿点.每拥有一个大七星，获得的点数翻10倍",
+            type: BlessingData.BlessingType.BigSevenStar,
+            basePrice: 0,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.AlwaysRefresh
+        ));
+
+        //金融专家
+        allBlessings.Add(CreateBlessing(
+            id: 56,
+            name: "金融专家",
+            description: "黄金数字同时也拥有绿色数字的特性",
+            type: BlessingData.BlessingType.FinancialExpert,
+            basePrice: 20000000,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+        
+        //博彩专家
+        allBlessings.Add(CreateBlessing(
+            id: 57,
+            name: "博彩专家",
+            description: "绿色数字同时也拥有黄金数字的特性",
+            type: BlessingData.BlessingType.BettingExpert,
+            basePrice: 100000,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+
+        //赌场专员
+        allBlessings.Add(CreateBlessing(
+            id: 58,
+            name: "赌场专员",
+            description: "骰子点数判定为其最大值后将自动升一级",
+            type: BlessingData.BlessingType.CasinoCommissioner,
+            basePrice: 1000000,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
         Debug.Log($" 成功初始化 {allBlessings.Count} 个祝福！");
     }
 

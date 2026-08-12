@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Numerics;
@@ -187,10 +187,6 @@ public class UIManager : MonoBehaviour
             myCardButton.SetActive(true);
             myCardButton.transform.SetAsLastSibling();
         }
-
-        var showScript = myNumberCardPanel.GetComponent<ShowMyNumberCard>();
-        if (showScript != null) 
-            showScript.RefreshAllCards();
     }
 
     // 打开公式卡库
@@ -206,9 +202,6 @@ public class UIManager : MonoBehaviour
             myCardButton.SetActive(true);
             myCardButton.transform.SetAsLastSibling();
         }
-
-        var showScript = myFormulaCardPanel.GetComponent<ShowMyFormula>();
-        if (showScript != null) showScript.RefreshAllCards();
     }
 
     private void HideDeletionCostPanelsForBlessView()
@@ -244,9 +237,6 @@ public class UIManager : MonoBehaviour
             myCardButton.SetActive(true);
             myCardButton.transform.SetAsLastSibling();
         }
-
-        var showScript = myBlessPanel.GetComponent<ShowMyBlessings>();
-        if (showScript != null) showScript.RefreshAllBlessings();
     }
 
     // 关闭卡牌库（返回原来的界面）
@@ -967,7 +957,8 @@ public class UIManager : MonoBehaviour
             Destroy(child.gameObject);
     }
     #endregion
-    
+
+    #region 祝福选择效果
     #region 许愿币祝福选择（许愿币专用）
     /// <summary>
     /// 打开许愿币祝福选择界面（只显示可叠加的已拥有祝福）
@@ -993,14 +984,6 @@ public class UIManager : MonoBehaviour
     public void CloseWishCoinBlessSelection()
     {
         myBlessPanel.SetActive(false);
-
-        // 恢复正常祝福显示
-        ShowMyBlessings showScript = myBlessPanel.GetComponent<ShowMyBlessings>();
-        if (showScript != null)
-        {
-            showScript.ClearTempWishCoinButtons();
-            showScript.RefreshAllBlessings();
-        }
     }
     #endregion
 
@@ -1029,14 +1012,6 @@ public class UIManager : MonoBehaviour
     public void CloseDarkBoxBlessSelection()
     {
         myBlessPanel.SetActive(false);
-
-        // 恢复正常祝福显示
-        ShowMyBlessings showScript = myBlessPanel.GetComponent<ShowMyBlessings>();
-        if (showScript != null)
-        {
-            showScript.ClearTempDarkBoxButtons();
-            showScript.RefreshAllBlessings();
-        }
     }
     #endregion
 
@@ -1048,12 +1023,6 @@ public class UIManager : MonoBehaviour
         {
             myNumberCardPanel.SetActive(true);
             myNumberCardPanel.transform.SetAsLastSibling();
-
-            ShowMyNumberCard showScript = myNumberCardPanel.GetComponent<ShowMyNumberCard>();
-            if (showScript != null)
-            {
-                showScript.ShowCardsForCardCheat();
-            }
         }
     }
 
@@ -1075,12 +1044,6 @@ public class UIManager : MonoBehaviour
         {
             myFormulaCardPanel.SetActive(true);
             myFormulaCardPanel.transform.SetAsLastSibling();
-
-            ShowMyFormula show = myFormulaCardPanel.GetComponent<ShowMyFormula>();
-            if (show != null)
-            {
-                show.ShowCardsForMoreMoreBetter();
-            }
         }
     }
 
@@ -1091,7 +1054,7 @@ public class UIManager : MonoBehaviour
             myFormulaCardPanel.SetActive(false);
     }
     #endregion
-
+    #endregion
     /// <summary>
     /// 关闭商店界面
     /// </summary>

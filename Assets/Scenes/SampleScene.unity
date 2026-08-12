@@ -4827,6 +4827,7 @@ GameObject:
   - component: {fileID: 496826564}
   - component: {fileID: 496826563}
   - component: {fileID: 496826565}
+  - component: {fileID: 496826566}
   m_Layer: 5
   m_Name: MyFormula
   m_TagString: Untagged
@@ -4914,6 +4915,18 @@ MonoBehaviour:
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
+--- !u!114 &496826566
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 496826560}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc849b2d0ed56f546a78480d48dc3f05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &499162756
 GameObject:
   m_ObjectHideFlags: 0
@@ -6727,7 +6740,6 @@ MonoBehaviour:
   dialecticalPricePercent: 0
   ApplyPragmatism: 0
   hasGodOfGambler: 0
-  formulaCardLibrary: {fileID: 11400000, guid: 09a6b658924651940965cd8a57c4eab9, type: 2}
   globalPriceDiscountPercent: 0
   blessDiscountPerBlessing: 0
   maxBlessDiscountPercent: 80
@@ -6744,6 +6756,18 @@ MonoBehaviour:
   hasHastyAppreciation: 0
   hastyAppreciationBonus: 0
   bigSuccessCount: 0
+  hasJustice: 0
+  luckyStarCount: 0
+  fortuneStarCount: 0
+  meteor: 0
+  wealthStarCount: 0
+  disasterStarCount: 0
+  morningsStarCount: 0
+  compassionStarCount: 0
+  bigSevenStarCount: 0
+  hasFinancialExpert: 0
+  hasBettingExpert: 0
+  hasCasinoCommissioner: 0
 --- !u!4 &679115385
 Transform:
   m_ObjectHideFlags: 0
@@ -8756,6 +8780,7 @@ GameObject:
   - component: {fileID: 896898554}
   - component: {fileID: 896898553}
   - component: {fileID: 896898556}
+  - component: {fileID: 896898557}
   m_Layer: 5
   m_Name: MyBless
   m_TagString: Untagged
@@ -8838,6 +8863,18 @@ MonoBehaviour:
   scrollRect: {fileID: 1348500147}
   tempAddedButtons: []
   cardScale: 1
+--- !u!114 &896898557
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 896898551}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc849b2d0ed56f546a78480d48dc3f05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &898847913
 GameObject:
   m_ObjectHideFlags: 0
@@ -14526,6 +14563,9 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8286434712523788241, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1329721532}
+    - targetCorrespondingSourceObject: {fileID: 8286434712523788241, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
+      insertIndex: -1
+      addedObject: {fileID: 1329721533}
   m_SourcePrefab: {fileID: 100100000, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
 --- !u!224 &1329721510 stripped
 RectTransform:
@@ -14621,6 +14661,18 @@ MonoBehaviour:
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
+--- !u!114 &1329721533
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1329721518}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc849b2d0ed56f546a78480d48dc3f05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1336500455
 GameObject:
   m_ObjectHideFlags: 0

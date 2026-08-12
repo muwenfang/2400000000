@@ -1,4 +1,4 @@
-﻿using JetBrains.Annotations;
+using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
@@ -323,6 +323,15 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
 
             // 计算倍率后价格
             long priceAfterRate = (long)(X * rate);
+
+            // 黄金数字加成：y = 所有黄金数之和，价格增加 100*y*(y+1)
+            int goldenSum = 0;
+            if (a.isGolden) goldenSum += a.value;
+            if (b != null && b.isGolden) goldenSum += b.value;
+            if (goldenSum > 0)
+            {
+                priceAfterRate += 100L * goldenSum * (goldenSum + 1);
+            }
 
             // 第三步：舍入
             long finalPrice = RoundPrice(priceAfterRate);

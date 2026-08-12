@@ -1,257 +1,160 @@
-using System.Collections;
+ï»¿using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
-
-public class ShowMyFormula : MonoBehaviour
+public class ShowMyFormula : MonoBehaviour, ISelectablePanel
 {
-    [Header("ÈİÆ÷ÒıÓÃ")]
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
     public Transform contentRoot;
 
-    [Header("¹ö¶¯ÅäÖÃ")]
-    public ScrollRect scrollRect; // ¹Ø¼ü£ºĞèÒª°ó¶¨ ScrollRect ×é¼ş
+    [Header("ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
+    public ScrollRect scrollRect; // ï¿½Ø¼ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ ScrollRect ï¿½ï¿½ï¿½
 
-    [Header("ÏÔÊ¾ÉèÖÃ")]
+    [Header("ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½")]
     public float cardScale = 1.0f;
 
-    [Header("É¾¿¨¹¦ÄÜÅäÖÃ")]
-    [Tooltip("É¾³ı¹«Ê½¿¨°´Å¥ - ´ÓInspectorÍÏÈë")]
+    [Header("É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½")]
+    [Tooltip("É¾ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½Å¥ - ï¿½ï¿½Inspectorï¿½ï¿½ï¿½ï¿½")]
     public Button deleteFormulaCardButton;
 
     public GameObject deletionCostPanel;
     public Text deletionCostText;
     public BigInteger deletionCost = 200;
 
-    private List<Button> activeDeletionButtons = new List<Button>();
+    // åå‘æ˜ å°„ï¼šGameObject â†’ FormulaCardDataï¼Œä¾› CardClickHandler æŸ¥æ‰¾
+    private Dictionary<GameObject, FormulaCardData> goToData = new Dictionary<GameObject, FormulaCardData>();
 
-    [Header("ÑÕÉ«ÅäÖÃ")]
-    public Color incrementalColor = Color.green;   // µİÔöÊı×Ö£ºÂÌÉ«
-    public Color diceColor = Color.red; // ÷»×ÓÊı×Ö£ººìÉ«
-    public Color normalColor = Color.black;        // ÆÕÍ¨Êı×Ö£ººÚÉ«
+    // è„æ ‡è®°ï¼šä¸ PlayerCardInventory.InventoryVersion æ¯”è¾ƒï¼Œç‰ˆæœ¬ä¸€è‡´åˆ™è·³è¿‡é‡å»º
+    private int lastKnownInventoryVersion = -1;
+
+    // ç»Ÿä¸€å¡ç‰Œç‚¹å‡»å¤„ç†å™¨
+    private CardClickHandler clickHandler;
+
+    private void Awake()
+    {
+        // åˆå§‹åŒ– CardClickHandlerï¼ˆå¦‚æœå°šæœªæŒ‚è½½ï¼‰
+        if (contentRoot != null)
+        {
+            clickHandler = contentRoot.GetComponent<CardClickHandler>();
+            if (clickHandler == null)
+                clickHandler = contentRoot.gameObject.AddComponent<CardClickHandler>();
+            clickHandler.Initialize(this);
+        }
+    }
 
     private void OnEnable()
     {
         InitializeScrollRect();
-        RefreshAllCards();
-
-        // ¸ù¾İµ±Ç°µÄSelectionMode¼¤»î¶ÔÓ¦µÄbutton
-        ActivateButtonsBasedOnMode();
-    }
-    private void OnDisable()
-    {
-        // ½ûÓÃÉ¾¿¨°´Å¥
-        if (deleteFormulaCardButton != null)
-            deleteFormulaCardButton.gameObject.SetActive(false);
-
-        // Çå³ı¼¤»îµÄ°´Å¥¼àÌı
-        foreach (var btn in activeDeletionButtons)
+        // è„æ£€æŸ¥ï¼šåº“å­˜ç‰ˆæœ¬æœªå˜åŒ–åˆ™è·³è¿‡é‡å»º
+        if (PlayerCardInventory.Instance != null &&
+            PlayerCardInventory.Instance.InventoryVersion != lastKnownInventoryVersion)
         {
-            if (btn != null)
-                btn.onClick.RemoveAllListeners();
-        }
-        activeDeletionButtons.Clear();
-    }
-
-    /// <summary>
-    /// ¸ù¾İµ±Ç°Ñ¡ÔñÄ£Ê½¼¤»î¶ÔÓ¦µÄbutton
-    /// </summary>
-    private void ActivateButtonsBasedOnMode()
-    {
-        var mode = CardSelectionManager.Instance.GetCurrentMode();
-
-        // É¾¿¨Ä£Ê½£º¼¤»î¹«Ê½¿¨µÄÉ¾³ı°´Å¥
-        if (mode == CardSelectionManager.SelectionMode.RemoveCard)
-        {
-            ActivateFormulaCardDeletionButtons();
+            RefreshAllCards();
         }
         else
         {
-            //²»ÔÚÉ¾³ıÄ£Ê½Ê±£¬½ûÓÃËùÓĞ°´Å¥
-            DeactivateAllDeletionButtons();
+            // ä»…æ›´æ–°åˆ å¡è´¹ç”¨ UIï¼ˆä¸é‡å»ºå¡ç‰‡ï¼‰
+            if (ShopManager.Instance != null)
+            {
+                UpdateDeletionUI(ShopManager.Instance.CalculateDeletionCost());
+            }
         }
+        // è®°å½•å½“å‰åº“å­˜ç‰ˆæœ¬
+        if (PlayerCardInventory.Instance != null)
+            lastKnownInventoryVersion = PlayerCardInventory.Instance.InventoryVersion;
+
+        // è®¢é˜…é€‰æ‹©æ¨¡å¼å˜æ›´äº‹ä»¶
+        if (CardSelectionManager.Instance != null)
+            CardSelectionManager.Instance.OnSelectionModeChanged += OnSelectionModeChanged;
     }
-    /// <summary>
-    /// ½ûÓÃËùÓĞÉ¾³ı°´Å¥£¨µ±²»ÔÚÉ¾³ıÄ£Ê½Ê±£©
-    /// </summary>
-    private void DeactivateAllDeletionButtons()
+
+    private void OnDisable()
     {
-        foreach (var btn in activeDeletionButtons)
-        {
-            if (btn != null)
-            {
-                btn.gameObject.SetActive(false);
-                btn.onClick.RemoveAllListeners();
-            }
-        }
-        activeDeletionButtons.Clear();
+        goToData.Clear();
+        lastKnownInventoryVersion = -1;
+        // å–æ¶ˆäº‹ä»¶è®¢é˜…
+        if (CardSelectionManager.Instance != null)
+            CardSelectionManager.Instance.OnSelectionModeChanged -= OnSelectionModeChanged;
     }
+
     /// <summary>
-    /// ¼¤»î¹«Ê½¿¨µÄÉ¾³ı°´Å¥
+    /// ISelectablePanel æ¥å£ï¼šé€‰æ‹©æ¨¡å¼å˜æ›´æ—¶å›è°ƒ
     /// </summary>
-    private void ActivateFormulaCardDeletionButtons()
+    public void OnSelectionModeChanged(CardSelectionManager.SelectionMode newMode)
     {
-        var deck = CardManager.Instance.formulaCardDeck;
-
-        // Çå³ıÖ®Ç°µÄ°´Å¥¼àÌı
-        foreach (var btn in activeDeletionButtons)
+        // åˆ å¡æ¨¡å¼è¿›å…¥æ—¶æ›´æ–°è´¹ç”¨UI
+        if (newMode == CardSelectionManager.SelectionMode.RemoveCard)
         {
-            if (btn != null)
-                btn.onClick.RemoveAllListeners();
+            if (ShopManager.Instance != null)
+            {
+                deletionCost = ShopManager.Instance.CalculateDeletionCost();
+                UpdateDeletionUI(deletionCost);
+            }
         }
-        activeDeletionButtons.Clear();
-
-        int activatedCount = 0;
-
-        // »ñÈ¡ËùÓĞ¹«Ê½¿¨UI×é¼ş
-        FormulaCardUI[] formulaCardUIs = contentRoot.GetComponentsInChildren<FormulaCardUI>();
-
-        foreach (var formulaUI in formulaCardUIs)
-        {
-            if (formulaUI == null) continue;
-
-
-            // ²éÕÒ»òÌí¼ÓÉ¾³ı°´Å¥
-            Button deleteBtn = formulaUI.GetComponent<Button>();
-            if (deleteBtn == null)
-            {
-                deleteBtn = formulaUI.GetComponentInChildren<Button>();
-            }
-            // ËÑË÷Button£¬°üÀ¨±»½ûÓÃµÄ½Å±¾
-            deleteBtn = FindButtonIncludingDisabled(formulaUI.gameObject);
-
-            // Çå³ıÖ®Ç°µÄ¼àÌı
-            deleteBtn.onClick.RemoveAllListeners();
-
-            // »ñÈ¡¹«Ê½¿¨Êı¾İ
-            FormulaCardData formulaData = formulaUI.GetFormulaCardData();
-            if (formulaData != null)
-            {
-                if (!deleteBtn.enabled)
-                {
-                    deleteBtn.enabled = true;
-                }
-
-                //¼¤»îButtonËùÔÚµÄÎïÌå£¨¹Ø¼ü£¡£©
-                Transform buttonTransform = deleteBtn.transform;
-                while (buttonTransform != null)
-                {
-                    if (!buttonTransform.gameObject.activeSelf)
-                    {
-                        buttonTransform.gameObject.SetActive(true);
-                        Debug.Log($"[ShowMyFormula] ¼¤»îÁËÎïÌå");
-                    }
-
-                    // ¼ì²éÊÇ·ñµ½´ïÁËFormulaUI»òÆäËûÈİÆ÷
-                    if (buttonTransform.gameObject.GetComponent<FormulaCardUI>() != null)
-                    {
-                        //Debug.Log($"[ShowMyFormula] ÒÑµ½´ïFormulaCardUIÈİÆ÷");
-                        break;
-                    }
-
-                    buttonTransform = buttonTransform.parent;
-                }
-
-                //È·±£Button¿É½»»¥
-                if (!deleteBtn.interactable)
-                {
-                    deleteBtn.interactable = true;
-                }
-
-                //Ìí¼ÓÉ¾³ı»Øµ÷
-                FormulaCardData cardData = formulaData;
-                deleteBtn.onClick.AddListener(() => OnFormulaCardDeleteSelected(cardData));
-
-                // ¼ÇÂ¼°´Å¥
-                activeDeletionButtons.Add(deleteBtn);
-
-                activatedCount++;
-
-                Debug.Log($"[ShowMyFormula] ³É¹¦¼¤»î¹«Ê½¿¨É¾³ı°´Å¥");
-            }
-            else
-            {
-                Debug.LogError($"[ShowMyFormula] ÎŞ·¨»ñÈ¡FormulaCardData£º{formulaUI.gameObject.name}");
-            }
-        
-        }
+        // MoreMoreBetter æ¨¡å¼ï¼šå·²ç”± ShowCardsForMoreMoreBetter() å•ç‹¬å¤„ç†ï¼Œæ­¤å¤„æ— éœ€é¢å¤–é€»è¾‘
     }
+
     /// <summary>
-    /// ¹Ø¼ü·½·¨£ºËÑË÷Button£¬°üÀ¨½Å±¾±»½ûÓÃµÄÇé¿ö
-    /// Õâ¸ö·½·¨±ÈGetComponentInChildren¸üÈ«Ãæ
+    /// ISelectablePanel æ¥å£ï¼šå¤„ç†å…¬å¼å¡ç‚¹å‡»ï¼Œç”± CardClickHandler ç»Ÿä¸€åˆ†å‘
     /// </summary>
-    private Button FindButtonIncludingDisabled(GameObject parent)
+    public void HandleCardClick(GameObject clickedCardRoot, CardSelectionManager.SelectionMode mode)
     {
-        if (parent == null) return null;
+        FormulaCardUI cardUI = clickedCardRoot.GetComponent<FormulaCardUI>();
+        if (cardUI == null) return;
+        FormulaCardData data = cardUI.GetFormulaCardData();
+        if (data == null) return;
 
-        // ·½°¸1£ºÏÈÔÚ×Ô¼ºÉíÉÏÕÒ
-        Button btn = parent.GetComponent<Button>();
-        if (btn != null)
+        switch (mode)
         {
-            Debug.Log($"[ShowMyFormula] ÔÚ'{parent.name}'±¾ÉíÕÒµ½Button");
-            return btn;
+            case CardSelectionManager.SelectionMode.RemoveCard:
+                OnFormulaCardDeleteSelected(data);
+                break;
+            case CardSelectionManager.SelectionMode.MoreMoreBetter:
+                CardSelectionManager.Instance.OnCardSelected(data);
+                break;
         }
-
-        // ·½°¸2£ºÔÚ¼¤»îµÄ×ÓÎïÌåÖĞÕÒ
-        btn = parent.GetComponentInChildren<Button>(false);  // false=Ö»ÕÒ¼¤»îµÄ
-        if (btn != null)
-        {
-            Debug.Log($"[ShowMyFormula] ÔÚ'{parent.name}'µÄ¼¤»î×ÓÎïÌåÖĞÕÒµ½Button");
-            return btn;
-        }
-
-        // ·½°¸3£ºÔÚËùÓĞ×ÓÎïÌåÖĞÕÒ£¬°üÀ¨·Ç¼¤»îµÄ
-        btn = parent.GetComponentInChildren<Button>(true);  // true=°üÀ¨·Ç¼¤»îµÄ
-        if (btn != null)
-        {
-            Debug.Log($"[ShowMyFormula] ÔÚ'{parent.name}'µÄ·Ç¼¤»î×ÓÎïÌåÖĞÕÒµ½Button");
-            return btn;
-        }
-
-        // ·½°¸4£ºµİ¹éËÑË÷ËùÓĞºó´ú£¨´¦ÀíÇ¶Ì×ºÜÉîµÄÇé¿ö£©
-        foreach (Transform child in parent.transform)
-        {
-            btn = FindButtonIncludingDisabled(child.gameObject);
-            if (btn != null)
-            {
-                Debug.Log($"[ShowMyFormula] ÔÚ'{parent.name}'µÄÉî²ã×ÓÎïÌåÖĞÕÒµ½Button");
-                return btn;
-            }
-        }
-
-        return null;
     }
+
     /// <summary>
-    /// ´¦Àí¹«Ê½¿¨É¾³ıÑ¡Ôñ
+    /// å¤„ç†å…¬å¼å¡åˆ é™¤é€‰æ‹©
     /// </summary>
     private void OnFormulaCardDeleteSelected(FormulaCardData selectedFormula)
     {
-        if (selectedFormula == null)
+        // æŠŠæ•°é‡åˆ¤å®šæ”¾åœ¨è¿™é‡Œ
+        if (!PlayerCardInventory.Instance.CanRemoveFormulaCard())
         {
-            Debug.LogError("[ShowMyFormula] Ñ¡ÔñµÄ¹«Ê½¿¨Îª¿Õ");
+            Debug.LogWarning($"[ShowMyFormula] æ— æ³•åˆ é™¤å…¬å¼å¡ï¼šæœ€å°‘éœ€è¦ä¿ç•™ {PlayerCardInventory.Instance.minFormulaCardCount} å¼ ");
             return;
         }
 
-        // ´¥·¢CardSelectionManagerµÄ»Øµ÷
-        CardSelectionManager.Instance.OnCardSelected(selectedFormula);
+        if (selectedFormula == null)
+        {
+            Debug.LogError("[ShowMyFormula] é€‰æ‹©çš„å…¬å¼å¡ä¸ºç©º");
+            return;
+        }
 
-        // Ö´ĞĞÉ¾¿¨Âß¼­
+        // è§¦å‘CardSelectionManagerçš„å›è°ƒ
+        CardSelectionManager.Instance.OnCardSelected(selectedFormula);
+        deletionCost = ShopManager.Instance.CalculateDeletionCost();
+
+        // æ‰§è¡Œåˆ å¡é€»è¾‘
         ExecuteFormulaCardDeletion(selectedFormula);
     }
 
     /// <summary>
-    /// Ö´ĞĞ¹«Ê½¿¨É¾³ıÂß¼­
+    /// Ö´ï¿½Ğ¹ï¿½Ê½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ß¼ï¿½
     /// </summary>
     private void ExecuteFormulaCardDeletion(FormulaCardData cardToDelete)
     {
-        // ÊıÁ¿ÅĞ¶¨ÒÆµ½µã»÷Ê±ÅĞ¶Ï
+        // ï¿½ï¿½ï¿½ï¿½ï¿½Ğ¶ï¿½ï¿½Æµï¿½ï¿½ï¿½ï¿½Ê±ï¿½Ğ¶ï¿½
         if (!PlayerCardInventory.Instance.CanRemoveFormulaCard())
         {
-            Debug.LogWarning($"[ShowMyFormula] ÎŞ·¨É¾³ı¹«Ê½¿¨£º×îÉÙĞèÒª±£Áô {PlayerCardInventory.Instance.minFormulaCardCount} ÕÅ");
+            Debug.LogWarning($"[ShowMyFormula] ï¿½Ş·ï¿½É¾ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ {PlayerCardInventory.Instance.minFormulaCardCount} ï¿½ï¿½");
             return;
         }
 
-        // --- ÏÈÎÊÉÌµêÄÜ²»ÄÜÉ¾ ---
+        // --- ï¿½ï¿½ï¿½ï¿½ï¿½Ìµï¿½ï¿½Ü²ï¿½ï¿½ï¿½É¾ ---
         if (ShopManager.Instance != null)
         {
             if (!ShopManager.Instance.OnFormulaCardDeleted(cardToDelete))
@@ -260,22 +163,22 @@ public class ShowMyFormula : MonoBehaviour
                 return;
             }
         }
-        // Ê¹ÓÃÔ¼Êø¼ì²éÀ´É¾³ı¿¨ÅÆ
+        // Ê¹ï¿½ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½É¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         bool deleted = PlayerCardInventory.Instance.RemoveFormulaCard(cardToDelete);
 
         if (deleted)
         {
             CardManager.Instance.SyncDeckFromInventory();
-            // Ë¢ĞÂÏÔÊ¾
+            // Ë¢ï¿½ï¿½ï¿½ï¿½Ê¾
             RefreshAllCards();
         }
         else
         {
-            Debug.LogWarning("[ShowMyFormula] É¾³ı¹«Ê½¿¨Ê§°Ü");
+            Debug.LogWarning("[ShowMyFormula] É¾ï¿½ï¿½ï¿½ï¿½Ê½ï¿½ï¿½Ê§ï¿½ï¿½");
         }
     }
     /// <summary>
-    /// ³õÊ¼»¯¹öÂÖÖ§³Ö
+    /// ï¿½ï¿½Ê¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö§ï¿½ï¿½
     /// </summary>
     void InitializeScrollRect()
     {
@@ -290,7 +193,7 @@ public class ShowMyFormula : MonoBehaviour
         }
         if (scrollRect == null)
         {
-            // ³¢ÊÔÔÚ¸¸ÎïÌåµÄ¸¸ÎïÌåÕÒ
+            // ï¿½ï¿½ï¿½ï¿½ï¿½Ú¸ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             Transform parent = contentRoot.parent;
             if (parent != null)
             {
@@ -298,24 +201,24 @@ public class ShowMyFormula : MonoBehaviour
             }
         }
 
-        // È·±£ contentRoot ÓĞ LayoutElement
+        // È·ï¿½ï¿½ contentRoot ï¿½ï¿½ LayoutElement
         LayoutElement le = contentRoot.GetComponent<LayoutElement>();
         if (le == null)
         {
             le = contentRoot.gameObject.AddComponent<LayoutElement>();
         }
-        le.preferredWidth = -1;      // ²»ÉèÖÃ¿í¶ÈÔ¼Êø
-        le.preferredHeight = -1;     // ²»ÉèÖÃ¸ß¶ÈÔ¼Êø£¨ÓÉÄÚÈİ¾ö¶¨£©
-        le.flexibleHeight = 1;       // ÔÊĞíÁé»î¸ß¶È
+        le.preferredWidth = -1;      // ï¿½ï¿½ï¿½ï¿½ï¿½Ã¿ï¿½ï¿½Ô¼ï¿½ï¿½
+        le.preferredHeight = -1;     // ï¿½ï¿½ï¿½ï¿½ï¿½Ã¸ß¶ï¿½Ô¼ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½İ¾ï¿½ï¿½ï¿½ï¿½ï¿½
+        le.flexibleHeight = 1;       // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ß¶ï¿½
 
-        // ÕÒµ½»ò´´½¨ ScrollRect
+        // ï¿½Òµï¿½ï¿½ò´´½ï¿½ ScrollRect
         if (scrollRect == null)
         {
-            // ³¢ÊÔÔÚµ±Ç°ÎïÌåÕÒ
+            // ï¿½ï¿½ï¿½ï¿½ï¿½Úµï¿½Ç°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             scrollRect = GetComponent<ScrollRect>();
         }
 
-        // Èç¹ûÃ»ÕÒµ½£¬×Ô¶¯´´½¨
+        // ï¿½ï¿½ï¿½Ã»ï¿½Òµï¿½ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½
         if (scrollRect == null && contentRoot != null)
         {
             Transform scrollParent = contentRoot.parent;
@@ -327,11 +230,11 @@ public class ShowMyFormula : MonoBehaviour
                 {
                     scrollRect = scrollParent.gameObject.AddComponent<ScrollRect>();
                     scrollRect.content = (RectTransform)contentRoot;
-                    scrollRect.horizontal = false;      // ½ûÓÃË®Æ½¹ö¶¯
-                    scrollRect.vertical = true;         // ÆôÓÃ´¹Ö±¹ö¶¯
+                    scrollRect.horizontal = false;      // ï¿½ï¿½ï¿½ï¿½Ë®Æ½ï¿½ï¿½ï¿½ï¿½
+                    scrollRect.vertical = true;         // ï¿½ï¿½ï¿½Ã´ï¿½Ö±ï¿½ï¿½ï¿½ï¿½
                     scrollRect.movementType = ScrollRect.MovementType.Elastic;
                     scrollRect.elasticity = 0.1f;
-                    scrollRect.scrollSensitivity = 15;   // µ÷Õû¹ö¶¯ÁéÃô¶È
+                    scrollRect.scrollSensitivity = 15;   // ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
 
                     Image image = scrollParent.GetComponent<Image>();
                     if (image == null)
@@ -340,28 +243,28 @@ public class ShowMyFormula : MonoBehaviour
                         image.color = new Color(1, 1, 1, 0.01f);
                     }
 
-                    Debug.Log("[ShowMyCard] ×Ô¶¯´´½¨ÁË ScrollRect ×é¼ş");
+                    Debug.Log("[ShowMyCard] ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ ScrollRect ï¿½ï¿½ï¿½");
                 }
             }
         }
 
-        //È·±£ contentRoot ¸¸ÎïÌåµÄ RectTransform ÅäÖÃÕıÈ·
+        //È·ï¿½ï¿½ contentRoot ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ RectTransform ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½È·
         RectTransform scrollRectTransform = scrollRect.GetComponent<RectTransform>();
         if (scrollRectTransform != null)
         {
-            // ÉèÖÃ ScrollRect µÄ´óĞ¡Ô¼Êø
+            // ï¿½ï¿½ï¿½ï¿½ ScrollRect ï¿½Ä´ï¿½Ğ¡Ô¼ï¿½ï¿½
             LayoutElement scrollLE = scrollRect.GetComponent<LayoutElement>();
             if (scrollLE == null)
             {
                 scrollLE = scrollRect.gameObject.AddComponent<LayoutElement>();
             }
-            scrollLE.preferredHeight = 600;  //ÉèÖÃ¹ö¶¯ÇøÓòµÄ¸ß¶È£¨¿É¸ù¾İĞèÒªµ÷Õû£©
+            scrollLE.preferredHeight = 600;  //ï¿½ï¿½ï¿½Ã¹ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä¸ß¶È£ï¿½ï¿½É¸ï¿½ï¿½ï¿½ï¿½ï¿½Òªï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         }
 
     }
     public void RefreshAllCards()
     {
-        // 1. ÇåÀí¾É¿¨ÅÆ
+        // 1. ï¿½ï¿½ï¿½ï¿½É¿ï¿½ï¿½ï¿½
         foreach (Transform child in contentRoot)
         {
             Destroy(child.gameObject);
@@ -369,7 +272,7 @@ public class ShowMyFormula : MonoBehaviour
 
         GenerateFormulaCards();
         
-        // 3. Ç¿ÖÆÖØ½¨²¼¾Ö
+        // 3. Ç¿ï¿½ï¿½ï¿½Ø½ï¿½ï¿½ï¿½ï¿½ï¿½
         if (contentRoot != null)
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);
@@ -379,8 +282,9 @@ public class ShowMyFormula : MonoBehaviour
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.GetComponent<RectTransform>());
         }
-        // Ë¢ĞÂºóÖØĞÂ¼¤»î°´Å¥
-        ActivateButtonsBasedOnMode();
+        // åˆ·æ–°åè®°å½•åº“å­˜ç‰ˆæœ¬
+        if (PlayerCardInventory.Instance != null)
+            lastKnownInventoryVersion = PlayerCardInventory.Instance.InventoryVersion;
 
         if (ShopManager.Instance != null)
         {
@@ -398,11 +302,11 @@ public class ShowMyFormula : MonoBehaviour
         else
         {
             deletionCostPanel.gameObject.SetActive(true);   
-            deletionCostPanel.transform.SetAsLastSibling(); // È·±£ÔÚ×îÇ°ÃæÏÔÊ¾
+            deletionCostPanel.transform.SetAsLastSibling(); // È·ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ç°ï¿½ï¿½ï¿½ï¿½Ê¾
 
             deletionCostText.text = "Ò»          " + FormatBigNumber(cost).ToString();
 
-            Debug.Log($"[ShowMyFormula] ¸üĞÂUI");
+            Debug.Log($"[ShowMyFormula] ï¿½ï¿½ï¿½ï¿½UI");
         }
 
     }
@@ -410,8 +314,13 @@ public class ShowMyFormula : MonoBehaviour
     {
         return NumberDisplayFormatter.Format(number);
     }
+    // é¢œè‰²é…ç½®ï¼ˆå…¬å¼å¡å±•ç¤ºé¢æ¿ç”¨ï¼‰
+    public Color incrementalColor = Color.green;
+    public Color diceColor = Color.red;
+    public Color normalColor = Color.black;
+
     /// <summary>
-    /// Í¨ÓÃ·½·¨£ºÉèÖÃÎÄ±¾ÄÚÈİºÍÑÕÉ«
+    /// é€šç”¨æ–¹æ³•ï¼šè®¾ç½®æ–‡æœ¬å†…å®¹å’Œé¢œè‰²
     /// </summary>
     void SetPartDisplay(Text textComp, NumberComponent component, int currentValue)
     {
@@ -419,19 +328,16 @@ public class ShowMyFormula : MonoBehaviour
 
         if (component.isDice)
         {
-            // ÷»×ÓÏÔÊ¾£º~ÃæÊı~ (»ÆÉ«)
             textComp.text = $"~{component.diceSides}~";
             textComp.color = diceColor;
         }
         else if (component.isIncremental)
         {
-            // µİÔöÏÔÊ¾£º{µ±Ç°Öµ} (ÂÌÉ«) - ÕâÀïÊ¹ÓÃÁËÊµÀıÀïµÄ currentValue
             textComp.text = $"{{{currentValue}}}";
             textComp.color = incrementalColor;
         }
         else
         {
-            // ÆÕÍ¨ÏÔÊ¾£ºÊıÖµ (ºÚÉ«)
             textComp.text = currentValue.ToString();
             textComp.color = normalColor;
         }
@@ -439,7 +345,7 @@ public class ShowMyFormula : MonoBehaviour
 
     void GenerateFormulaCards()
     {
-        // ´ÓPlayerCardInventory¶ÁÈ¡ÊµÊ±Êı¾İ£¨ÓëÊı×Ö¿¨Ò»ÖÂ£©
+        // ï¿½ï¿½PlayerCardInventoryï¿½ï¿½È¡ÊµÊ±ï¿½ï¿½ï¿½İ£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¿ï¿½Ò»ï¿½Â£ï¿½
         var deck = PlayerCardInventory.Instance.GetAllFormulaCards();
         var prefab = UIManager.Instance.formulaCardPrefab;
 
@@ -457,45 +363,20 @@ public class ShowMyFormula : MonoBehaviour
         }
     }
 
-    // ¶à¶àÒæÉÆ£ºÏÔÊ¾¹«Ê½¿¨²¢Ìí¼Ó°´Å¥
+    // å¤šå¤šç›Šå–„ï¼šæ˜¾ç¤ºå…¬å¼å¡ä¾›é€‰æ‹©ï¼Œç‚¹å‡»ç”± CardClickHandler ç»Ÿä¸€å¤„ç†
     public void ShowCardsForMoreMoreBetter()
     {
-        // Çå¿Õ¾É¿¨Æ¬
+        // æ¸…ç©ºæ—§å¡ç‰‡
         foreach (Transform child in contentRoot)
             Destroy(child.gameObject);
 
-        // Éú³É¿¨Æ¬
+        // æ¸…ç©ºåå‘æ˜ å°„
+        goToData.Clear();
+
+        // ç”Ÿæˆå¡ç‰‡
         GenerateFormulaCards();
 
-        // »ñÈ¡ËùÓĞ¿¨Æ¬UI
-        FormulaCardUI[] cards = contentRoot.GetComponentsInChildren<FormulaCardUI>();
-
-        foreach (FormulaCardUI cardUI in cards)
-        {
-            // »ñÈ¡¿¨Æ¬Êı¾İ
-            FormulaCardData data = cardUI.GetFormulaCardData();
-            if (data == null) continue;
-
-            // ÕÒ°´Å¥£¨ÓÃÄãÏîÄ¿ÀïÏÖ³ÉµÄ·½·¨£©
-            Button btn = FindButtonIncludingDisabled(cardUI.gameObject);
-            if (btn == null) continue;
-
-            // ÆôÓÃ°´Å¥
-            btn.gameObject.SetActive(true);
-            btn.interactable = true;
-            btn.enabled = true;
-
-            // Çå³ı¾ÉÊÂ¼ş
-            btn.onClick.RemoveAllListeners();
-
-            // °ó¶¨µã»÷£ºÖ±½ÓÑ¡ÔñÕâÕÅ¹«Ê½¿¨
-            btn.onClick.AddListener(() =>
-            {
-                CardSelectionManager.Instance.OnCardSelected(data);
-            });
-        }
-
-        // Ë¢ĞÂUI
+        // åˆ·æ–°UI
         LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);
     }
 }

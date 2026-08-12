@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -38,6 +38,9 @@ public class CardManager : MonoBehaviour
     [Header("当前填入公式的数字卡")]
     public List<NumberCardInstance> selectedNumberCards = new();
     public int filledNumber = 0;   
+
+    // 慈爱星：追踪已应用的次数，用于检测增量
+    private int lastAppliedCompassionStarCount = 0;
 
     public void InitializeStarterDeck()
     {   
@@ -222,6 +225,47 @@ public class CardManager : MonoBehaviour
         if (selectedNumberCards == null) 
         {return null;}
 
+        // 慈爱星：下一回合参与计算的绿色数字中最小的一个额外+1（一次性祝福，使用后清零）
+        // 慈爱星：检测到数量增加时，下一回合参与计算的绿色数字中最小的一个额外+增加量
+        if (BlessingManager.Instance != null && BlessingManager.Instance.compassionStarCount > lastAppliedCompassionStarCount)
+        {
+            NumberCardInstance minGreenCard = null;
+            int minGreenValue = int.MaxValue;
+            bool isPartA = true;
+            
+            for (int i = 0; i < selectedNumberCards.Count; i++)
+            {
+                var card = selectedNumberCards[i];
+                if (card == null) continue;
+                
+                if (card.cardData.partA.isIncremental && card.currentA < minGreenValue)
+                {
+                    minGreenValue = card.currentA;
+                    minGreenCard = card;
+                    isPartA = true;
+                }
+                if (card.cardData.partB != null && card.cardData.partB.isIncremental && card.currentB < minGreenValue)
+                {
+                    minGreenValue = card.currentB;
+                    minGreenCard = card;
+                    isPartA = false;
+                }
+            }
+            
+            if (minGreenCard != null)
+            {
+                int bonus = 1;
+                if (isPartA)
+                    minGreenCard.currentA += bonus;
+                else
+                    minGreenCard.currentB += bonus;
+
+                Debug.Log($"慈爱星触发：{minGreenCard.cardData.cardName} 的最小绿色数字 +{bonus}");
+
+                lastAppliedCompassionStarCount = BlessingManager.Instance.compassionStarCount;
+            }
+
+        }
 
         for (int i = 0; i < selectedNumberCards.Count; i++)
         {
@@ -241,6 +285,7 @@ public class CardManager : MonoBehaviour
        
         return lastRoundMaxCard;
     }
+
     /// <summary>
     /// 检查是否所有槽位都填入了有效的卡牌（没有null值）
     /// </summary>

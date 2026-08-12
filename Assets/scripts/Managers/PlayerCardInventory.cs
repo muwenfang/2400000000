@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System;
 
 
 public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
@@ -20,6 +21,22 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     public int minNumberCardCount = 6;
     [Tooltip("公式卡最少保留数量")]
     public int minFormulaCardCount = 1;
+
+    // 脏标记机制：每次库存变化时自增，面板通过比较版本号判断是否需要重建UI
+    public int InventoryVersion { get; private set; }
+
+    // 库存变化事件：当卡牌增删时触发，订阅者可在回调中刷新UI
+    public event System.Action OnInventoryChanged;
+
+    /// <summary>
+    /// 通知库存变化：自增版本号并触发事件
+    /// 所有增删卡牌的方法末尾都应调用此方法
+    /// </summary>
+    private void NotifyInventoryChanged()
+    {
+        InventoryVersion++;
+        OnInventoryChanged?.Invoke();
+    }
 
     //倍率逻辑:获取玩家拥有的公式卡数量，作为每回合的基础倍率
     public int GetFormulaCardCount()
@@ -94,6 +111,7 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     {
         numberCards.Clear();
         formulaCards.Clear();
+        NotifyInventoryChanged();
     }
 
     public void InitStarterDeck(List<NumberCardData> starterNumbers,
@@ -107,6 +125,7 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
             numberCards.Add(new NumberCardInstance(card));
         }
         formulaCards.AddRange(starterFormulas);
+        NotifyInventoryChanged();
     }
 
     // =========================
@@ -118,12 +137,14 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
         NumberCardInstance instance = new NumberCardInstance(card);
         numberCards.Add(instance);
         Debug.Log("获得数字卡：" + card.name);
+        NotifyInventoryChanged();
     }
 
     public void AddFormulaCard(FormulaCardData card)
     {
         formulaCards.Add(card);
         Debug.Log("获得公式卡：" + card.Name);
+        NotifyInventoryChanged();
     }
     // =========================
     // 删除卡牌
@@ -133,6 +154,7 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
         if (numberCards.Remove(card))
         {
             Debug.Log($"[PlayerCardInventory] 成功删除数字卡：{card.cardData.name}（剩余 {numberCards.Count} 张）");
+            NotifyInventoryChanged();
             return true;
         }
         else
@@ -150,6 +172,7 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
         if (formulaCards.Remove(card))
         {
             Debug.Log($"[PlayerCardInventory] 成功删除公式卡：{card.Name}（剩余 {formulaCards.Count} 张）");
+            NotifyInventoryChanged();
             return true;
         }
         else
@@ -181,10 +204,11 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     {
         for (int i = 0; i < count; i++)
         {
-            int randomIndex = Random.Range(0, numberCardLibrary.allCards.Count);
+            int randomIndex = UnityEngine.Random.Range(0, numberCardLibrary.allCards.Count);
             NumberCardData randomCard = numberCardLibrary.allCards[randomIndex];
             AddNumberCard(randomCard);
         }
+        NotifyInventoryChanged();
     }   
 
     // =========================

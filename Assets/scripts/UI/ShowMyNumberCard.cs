@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
 using UnityEngine.UI;
+using System;
 
 public class ShowMyNumberCard : MonoBehaviour
+    , ISelectablePanel
 {
     [Header("容器引用")]
     public Transform contentRoot;
@@ -13,6 +15,30 @@ public class ShowMyNumberCard : MonoBehaviour
     public ScrollRect scrollRect; // 关键：需要绑定 ScrollRect 组件
 
     private Dictionary<NumberCardInstance, GameObject> cardGameObjects = new Dictionary<NumberCardInstance, GameObject>();
+
+    // 反向映射：GameObject → NumberCardInstance，供 CardClickHandler 查找
+    private Dictionary<GameObject, NumberCardInstance> goToInstance = new Dictionary<GameObject, NumberCardInstance>();
+
+    // 脏标记：与 PlayerCardInventory.InventoryVersion 比较，版本一致则跳过重建
+    private int lastKnownInventoryVersion = -1;
+
+    // 统一卡牌点击处理器
+    private CardClickHandler clickHandler;
+
+    private void Awake()
+    {
+        // 初始化 CardClickHandler（如果尚未挂载）
+        if (contentRoot != null)
+        {
+            clickHandler = contentRoot.GetComponent<CardClickHandler>();
+            if (clickHandler == null)
+                clickHandler = contentRoot.gameObject.AddComponent<CardClickHandler>();
+            clickHandler.Initialize(this);
+        }
+        // 订阅选择模式变更事件
+        if (CardSelectionManager.Instance != null)
+            CardSelectionManager.Instance.OnSelectionModeChanged += OnSelectionModeChanged;
+    }
     [Header("显示设置")]
     public float cardScale = 1.0f;
 
@@ -32,10 +58,18 @@ public class ShowMyNumberCard : MonoBehaviour
     private void OnEnable()
     {
         InitializeScrollRect();
-        RefreshAllCards();
-
-        // 根据当前的SelectionMode激活对应的button
-        ActivateButtonsBasedOnMode();
+        // 脏检查：库存版本未变化则跳过重建
+        if (PlayerCardInventory.Instance != null &&
+            PlayerCardInventory.Instance.InventoryVersion != lastKnownInventoryVersion)
+        {
+            RefreshAllCards();
+        }
+        else
+        {
+            // 仅更新删卡费用 UI（不重建卡片）
+            UpdateDeletionUI(ShopManager.Instance != null
+                ? ShopManager.Instance.GetNextNumberCardDeletionCost() : 10);
+        }
     }
     /// <summary>
     /// 初始化滚轮支持
@@ -130,9 +164,14 @@ public class ShowMyNumberCard : MonoBehaviour
             Destroy(child.gameObject);
         }
         cardGameObjects.Clear();
+        goToInstance.Clear();
 
         GenerateNumberCards();
         
+        // 记录当前库存版本，避免下次 OnEnable 重复重建
+        if (PlayerCardInventory.Instance != null)
+            lastKnownInventoryVersion = PlayerCardInventory.Instance.InventoryVersion;
+
         // 3. 强制重建布局
         if (contentRoot != null)
         {
@@ -143,9 +182,6 @@ public class ShowMyNumberCard : MonoBehaviour
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRect.GetComponent<RectTransform>());
         }
-
-        // 每次刷新卡牌后，重新激活按钮（防止新生成的卡牌没按钮）
-        ActivateButtonsBasedOnMode();
 
         if (ShopManager.Instance != null)
         {
@@ -219,13 +255,17 @@ public class ShowMyNumberCard : MonoBehaviour
             }
 
             cardGameObjects[instance] = go;
+            goToInstance[go] = instance;
         }
     }
     private void OnDisable()
     {
-        // 禁用删卡按钮
-        if (deleteNumberCardButton != null)
-            deleteNumberCardButton.gameObject.SetActive(false);
+        // 清空反向映射
+        goToInstance.Clear();
+        // 取消事件订阅，防止面板关闭后仍响应模式变更
+        if (CardSelectionManager.Instance != null)
+            CardSelectionManager.Instance.OnSelectionModeChanged -= OnSelectionModeChanged;
+        lastKnownInventoryVersion = -1;
     }
 
     /// <summary>
@@ -246,56 +286,32 @@ public class ShowMyNumberCard : MonoBehaviour
         Debug.Log($"[ShowMyNumberCard] 进入删卡模式，初始消耗: {initialCost}");
     }
     /// <summary>
-    /// 根据当前选择模式激活对应的button
+    /// ISelectablePanel 接口：选择模式变更时回调
     /// </summary>
-    private void ActivateButtonsBasedOnMode()
+    public void OnSelectionModeChanged(CardSelectionManager.SelectionMode mode)
     {
-        var mode = CardSelectionManager.Instance.GetCurrentMode();
-
-        // 删卡模式：激活数字卡的删除按钮
         if (mode == CardSelectionManager.SelectionMode.RemoveCard)
         {
-            ActivateNumberCardDeletionButtons();
+            EnterDeletionMode();
         }
     }
 
     /// <summary>
-    /// 激活数字卡的删除按钮
+    /// ISelectablePanel 接口：处理卡牌点击，由 CardClickHandler 统一分发
     /// </summary>
-    private void ActivateNumberCardDeletionButtons()
+    public void HandleCardClick(GameObject clickedCardRoot, CardSelectionManager.SelectionMode mode)
     {
-        var instances = PlayerCardInventory.Instance.GetAllNumberCards();
-
-        int activatedCount = 0;
-
-        foreach (var instance in instances)
+        if (goToInstance.TryGetValue(clickedCardRoot, out NumberCardInstance card))
         {
-            if (instance == null || !cardGameObjects.ContainsKey(instance))
-                continue;
-
-            GameObject cardGo = cardGameObjects[instance];
-            if (cardGo == null) continue;
-
-            // 查找或添加删除按钮
-            Button deleteBtn = cardGo.GetComponent<Button>();
-            if (deleteBtn == null)
+            switch (mode)
             {
-                deleteBtn = cardGo.GetComponentInChildren<Button>(true);
+                case CardSelectionManager.SelectionMode.RemoveCard:
+                    OnNumberCardDeleteSelected(card);
+                    break;
+                case CardSelectionManager.SelectionMode.CardCheat:
+                    CardSelectionManager.Instance.OnCardSelected(card);
+                    break;
             }
-
-            // 清除之前的监听
-            deleteBtn.onClick.RemoveAllListeners();
-
-            // 添加删除回调 - 使用局部变量捕获，避免闭包问题
-            NumberCardInstance cardInstance = instance;
-            deleteBtn.onClick.AddListener(() => OnNumberCardDeleteSelected(cardInstance));
-
-            // 激活按钮
-            deleteBtn.gameObject.SetActive(true);
-
-            activatedCount++;
-
-            Debug.Log($"[ShowMyNumberCard] 激活数字删除按钮");
         }
     }
 
@@ -356,40 +372,17 @@ public class ShowMyNumberCard : MonoBehaviour
         }
     }
     
-    // 老千专用：显示数字卡并自动给每张卡加按钮（许愿币同款逻辑）
+    // 老千专用：显示数字卡，点击由 CardClickHandler 统一处理
     public void ShowCardsForCardCheat()
     {
-        // 清空旧卡片
         foreach (Transform child in contentRoot)
             Destroy(child.gameObject);
         cardGameObjects.Clear();
+        goToInstance.Clear();
 
-        // 正常生成数字卡
         GenerateNumberCards();
-
-        // 给每张卡自己加按钮（核心逻辑，和许愿币一样）
-        foreach (var pair in cardGameObjects)
-        {
-            NumberCardInstance card = pair.Key;
-            GameObject cardObj = pair.Value;
-
-            // 获取或添加 Button
-            Button btn = cardObj.GetComponent<Button>();
-            if (btn == null)
-                btn = cardObj.AddComponent<Button>();
-
-            // 清除旧监听，避免重复
-            btn.onClick.RemoveAllListeners();
-
-            // 点击后直接提交选择
-            btn.onClick.AddListener(() =>
-            {
-                CardSelectionManager.Instance.OnCardSelected(card);
-            });
-        }
 
         // 刷新UI布局
         LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);
     }
-
 }
