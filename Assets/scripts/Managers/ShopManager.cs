@@ -498,34 +498,27 @@ public class ShopManager : MonoBehaviour
         
         int remainingSlots = MaxBlessingCardCount - wishAdded - darkBoxAdded;//减去许愿币和暗箱操作占位
         
-        // 生成4个槽位（包括锁定的）
+        // 生成所有槽位（包括锁定的）。
+        // 锁定槽位同样填充真实祝福数据，锁定状态由 UI 层通过 blessingCardCount 判断，
+        // 这样解锁槽位后无需重新生成商品即可正常显示（与数字卡/公式卡行为一致）。
         for (int i = 0; i < remainingSlots; i++)
         {
             int slotIndex = i + wishAdded + darkBoxAdded;
 
-            // 如果是解锁的槽位
-            if (slotIndex < blessingCardCount)
+            // 从可用池中选择祝福
+            if (availableBlessings.Count > 0)
             {
-                // 从可用池中选择祝福
-                if (availableBlessings.Count > 0)
-                {
-                    BlessingData selectedBlessing = DrawBlessingFromPool(availableBlessings);
-                    ShopItem<BlessingData> item = CreateBlessingShopItem(selectedBlessing, priceMultiplier);
+                BlessingData selectedBlessing = DrawBlessingFromPool(availableBlessings);
+                ShopItem<BlessingData> item = CreateBlessingShopItem(selectedBlessing, priceMultiplier);
 
-                    shopBlessings.Add(item);
-                    Debug.Log($"祝福槽位{slotIndex}：{selectedBlessing.blessingName}（{selectedBlessing.refreshBehavior}），价格 {item.price}");
-                }
-                else
-                {
-                    // 可用祝福不足，添加空槽位
-                    shopBlessings.Add(new ShopItem<BlessingData>(null, 0));
-                    Debug.LogWarning($"[ShopManager] 可用祝福不足！槽位{slotIndex}无法填充");
-                }
+                shopBlessings.Add(item);
+                Debug.Log($"祝福槽位{slotIndex}：{selectedBlessing.blessingName}（{selectedBlessing.refreshBehavior}），价格 {item.price}");
             }
             else
             {
-                // 锁定槽位：添加占位符（null）
+                // 可用祝福不足，添加空槽位
                 shopBlessings.Add(new ShopItem<BlessingData>(null, 0));
+                Debug.LogWarning($"[ShopManager] 可用祝福不足！槽位{slotIndex}无法填充");
             }
         }
     }

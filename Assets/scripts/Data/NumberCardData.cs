@@ -255,8 +255,8 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 return a;
         }
     }
-    
 
+    #region 价格计算逻辑
     /// <summary>
     /// GetNumberCardPrice 返回 long，避免溢出
     /// 按文档规则计算卡牌价格：期望计算 → 倍率修正 → 舍入
@@ -336,6 +336,10 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             // 第三步：舍入
             long finalPrice = RoundPrice(priceAfterRate);
 
+            if (finalPrice < 0) 
+            {
+                finalPrice = Math.Abs(finalPrice); // 负数取绝对值
+            }
             return finalPrice;
         }
         catch (System.Exception e)
@@ -441,52 +445,48 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         long x = Math.Abs(a.isDice ? a.diceSides : a.value);
         long y = Math.Abs(b.isDice ? b.diceSides : b.value);
 
+        long sum = 0;
         try
         {
             // 1. x^~y~ （底数普通，指数骰子）
             if (!aIsDice && !aIsInc && bIsDice && !bIsInc)
             {
-                long sum = 0;
                 for (long j = 1; j <= y; j++)
                 {
                     sum += (long)System.Math.Pow(x, (int)j);
                 }
-                return sum / y;
+                sum = sum / y;
             }
             // 2. ~x~^y （底数骰子，指数普通）
             else if (aIsDice && !aIsInc && !bIsDice && !bIsInc)
             {
-                long sum = 0;
                 for (long i = 1; i <= x; i++)
                 {
                     sum += (long)System.Math.Pow((int)i, (int)y);
                 }
-                return sum / x;
+                sum = sum / x;
             }
             // 3. x^{y} （底数普通，指数递增）
             else if (!aIsDice && !aIsInc && bIsInc && !bIsDice)
             {
-                long sum = 0;
                 for (int j = 1; j <= 9; j++)
                 {
                     sum += (long)System.Math.Pow(x, (int)(y + j));
                 }
-                return sum / 9;
+                sum = sum / 9;
             }
             // 4. {x}^y （底数递增，指数普通）
             else if (aIsInc && !aIsDice && !bIsDice && !bIsInc)
             {
-                long sum = 0;
                 for (int i = 1; i <= 9; i++)
                 {
                     sum += (long)System.Math.Pow((int)(x + i), (int)y);
                 }
-                return sum / 9;
+                sum = sum / 9;
             }
             // 5. {x}^~y~ （底数递增，指数骰子）
             else if (aIsInc && !aIsDice && bIsDice && !bIsInc)
             {
-                long sum = 0;
                 for (int i = 1; i <= 9; i++)
                 {
                     long innerSum = 0;
@@ -496,12 +496,11 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                     }
                     sum += innerSum;
                 }
-                return sum / (9 * y);
+                sum = sum / (9 * y);
             }
             // 6. ~x~^{y} （底数骰子，指数递增）
             else if (aIsDice && !aIsInc && bIsInc && !bIsDice)
             {
-                long sum = 0;
                 for (long i = 1; i <= x; i++)
                 {
                     long innerSum = 0;
@@ -511,12 +510,11 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                     }
                     sum += innerSum;
                 }
-                return sum / (9 * x);
+                sum = sum / (9 * x);
             }
             // 7. ~x~^~y~ （底数骰子，指数骰子）
             else if (aIsDice && !aIsInc && bIsDice && !bIsInc)
             {
-                long sum = 0;
                 for (long i = 1; i <= x; i++)
                 {
                     long innerSum = 0;
@@ -526,23 +524,23 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                     }
                     sum += innerSum;
                 }
-                return sum / (x * y);
+                sum = sum / (x * y);
             }
             // 8. {x}^{y} （底数递增，指数递增）
             else if (aIsInc && !aIsDice && bIsInc && !bIsDice)
             {
-                long sum = 0;
                 for (int i = 1; i <= 9; i++)
                 {
                     sum += (long)System.Math.Pow((int)(x + i), (int)(y + i));
                 }
-                return sum / 9;
+                sum = sum / 9;
             }
             else
             {
                 Debug.LogWarning($"未匹配的指数型组合：A(骰子={aIsDice},递增={aIsInc})，B(骰子={bIsDice},递增={bIsInc})");
-                return 0;
+                sum = 0;
             }
+            return Math.Abs(sum); // 返回绝对值，避免负数
         }
         catch (System.Exception e)
         {
@@ -607,22 +605,6 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
 
         return count;
     }
+    #endregion 
 
-    /// <summary>
-    /// 辅助方法：计算BigInteger的有效数字位数
-    /// 解决Mathf.Log10无法处理超大数的问题
-    /// </summary>
-    private int GetBigIntegerDigitCount(BigInteger num)
-    {
-        if (num == BigInteger.Zero)
-            return 1;
-        num = BigInteger.Abs(num);
-        int count = 0;
-        while (num > BigInteger.Zero)
-        {
-            num /= 10;
-            count++;
-        }
-        return count;
-    }
 }

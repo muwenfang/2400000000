@@ -3,8 +3,6 @@ using UnityEngine.EventSystems;
 
 /// <summary>
 /// 统一卡牌点击处理器
-/// 挂载在面板的 contentRoot 上，实现 IPointerClickHandler，
-/// 通过事件委托替代逐卡添加 Button，将 O(n) 的按钮激活优化为 O(1) 的点击分发。
 /// </summary>
 public class CardClickHandler : MonoBehaviour, IPointerClickHandler
 {

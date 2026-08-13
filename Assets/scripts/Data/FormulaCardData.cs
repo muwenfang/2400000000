@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +15,7 @@ public class FormulaCardData : ScriptableObject
     public string Pattern; // 公式，如 "#*#+#"
     public string Name;    // 名称
     public int RequiredCount; // 所需填空数量
-    public int CardPrice;     // 价格
+    public long CardPrice;    // 价格（long 类型，可容纳超大价格，int 上限约 21 亿）
     public int FormulaCardId; // 编号
 
     private readonly List<FormulaCardData> _formulas = new();

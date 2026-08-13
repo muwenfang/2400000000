@@ -15,5 +15,5 @@ MonoBehaviour:
   Pattern: (#+#-#)*(#+#)
   Name: (#+#-#)*(#+#)
   RequiredCount: 5
-  CardPrice: 12
+  CardPrice: 1200
   FormulaCardId: 22

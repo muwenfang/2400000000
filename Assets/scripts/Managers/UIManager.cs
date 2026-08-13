@@ -1036,6 +1036,27 @@ public class UIManager : MonoBehaviour
     }
     #endregion
 
+    #region 启明星
+    // 启明星：打开数字卡选择面板
+    public void OpenMorningStarNumberSelection()
+    {
+        if (myNumberCardPanel != null)
+        {
+            myNumberCardPanel.SetActive(true);
+            myNumberCardPanel.transform.SetAsLastSibling();
+        }
+    }
+
+    // 启明星：关闭数字卡选择面板
+    public void CloseMorningStarNumberSelection()
+    {
+        if (myNumberCardPanel != null)
+        {
+            myNumberCardPanel.SetActive(false);
+        }
+    }
+    #endregion
+
     #region 多多益善
     // 多多益善：打开公式卡选择界面
     public void OpenMoreMoreBetterSelection()

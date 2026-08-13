@@ -81,6 +81,7 @@ public class BlessingManager : MonoBehaviour
     public int wealthStarCount = 0;                     //财星
     public int disasterStarCount = 0;                   //祸星
     public int morningsStarCount = 0;                   //启明星
+    public List<NumberCardInstance> morningStarTargetCards = new List<NumberCardInstance>(); //启明星锁定的数字卡（下一回合必抽）
     public int compassionStarCount = 0;                 //慈爱星
     public int bigSevenStarCount = 0;                   //大七星
     public bool hasFinancialExpert = false;             //金融专家
@@ -158,6 +159,7 @@ public class BlessingManager : MonoBehaviour
         wealthStarCount = 0;                     //财星
         disasterStarCount = 0;                   //祸星
         morningsStarCount = 0;                   //启明星
+        morningStarTargetCards.Clear();          //启明星锁定的数字卡
         compassionStarCount = 0;                 //慈爱星
         bigSevenStarCount = 0;                   //大七星
         hasFinancialExpert = false;             //金融专家
@@ -602,6 +604,37 @@ public class BlessingManager : MonoBehaviour
                 compassionStarCount++;
                 Debug.Log($"慈爱星祝福激活：当前慈爱星数量 {compassionStarCount}");
                 break;
+
+            case BlessingData.BlessingType.MorningStar:
+                // 启明星：购买此祝福后，选择一张数字卡：你在下一回合一定会抽到它
+                morningsStarCount++;
+                ActivateMorningStarSelection();
+                Debug.Log($"启明星祝福激活：当前启明星数量 {morningsStarCount}");
+                break;
+
+            case BlessingData.BlessingType.BigSevenStar:
+                // 大七星：如果可能，失去除自身外所有名称末尾为星字的祝福各一个，然后获得24亿点，你每拥有一个大七星，获得的点数翻10倍
+                bigSevenStarCount++;
+                Debug.Log($"大七星祝福激活：当前大七星数量 {bigSevenStarCount}");
+                break;
+
+            case BlessingData.BlessingType.FinancialExpert:
+                // 金融专家：你的黄金数字同时也拥有绿色数字的特性
+                hasFinancialExpert = true;
+                Debug.Log("金融专家祝福激活：你的黄金数字同时也拥有绿色数字的特性");
+                break;
+
+            case BlessingData.BlessingType.BettingExpert:
+                // 博彩专家：你的骰子判定点数同时也拥有黄金数字的特性
+                hasBettingExpert = true;
+                Debug.Log("博彩专家祝福激活：你的骰子判定点数同时也拥有黄金数字的特性");
+                break;
+
+            case BlessingData.BlessingType.CasinoCommissioner:
+                // 赌场专员：你的骰子点数判定为其最大值后将自动升一级
+                hasCasinoCommissioner = true;
+                Debug.Log("赌场专员祝福激活：你的骰子点数判定为其最大值后将自动升一级");
+                break;
         }
     }
 
@@ -668,7 +701,32 @@ public class BlessingManager : MonoBehaviour
             PlayerCardInventory.Instance.AddRandomNumberCards(1);
         }
     }
-    
+
+    // 触发启明星选择流程
+    private void ActivateMorningStarSelection()
+    {
+        Debug.Log("=== 启明星：开始选择数字卡 ===");
+
+        CardSelectionManager.Instance.StartCardSelection(
+            CardSelectionManager.SelectionMode.MorningStarSelect,
+            OnMorningStarSelected);
+
+        UIManager.Instance.OpenMorningStarNumberSelection();
+    }
+
+    // 启明星选择完成回调
+    private void OnMorningStarSelected(object selectedObject)
+    {
+        CardSelectionManager.Instance.EndCardSelection();
+        UIManager.Instance.CloseMorningStarNumberSelection();
+
+        if (selectedObject is NumberCardInstance card)
+        {
+            morningStarTargetCards.Add(card);
+            Debug.Log($"启明星已锁定：下一回合必抽【{card.cardData.cardName}】");
+        }
+    }
+
     /// <summary>Price
     /// 许愿币：打开祝福选择界面（只显示玩家已拥有的可叠加祝福）
     /// </summary>
@@ -1003,6 +1061,8 @@ public class BlessingManager : MonoBehaviour
         reverse = 0;                    // 翻转
         wealthStarCount = 0;            // 财星
         disasterStarCount = 0;          // 祸星
+        morningsStarCount = 0;          // 启明星
+        morningStarTargetCards.Clear(); // 启明星锁定的数字卡
         compassionStarCount = 0;        // 慈爱星
     }
 

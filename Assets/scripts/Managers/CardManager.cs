@@ -136,6 +136,24 @@ public class CardManager : MonoBehaviour
 
         currentNumberCards.Clear(); // 确保手牌清空
 
+        // 启明星祝福：购买后锁定的数字卡，下一回合必抽
+        if (BlessingManager.Instance != null && BlessingManager.Instance.morningStarTargetCards.Count > 0)
+        {
+            foreach (var target in BlessingManager.Instance.morningStarTargetCards)
+            {
+                if (currentNumberCards.Count >= count) break;
+                if (target != null && tempPool.Contains(target))
+                {
+                    tempPool.Remove(target);
+                    target.OnDrawn();
+                    currentNumberCards.Add(target);
+                    Debug.Log("[启明星]必抽到: " + target.cardData.cardName);
+                }
+            }
+            // 启明星为一次性效果，抽完后清空
+            BlessingManager.Instance.morningStarTargetCards.Clear();
+        }
+
         // 经验主义祝福
         if (BlessingManager.Instance.GetBlessingTypeCount(BlessingData.BlessingType.Empiricism) == 1)
         {
@@ -185,7 +203,7 @@ public class CardManager : MonoBehaviour
         // ================= 正常抽卡（没有经验主义时） =================
         else
         {
-            for (int i = 0; i < count; i++)
+            for (int i = currentNumberCards.Count; i < count; i++)
             {
                 if (tempPool.Count == 0)
                 {

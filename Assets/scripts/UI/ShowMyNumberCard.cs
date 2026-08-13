@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -309,6 +309,9 @@ public class ShowMyNumberCard : MonoBehaviour
                     OnNumberCardDeleteSelected(card);
                     break;
                 case CardSelectionManager.SelectionMode.CardCheat:
+                    CardSelectionManager.Instance.OnCardSelected(card);
+                    break;
+                case CardSelectionManager.SelectionMode.MorningStarSelect:
                     CardSelectionManager.Instance.OnCardSelected(card);
                     break;
             }

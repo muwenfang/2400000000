@@ -15,5 +15,5 @@ MonoBehaviour:
   Pattern: (#+#)*#*#*#
   Name: (#+#)*#*#*#
   RequiredCount: 5
-  CardPrice: 102400
+  CardPrice: 10240000
   FormulaCardId: 9

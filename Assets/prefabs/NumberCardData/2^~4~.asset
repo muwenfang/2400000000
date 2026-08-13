@@ -17,13 +17,13 @@ MonoBehaviour:
   partA:
     isDice: 0
     isIncremental: 0
+    isGolden: 0
     value: 2
-    price: 10
     diceSides: 0
   partB:
     isDice: 1
     isIncremental: 0
+    isGolden: 0
     value: 0
-    price: 0
     diceSides: 4
   logicalType: 2

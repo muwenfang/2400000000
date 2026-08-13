@@ -14,7 +14,8 @@ public class CardSelectionManager : MonoBehaviour
         RemoveCard,
         WishCoinSelect,
         MoreMoreBetter,
-        DarkBoxSelect
+        DarkBoxSelect,
+        MorningStarSelect
     }
 
     private SelectionMode currentMode;

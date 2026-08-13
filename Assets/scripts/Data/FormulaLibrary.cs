@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using UnityEngine;
 
 /// <summary>
@@ -50,7 +50,7 @@ public class FormulaCardLibrary : ScriptableObject
     /// <summary>
     /// 创建单张公式卡（运行时创建，不会保存为资源文件）
     /// </summary>
-    FormulaCardData CreateCard(string pattern, int requiredCount, int id, int price)
+    FormulaCardData CreateCard(string pattern, int requiredCount, int id, long price)
     {
         FormulaCardData card = ScriptableObject.CreateInstance<FormulaCardData>();
         card.Pattern = pattern;

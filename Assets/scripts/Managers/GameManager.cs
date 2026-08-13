@@ -90,7 +90,7 @@ public class GameManager : MonoBehaviour
         // 重置本局统计数据
         ResetRoundStatistics();
 
-        currentPoints = 0;
+        currentPoints = 99999999990;
 
         currentRound = 1;
 
