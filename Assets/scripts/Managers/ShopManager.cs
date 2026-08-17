@@ -63,7 +63,6 @@ public class ShopManager : MonoBehaviour
     public int formulaSlotUnlockTimes = 0; // 公式卡已解锁次数
 
     [Header("冷却配置")]
-    [SerializeField] private float purchaseCooldown = 0.2f;    // 购买冷却
     [SerializeField] private float unlockCooldown = 0.1f;      // 解锁冷却
     [SerializeField] private float cardDeletionCooldown = 0.06f;     // 删卡冷却
 
@@ -667,14 +666,7 @@ public class ShopManager : MonoBehaviour
     {
         if (deleteCardButton == null) return;
 
-        // 计算删除消耗
-        BigInteger deleteCost = CalculateDeletionCost();
-
-        // 显示删除消耗
-        if (deleteCardCostText != null)
-        {
-            deleteCardCostText.text = "$ " + FormatBigNumber(deleteCost);
-        }
+        RefreshDeleteCostText();
 
         // 设置删除按钮事件
         deleteCardButton.onClick.RemoveAllListeners();
@@ -728,6 +720,46 @@ public class ShopManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 刷新商店删除按钮旁边的删卡费用文本。
+    /// </summary>
+    public void RefreshDeleteCostText()
+    {
+        if (deleteCardCostText == null) return;
+
+        BigInteger deleteCost = CalculateDeletionCost();
+        deleteCardCostText.text = "点数 " + FormatBigNumber(deleteCost);
+    }
+
+    /// <summary>
+    /// 退出删卡模式，并隐藏所有删卡费用提示。
+    /// </summary>
+    public void ExitDeletionMode()
+    {
+        isDeletionMode = false;
+
+        if (CardSelectionManager.Instance != null &&
+            CardSelectionManager.Instance.GetCurrentMode() == CardSelectionManager.SelectionMode.RemoveCard)
+        {
+            CardSelectionManager.Instance.EndCardSelection();
+        }
+
+        if (deleteCostPanel != null)
+        {
+            deleteCostPanel.SetActive(false);
+        }
+
+        if (showNumberCard != null)
+        {
+            showNumberCard.HideDeletionCostUI();
+        }
+
+        if (showFormula != null)
+        {
+            showFormula.HideDeletionCostUI();
+        }
+    }
+
+    /// <summary>
     /// 卡牌删除回调 - 检查点数、冷却，执行扣除
     /// </summary>
     public bool OnCardDeleted(NumberCardInstance cardToDelete)
@@ -774,6 +806,7 @@ public class ShopManager : MonoBehaviour
     void StartDeletion()
     {
         isDeletionMode = true;
+        RefreshDeleteCostText();
         CardSelectionManager.Instance.StartCardSelection(
             CardSelectionManager.SelectionMode.RemoveCard,
             OnCardSelectedForDeletion
@@ -785,7 +818,7 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     void OnCardSelectedForDeletion(object selectedObject)
     {
-        isDeletionMode = false;
+        ExitDeletionMode();
 
         // 实际的删除操作已通过 CardClickHandler → ShowMyXxx.TryHandleDeleteClick →
         // ShopManager.OnCardDeleted / OnFormulaCardDeleted 路径处理

@@ -60,7 +60,6 @@ public class ShowMyBlessings : MonoBehaviour, ISelectablePanel
                 Destroy(kvp.Value);
         }
         cardGameObjects.Clear();
-        displayedBlessings.Clear();
         blessingStackCounts.Clear();
 
         List<BlessingInstance> ownedList = BlessingManager.Instance.GetOwnedBlessings();
@@ -88,7 +87,6 @@ public class ShowMyBlessings : MonoBehaviour, ISelectablePanel
         foreach (var kvp in blessingDict.Values)
         {
             CreateBlessingCard(kvp.data, kvp.totalCount);
-            displayedBlessings.Add(kvp.data);
             if (!blessingStackCounts.ContainsKey(kvp.data.blessingId))
                 blessingStackCounts[kvp.data.blessingId] = kvp.totalCount;
         }
@@ -102,7 +100,6 @@ public class ShowMyBlessings : MonoBehaviour, ISelectablePanel
                 Destroy(kvp.Value);
         }
         cardGameObjects.Clear();
-        displayedBlessings.Clear();
 
         List<BlessingData> stackableBlessings = BlessingManager.Instance.blessingLibrary.GetAllStackableBlessing();
         if (stackableBlessings == null) return;
@@ -113,7 +110,6 @@ public class ShowMyBlessings : MonoBehaviour, ISelectablePanel
             if (ownedCount > 0)
             {
                 CreateBlessingCard(blessing, ownedCount);
-                displayedBlessings.Add(blessing);
             }
         }
     }

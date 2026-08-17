@@ -71,6 +71,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
 
     private void OnDisable()
     {
+        HideDeletionCostUI();
         goToData.Clear();
         lastKnownInventoryVersion = -1;
         // 取消事件订阅
@@ -91,6 +92,10 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
                 deletionCost = ShopManager.Instance.CalculateDeletionCost();
                 UpdateDeletionUI(deletionCost);
             }
+        }
+        else
+        {
+            HideDeletionCostUI();
         }
         // MoreMoreBetter 模式：已由 ShowCardsForMoreMoreBetter() 单独处理，此处无需额外逻辑
     }
@@ -295,20 +300,34 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
     }
     private void UpdateDeletionUI(BigInteger cost)
     {
-        if(ShopManager.Instance.isDeletionMode == false)
+        bool shouldShow = ShopManager.Instance != null && ShopManager.Instance.isDeletionMode;
+        if(!shouldShow)
         {
-            deletionCostPanel.gameObject.SetActive(false);
+            HideDeletionCostUI();
         }
         else
         {
+            if (deletionCostPanel == null || deletionCostText == null) return;
+
             deletionCostPanel.gameObject.SetActive(true);   
             deletionCostPanel.transform.SetAsLastSibling(); // ȷ������ǰ����ʾ
 
-            deletionCostText.text = "һ          " + FormatBigNumber(cost).ToString();
+            deletionCostText.text = "点数 " + FormatBigNumber(cost);
 
             Debug.Log($"[ShowMyFormula] ����UI");
         }
 
+    }
+
+    /// <summary>
+    /// 关闭公式卡删卡费用提示。
+    /// </summary>
+    public void HideDeletionCostUI()
+    {
+        if (deletionCostPanel != null)
+        {
+            deletionCostPanel.SetActive(false);
+        }
     }
     public string FormatBigNumber(BigInteger number)
     {
@@ -318,6 +337,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
     public Color incrementalColor = Color.green;
     public Color diceColor = Color.red;
     public Color normalColor = Color.black;
+    public Color goldenColor = new Color(0.72f, 0.52f, 0.02f);
 
     /// <summary>
     /// 通用方法：设置文本内容和颜色
@@ -340,6 +360,12 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
         {
             textComp.text = currentValue.ToString();
             textComp.color = normalColor;
+        }
+
+        // 黄金数字颜色优先级最高，避免被骰子/递增颜色盖掉。
+        if (component.isGolden)
+        {
+            textComp.color = goldenColor;
         }
     }
 

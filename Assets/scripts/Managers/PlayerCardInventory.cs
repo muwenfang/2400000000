@@ -136,14 +136,12 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     {
         NumberCardInstance instance = new NumberCardInstance(card);
         numberCards.Add(instance);
-        Debug.Log("获得数字卡：" + card.name);
         NotifyInventoryChanged();
     }
 
     public void AddFormulaCard(FormulaCardData card)
     {
         formulaCards.Add(card);
-        Debug.Log("获得公式卡：" + card.Name);
         NotifyInventoryChanged();
     }
     // =========================

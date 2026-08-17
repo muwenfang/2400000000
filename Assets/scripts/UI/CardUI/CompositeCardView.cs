@@ -20,6 +20,7 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
     public Color incrementalColor = Color.green;   // 递增数字：绿色
     public Color diceColor = Color.red;            // 骰子数字：红色
     public Color normalColor = Color.black;        // 普通数字：黑色
+    public Color goldenColor = Color.yellow;       // 黄金数字：黄色
 
     public Text pointsText;
 
@@ -99,8 +100,8 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         aText.text = data.partA.value.ToString();
         bText.text = data.partB.value.ToString();
 
-        aText.color = normalColor;
-        bText.color = normalColor;
+        aText.color = data.partA.isGolden ? goldenColor : normalColor;
+        bText.color = data.partB != null && data.partB.isGolden ? goldenColor : normalColor;
 
         // 隐藏静态数据绑定时的图标
         if (diceIconA != null)
@@ -223,7 +224,7 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
                 // 结算时：显示投出的具体数值
                 textComp.text = currentValue.ToString();
             }
-            textComp.color = diceColor;
+            textComp.color = component.isGolden ? goldenColor : diceColor;
 
             // 显示骰子图标
             if (showDiceIcon && DiceIconManager.Instance != null && iconComp != null)
@@ -235,7 +236,7 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         {
             // 递增显示：{当前值} (绿色)
             textComp.text = $"{currentValue}";
-            textComp.color = incrementalColor;
+            textComp.color = component.isGolden ? goldenColor : incrementalColor;
 
             // 隐藏非骰子的图标
             if (iconComp != null)
@@ -247,7 +248,7 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         {
             // 普通显示：数值 (黑色)
             textComp.text = currentValue.ToString();
-            textComp.color = normalColor;
+            textComp.color = component.isGolden ? goldenColor : normalColor;
 
             // 隐藏非骰子的图标
             if (iconComp != null)
@@ -277,7 +278,6 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         {
             iconComp.sprite = icon;
             iconComp.gameObject.SetActive(true);
-            Debug.Log($"[CompositeNumberView] 设置骰子图标，面数: {diceSides}");
         }
         else
         {

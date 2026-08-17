@@ -54,6 +54,7 @@ public class ShowMyNumberCard : MonoBehaviour
     public Color incrementalColor = Color.green;   // 递增数字：绿色
     public Color diceColor = Color.red; // 骰子数字：红色
     public Color normalColor = Color.black;        // 普通数字：黑色
+    public Color goldenColor = new Color(0.72f, 0.52f, 0.02f); // 黄金数字：较深黄色
 
     private void OnEnable()
     {
@@ -192,20 +193,34 @@ public class ShowMyNumberCard : MonoBehaviour
     }
     private void UpdateDeletionUI(BigInteger cost)
     {
-        if (ShopManager.Instance.isDeletionMode == false)
+        bool shouldShow = ShopManager.Instance != null && ShopManager.Instance.isDeletionMode;
+        if (!shouldShow)
         {
-            deletionCostPanel.gameObject.SetActive(false);
+            HideDeletionCostUI();
         }
         else
         {
+            if (deletionCostPanel == null || deletionCostText == null) return;
+
             deletionCostPanel.gameObject.SetActive(true);
             deletionCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
 
-            deletionCostText.text = "六          " + FormatBigNumber(cost).ToString();
+            deletionCostText.text = "点数 " + FormatBigNumber(cost);
 
             Debug.Log($"[ShowMyNumberCard] 更新UI ");
         }
         
+    }
+
+    /// <summary>
+    /// 关闭数字卡删卡费用提示。
+    /// </summary>
+    public void HideDeletionCostUI()
+    {
+        if (deletionCostPanel != null)
+        {
+            deletionCostPanel.SetActive(false);
+        }
     }
     public string FormatBigNumber(BigInteger number)
     {
@@ -260,6 +275,7 @@ public class ShowMyNumberCard : MonoBehaviour
     }
     private void OnDisable()
     {
+        HideDeletionCostUI();
         // 清空反向映射
         goToInstance.Clear();
         // 取消事件订阅，防止面板关闭后仍响应模式变更
@@ -293,6 +309,10 @@ public class ShowMyNumberCard : MonoBehaviour
         if (mode == CardSelectionManager.SelectionMode.RemoveCard)
         {
             EnterDeletionMode();
+        }
+        else
+        {
+            HideDeletionCostUI();
         }
     }
 

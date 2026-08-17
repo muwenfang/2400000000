@@ -153,7 +153,6 @@ public class UIManager : MonoBehaviour
             }
         }
 
-        Debug.Log($"已激活并置顶面板: {panelToShow.name}");
     }
     public void HideAllPanel()
     {
@@ -206,6 +205,11 @@ public class UIManager : MonoBehaviour
 
     private void HideDeletionCostPanelsForBlessView()
     {
+        if (ShopManager.Instance != null)
+        {
+            ShopManager.Instance.ExitDeletionMode();
+        }
+
         if (ShopManager.Instance != null && ShopManager.Instance.deleteCostPanel != null)
         {
             ShopManager.Instance.deleteCostPanel.SetActive(false);
@@ -242,6 +246,11 @@ public class UIManager : MonoBehaviour
     // 关闭卡牌库（返回原来的界面）
     public void CloseCardDeck()
     {
+        if (ShopManager.Instance != null)
+        {
+            ShopManager.Instance.ExitDeletionMode();
+        }
+
         myNumberCardPanel.SetActive(false);
         myFormulaCardPanel.SetActive(false);
         myBlessPanel.SetActive(false);
@@ -1081,6 +1090,11 @@ public class UIManager : MonoBehaviour
     /// </summary>
     public void CloseShop()
     {
+        if (ShopManager.Instance != null)
+        {
+            ShopManager.Instance.ExitDeletionMode();
+        }
+
         if (shopPanel != null)
             shopPanel.SetActive(false);
         if (myCardButton != null)

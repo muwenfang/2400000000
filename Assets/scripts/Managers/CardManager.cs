@@ -44,7 +44,6 @@ public class CardManager : MonoBehaviour
 
     public void InitializeStarterDeck()
     {   
-        Debug.Log("初始化玩家起始卡组");
         // 初始化玩家的起始卡组
         PlayerCardInventory.Instance.ClearAll();
         // 同步到当前牌堆

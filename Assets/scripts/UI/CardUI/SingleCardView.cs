@@ -20,8 +20,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
     public Color incrementalColor = Color.green;   // 递增数字：绿色
     public Color diceColor = Color.red;            // 骰子数字：红色
     public Color normalColor = Color.black;        // 普通数字：黑色
-
-    public Text pointsText;
+    public Color goldenColor = Color.yellow;       // 黄金数字：黄色
 
     // 缓存绑定的实例，用于精准刷新UI
     public NumberCardInstance boundInstance;
@@ -37,7 +36,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
 
         CacheValueTextScale();
         valueText.text = data.partA.value.ToString();
-        valueText.color = normalColor;
+        valueText.color = data.partA.isGolden ? goldenColor : normalColor;
 
         // 隐藏静态数据绑定时的图标
         if (diceIcon != null)
@@ -71,7 +70,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
                 // 结算时：显示投出的具体数值
                 valueText.text = currentValue.ToString();
             }
-            valueText.color = diceColor;
+            valueText.color = component.isGolden ? goldenColor : diceColor;
 
             // 显示骰子图标
             if (showDiceIcon && DiceIconManager.Instance != null)
@@ -83,7 +82,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
         {
             // 递增显示：{当前值} (绿色)
             valueText.text = $"{currentValue}";
-            valueText.color = incrementalColor;
+            valueText.color = component.isGolden ? goldenColor : incrementalColor;
 
             // 隐藏非骰子的图标
             if (diceIcon != null)
@@ -95,7 +94,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
         {
             // 普通显示：数值 (黑色)
             valueText.text = currentValue.ToString();
-            valueText.color = normalColor;
+            valueText.color = component.isGolden ? goldenColor : normalColor;
 
             // 隐藏非骰子的图标
             if (diceIcon != null)

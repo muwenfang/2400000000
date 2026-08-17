@@ -24,8 +24,6 @@ public class CardSelectionManager : MonoBehaviour
     // 模式变更事件：各面板订阅此事件以切换点击行为
     public event System.Action<SelectionMode> OnSelectionModeChanged;
 
-    [Header("冷却配置")]
-    [SerializeField] private float selectionCooldown = 0.1f;
 
     private void Awake()
     {
