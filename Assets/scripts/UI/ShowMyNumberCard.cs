@@ -35,9 +35,6 @@ public class ShowMyNumberCard : MonoBehaviour
                 clickHandler = contentRoot.gameObject.AddComponent<CardClickHandler>();
             clickHandler.Initialize(this);
         }
-        // 订阅选择模式变更事件
-        if (CardSelectionManager.Instance != null)
-            CardSelectionManager.Instance.OnSelectionModeChanged += OnSelectionModeChanged;
     }
     [Header("显示设置")]
     public float cardScale = 1.0f;
@@ -58,6 +55,12 @@ public class ShowMyNumberCard : MonoBehaviour
 
     private void OnEnable()
     {
+        if (CardSelectionManager.Instance != null)
+        {
+            CardSelectionManager.Instance.OnSelectionModeChanged -= OnSelectionModeChanged;
+            CardSelectionManager.Instance.OnSelectionModeChanged += OnSelectionModeChanged;
+        }
+
         InitializeScrollRect();
         // 脏检查：库存版本未变化则跳过重建
         if (PlayerCardInventory.Instance != null &&
@@ -222,6 +225,17 @@ public class ShowMyNumberCard : MonoBehaviour
             deletionCostPanel.SetActive(false);
         }
     }
+
+     /// <summary>
+     /// 删卡模式下刷新删卡价格显示（不重建卡片），供切换面板时调用。
+     /// </summary>
+     public void RefreshDeletionCostDisplay()
+     {
+         if (ShopManager.Instance == null) return;
+         deletionCost = ShopManager.Instance.GetNextNumberCardDeletionCost();
+         UpdateDeletionUI(deletionCost);
+     }
+
     public string FormatBigNumber(BigInteger number)
     {
         return NumberDisplayFormatter.Format(number);

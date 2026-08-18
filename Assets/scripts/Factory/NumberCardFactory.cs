@@ -91,7 +91,6 @@ public class NumberCardFactory
             // 先检查BlessingManager是否存在，避免空指针
             if (BlessingManager.Instance == null || !BlessingManager.Instance.IsLuckTurnsActive())
             {
-                Debug.Log($"骰子掷出：{firstRoll}（未激活转运祝福）");
                 return firstRoll;
             }
 

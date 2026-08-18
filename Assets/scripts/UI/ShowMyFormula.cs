@@ -1,4 +1,4 @@
-﻿using System.Collections;
+using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -66,7 +66,10 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
 
         // 订阅选择模式变更事件
         if (CardSelectionManager.Instance != null)
+        {
+            CardSelectionManager.Instance.OnSelectionModeChanged -= OnSelectionModeChanged;
             CardSelectionManager.Instance.OnSelectionModeChanged += OnSelectionModeChanged;
+        }
     }
 
     private void OnDisable()
@@ -310,11 +313,10 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
             if (deletionCostPanel == null || deletionCostText == null) return;
 
             deletionCostPanel.gameObject.SetActive(true);   
-            deletionCostPanel.transform.SetAsLastSibling(); // ȷ������ǰ����ʾ
+            deletionCostPanel.transform.SetAsLastSibling();
 
             deletionCostText.text = "点数 " + FormatBigNumber(cost);
 
-            Debug.Log($"[ShowMyFormula] ����UI");
         }
 
     }
@@ -329,6 +331,17 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
             deletionCostPanel.SetActive(false);
         }
     }
+
+     /// <summary>
+     /// 删卡模式下刷新删卡价格显示（不重建卡片），供切换面板时调用。
+     /// </summary>
+     public void RefreshDeletionCostDisplay()
+     {
+         if (ShopManager.Instance == null) return;
+         deletionCost = ShopManager.Instance.CalculateDeletionCost();
+         UpdateDeletionUI(deletionCost);
+     }
+
     public string FormatBigNumber(BigInteger number)
     {
         return NumberDisplayFormatter.Format(number);

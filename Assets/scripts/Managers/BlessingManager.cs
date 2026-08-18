@@ -87,6 +87,8 @@ public class BlessingManager : MonoBehaviour
     public bool hasFinancialExpert = false;             //金融专家
     public bool hasBettingExpert = false;               //博彩专家
     public bool hasCasinoCommissioner = false;          //赌场专员
+    public int luxuriant = 0;                              //琳琅满目
+    public int sellOff = 0;                                //变卖
     private void Awake()
     {
         if (Instance == null)
@@ -165,6 +167,13 @@ public class BlessingManager : MonoBehaviour
         hasFinancialExpert = false;             //金融专家
         hasBettingExpert = false;               //博彩专家
         hasCasinoCommissioner = false;          //赌场专员
+        luxuriant = 0;                              //琳琅满目
+        sellOff = 0;                                //变卖
+
+
+
+
+
         GetCurrentPriceMultiplier(); //重置折扣
 
     }

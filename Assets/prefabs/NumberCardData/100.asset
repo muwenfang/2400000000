@@ -12,18 +12,16 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bbf79c01bbb90343a004560fa548cda, type: 3}
   m_Name: 100
   m_EditorClassIdentifier: 
-  cardName: 100
-  layoutType: 0
+  cardName: (-3)^{0}
+  layoutType: 3
   partA:
     isDice: 0
     isIncremental: 0
-    value: 100
-    price: 100
+    value: -3
     diceSides: 0
   partB:
     isDice: 0
-    isIncremental: 0
+    isIncremental: 1
     value: 0
-    price: 0
     diceSides: 0
-  logicalType: 3
+  logicalType: 2

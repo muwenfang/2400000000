@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Numerics;
@@ -181,6 +181,16 @@ public class UIManager : MonoBehaviour
         myBlessPanel.SetActive(false);
         myNumberCardPanel.transform.SetAsLastSibling();
 
+         // 删卡模式下：切换回数字卡界面时刷新删卡价格显示
+         if (ShopManager.Instance != null && ShopManager.Instance.isDeletionMode)
+         {
+             var numberCardView = myNumberCardPanel.GetComponent<ShowMyNumberCard>();
+             if (numberCardView != null)
+             {
+                 numberCardView.RefreshDeletionCostDisplay();
+             }
+         }
+
         if (myCardButton != null)
         {
             myCardButton.SetActive(true);
@@ -195,6 +205,16 @@ public class UIManager : MonoBehaviour
         myNumberCardPanel.SetActive(false);
         myBlessPanel.SetActive(false);
         myFormulaCardPanel.transform.SetAsLastSibling(); // 确保公式卡库在数字卡库之上显示
+
+         // 删卡模式下：切换回公式卡界面时刷新删卡价格显示
+         if (ShopManager.Instance != null && ShopManager.Instance.isDeletionMode)
+         {
+             var formulaCardView = myFormulaCardPanel.GetComponent<ShowMyFormula>();
+             if (formulaCardView != null)
+             {
+                 formulaCardView.RefreshDeletionCostDisplay();
+             }
+         }
 
         if (myCardButton != null)
         {
@@ -233,9 +253,72 @@ public class UIManager : MonoBehaviour
         myBlessPanel.SetActive(true);
         myNumberCardPanel.SetActive(false);
         myFormulaCardPanel.SetActive(false);
-        HideDeletionCostPanelsForBlessView();
+
+         // 删卡模式下：切到祝福界面不退出删卡模式，改为显示"无法在此界面删除"提示
+         if (ShopManager.Instance != null && ShopManager.Instance.isDeletionMode)
+         {
+             var blessView = myBlessPanel.GetComponent<ShowMyBlessings>();
+             if (blessView != null)
+             {
+                 blessView.SetDeletionUnavailableHintVisible(true);
+             }
+         }
+         else
+         {
+             HideDeletionCostPanelsForBlessView();
+         }
+
         myBlessPanel.transform.SetAsLastSibling(); // 确保祝福卡库在其他卡库之上显示
 
+        if (myCardButton != null)
+        {
+            myCardButton.SetActive(true);
+            myCardButton.transform.SetAsLastSibling();
+        }
+    }
+
+    /// <summary>
+    /// 打开删卡选择界面：复用场景中的卡牌库面板，只置顶和刷新，不关闭其它界面。
+    /// </summary>
+    public void OpenCardDeletionDeck()
+    {
+        // 打开并刷新数字卡面板
+        if (myNumberCardPanel != null)
+        {
+            myNumberCardPanel.SetActive(true);
+
+            var numberCardView = myNumberCardPanel.GetComponent<ShowMyNumberCard>();
+            if (numberCardView != null)
+            {
+                numberCardView.RefreshAllCards();
+            }
+        }
+
+        // 打开并刷新公式卡面板（删卡同样支持公式卡，可通过 MyCardButton 切换）
+        if (myFormulaCardPanel != null)
+        {
+            myFormulaCardPanel.SetActive(true);
+
+            var formulaCardView = myFormulaCardPanel.GetComponent<ShowMyFormula>();
+            if (formulaCardView != null)
+            {
+                formulaCardView.RefreshAllCards();
+            }
+        }
+
+        // 祝福卡不能通过删卡渠道删除，进入删卡模式时关闭祝福面板。
+        if (myBlessPanel != null)
+        {
+            myBlessPanel.SetActive(false);
+        }
+
+        // 置顶 myNumberCard 界面（数字卡显示在公式卡之上）。
+        if (myNumberCardPanel != null)
+        {
+            myNumberCardPanel.transform.SetAsLastSibling();
+        }
+
+        // MyCardButtonpanel 保留并置顶，用于切换数字卡/公式卡/祝福界面。
         if (myCardButton != null)
         {
             myCardButton.SetActive(true);

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -29,6 +29,10 @@ public class ShowMyBlessings : MonoBehaviour, ISelectablePanel
     public List<Button> tempAddedButtons = new List<Button>();
 
     public float cardScale = 1.0f;
+
+     [Header("删卡提示")]
+     [Tooltip("删卡模式下切到祝福界面时显示的提示面板（无法在此界面删除）")]
+     public GameObject deletionUnavailablePanel;
 
     private void OnEnable()
     {
@@ -215,4 +219,15 @@ public class ShowMyBlessings : MonoBehaviour, ISelectablePanel
     {
         lastKnownInventoryVersion = -1;
     }
-}
+
+     /// <summary>
+     /// 显示/隐藏"无法在此界面删除"提示。
+     /// </summary>
+     public void SetDeletionUnavailableHintVisible(bool visible)
+     {
+         if (deletionUnavailablePanel != null)
+         {
+             deletionUnavailablePanel.SetActive(visible);
+         }
+     }
+ }

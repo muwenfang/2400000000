@@ -134,6 +134,19 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
 
     public void AddNumberCard(NumberCardData card)
     {
+        if (card == null)
+        {
+            Debug.LogError("[PlayerCardInventory] 尝试添加空的数字卡数据，已跳过。");
+            return;
+        }
+
+        // partA 缺失说明该卡牌资产未配置完整，跳过并给出明确提示，避免空引用
+        if (card.partA == null)
+        {
+            Debug.LogError($"[PlayerCardInventory] 数字卡「{card.name}」缺少 partA（未配置数字/骰子组件），已跳过。请在 Inspector 中检查该卡牌资产。");
+            return;
+        }
+
         NumberCardInstance instance = new NumberCardInstance(card);
         numberCards.Add(instance);
         NotifyInventoryChanged();

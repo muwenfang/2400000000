@@ -44,8 +44,7 @@ public class CardSelectionManager : MonoBehaviour
         Debug.Log($"[CardSelectionManager] 开启卡牌选择模式：{mode}");
         if (mode == SelectionMode.RemoveCard)
         {
-            UIManager.Instance.myNumberCardPanel.SetActive(true);
-            UIManager.Instance.myFormulaCardPanel.SetActive(true);
+            UIManager.Instance.OpenCardDeletionDeck();
         }
 
         // 通知所有订阅面板切换点击模式

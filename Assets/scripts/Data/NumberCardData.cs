@@ -1,4 +1,4 @@
-using JetBrains.Annotations;
+﻿using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
@@ -50,8 +50,19 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     public NumberCardInstance(NumberCardData cardData)//构造函数，初始化当前数值
     {
         this.cardData = cardData;
-        currentA = cardData.partA.value;
-        if (cardData.partB != null)
+
+        // partA 是数字卡的核心组件，缺失说明该卡牌资产在 Inspector 中未配置完整
+        if (cardData == null || cardData.partA == null)
+        {
+            Debug.LogError($"[NumberCardInstance] 卡牌数据不完整：cardData={(cardData == null ? "null" : cardData.name)}，partA 为空，currentA 置 0。请检查该卡牌资产。");
+            currentA = 0;
+        }
+        else
+        {
+            currentA = cardData.partA.value;
+        }
+
+        if (cardData != null && cardData.partB != null)
         {
             currentB = cardData.partB.value;
         }
@@ -110,7 +121,6 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 currentA = DiceHelper.RollDice(sides);
             }
 
-            Debug.Log($"投掷骰子 {cardData.cardName} Part A: {currentA}");
             BlessingManager.Instance.CheckGambleToWin(currentA);// 赌为赢判定
             // 大成功
             int sidesA = cardData.partA.diceSides;
@@ -142,7 +152,6 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 currentB = DiceHelper.RollDice(sides);
             }
 
-            Debug.Log($"投掷骰子 {cardData.cardName} Part B: {currentB}");
             BlessingManager.Instance.CheckGambleToWin(currentB);// 赌为赢判定
             // 大成功
             int sidesB = cardData.partB.diceSides;

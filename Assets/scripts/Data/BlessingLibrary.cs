@@ -644,7 +644,26 @@ public class BlessingLibrary : ScriptableObject
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
         ));
-        Debug.Log($" 成功初始化 {allBlessings.Count} 个祝福！");
+        //琳琅满目
+        allBlessings.Add(CreateBlessing(
+            id: 59,
+            name: "琳琅满目",
+            description: "祝福“琳琅满目”的价格翻倍，下次商店刷新的所有祝福均为未拥有的祝福",
+            type: BlessingData.BlessingType.Luxuriant,
+            basePrice: 100,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.AlwaysRefresh
+        ));
+        //变卖
+        allBlessings.Add(CreateBlessing(
+            id: 60,
+            name: "变卖",
+            description: "如果你至少有六张不含黄金数的数字卡，失去所有含黄金数的数字卡，获得黄金数总和两倍的永久倍率",
+            type: BlessingData.BlessingType.SellOff,
+            basePrice: 2400,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.CurrentRoundOnly
+        ));
     }
 
     /// <summary>

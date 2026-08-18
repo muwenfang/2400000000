@@ -4915,6 +4915,7 @@ MonoBehaviour:
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
+  goldenColor: {r: 0.72, g: 0.52, b: 0.02, a: 1}
 --- !u!114 &496826566
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5766,7 +5767,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1ad6c64898997d943adfc2140c85ef6a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  selectionCooldown: 0.1
 --- !u!4 &561221007
 Transform:
   m_ObjectHideFlags: 0
@@ -11338,7 +11338,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1096663484
 RectTransform:
   m_ObjectHideFlags: 0
@@ -12968,7 +12968,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_MethodName
-      value: StartCardDeletion
+      value: InitializeDeletionUI
       objectReference: {fileID: 0}
     - target: {fileID: 2023310949821664103, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[1].m_MethodName
@@ -13160,7 +13160,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3200897846057908240, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 3296693888847372070, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_OnClick.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
@@ -14661,6 +14661,7 @@ MonoBehaviour:
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
+  goldenColor: {r: 0.72, g: 0.52, b: 0.02, a: 1}
 --- !u!114 &1329721533
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -18131,7 +18132,6 @@ MonoBehaviour:
   blessingSlotUnlockTimes: 0
   numberSlotUnlockTimes: 0
   formulaSlotUnlockTimes: 0
-  purchaseCooldown: 0.2
   unlockCooldown: 0.1
   cardDeletionCooldown: 0.06
   formulaCardLibrary: {fileID: 11400000, guid: 09a6b658924651940965cd8a57c4eab9, type: 2}

@@ -89,7 +89,9 @@ public class BlessingData : ScriptableObject
         BigSevenStar,         //大七星
         FinancialExpert,      //金融专家
         BettingExpert,        //博彩专家
-        CasinoCommissioner    //赌场专员
+        CasinoCommissioner ,   //赌场专员
+        Luxuriant,              //琳琅满目
+        SellOff,                //变卖  
     }
 
     /// <summary>

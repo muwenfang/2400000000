@@ -420,7 +420,6 @@ public class CardManager : MonoBehaviour
         if (index < 0 || index >= selectedNumberCards.Count) return;
         if (selectedNumberCards[index] != null)
         {
-            Debug.Log($"按索引移除卡牌 at {index}: {selectedNumberCards[index].cardData.cardName}");
             selectedNumberCards[index] = null;
         }
     }

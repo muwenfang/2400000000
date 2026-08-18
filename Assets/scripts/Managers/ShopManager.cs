@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -511,7 +511,7 @@ public class ShopManager : MonoBehaviour
                 ShopItem<BlessingData> item = CreateBlessingShopItem(selectedBlessing, priceMultiplier);
 
                 shopBlessings.Add(item);
-                Debug.Log($"祝福槽位{slotIndex}：{selectedBlessing.blessingName}（{selectedBlessing.refreshBehavior}），价格 {item.price}");
+
             }
             else
             {
@@ -727,7 +727,7 @@ public class ShopManager : MonoBehaviour
         if (deleteCardCostText == null) return;
 
         BigInteger deleteCost = CalculateDeletionCost();
-        deleteCardCostText.text = "点数 " + FormatBigNumber(deleteCost);
+        deleteCardCostText.text = "  " + FormatBigNumber(deleteCost);
     }
 
     /// <summary>
@@ -757,6 +757,16 @@ public class ShopManager : MonoBehaviour
         {
             showFormula.HideDeletionCostUI();
         }
+
+         // 隐藏祝福界面的"无法在此界面删除"提示
+         if (UIManager.Instance != null && UIManager.Instance.myBlessPanel != null)
+         {
+             var blessView = UIManager.Instance.myBlessPanel.GetComponent<ShowMyBlessings>();
+             if (blessView != null)
+             {
+                 blessView.SetDeletionUnavailableHintVisible(false);
+             }
+         }
     }
 
     /// <summary>
@@ -818,11 +828,10 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     void OnCardSelectedForDeletion(object selectedObject)
     {
-        ExitDeletionMode();
-
-        // 实际的删除操作已通过 CardClickHandler → ShowMyXxx.TryHandleDeleteClick →
-        // ShopManager.OnCardDeleted / OnFormulaCardDeleted 路径处理
-        // 此处仅做状态清理，避免双重扣费
+         // 删卡模式需要持续存在，以便用户连续删除多张卡并实时刷新价格。
+         // 实际删除由 CardClickHandler → ShowMyXxx → OnCardDeleted / OnFormulaCardDeleted 处理，
+         // 删除完成后 RefreshAllCards 会刷新价格面板。
+         // 删卡模式仅在用户点击"退出删除"(Back)时由 CloseCardDeck → ExitDeletionMode 结束。
     }
     #endregion
 
