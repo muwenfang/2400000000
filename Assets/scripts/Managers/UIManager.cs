@@ -819,7 +819,6 @@ public class UIManager : MonoBehaviour
                 compositeRefreshCount++;
             }
         }
-        Debug.Log("[UIManager] 选中卡牌显示已刷新");
 
         if (hasAnimatedValue)
         {
@@ -1135,6 +1134,16 @@ public class UIManager : MonoBehaviour
         if (myNumberCardPanel != null)
         {
             myNumberCardPanel.SetActive(true);
+
+            // 强制刷新数字卡列表：面板 OnDisable 时会清空 goToInstance 映射，
+            // 而 OnEnable 的脏检查在库存版本未变时会跳过重建，导致点击无法定位卡牌。
+            // 与 OpenCardDeletionDeck（删卡）保持一致，显式刷新以重建点击映射。
+            var numberCardView = myNumberCardPanel.GetComponent<ShowMyNumberCard>();
+            if (numberCardView != null)
+            {
+                numberCardView.RefreshAllCards();
+            }
+
             myNumberCardPanel.transform.SetAsLastSibling();
         }
     }

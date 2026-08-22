@@ -125,13 +125,15 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         EnsureComponentsExist();
         CacheTextScales();
 
-        // 设置 Part A
-        SetPartDisplay(aText, diceIconA, instance.cardData.partA, instance.currentA, instance.isPrepared, showPreparedDiceValue);
+        // 设置 Part A（面数优先取实例当前值，赌场专员可能已升级）
+        SetPartDisplay(aText, diceIconA, instance.cardData.partA, instance.currentA, instance.isPrepared, showPreparedDiceValue,
+            instance.currentDiceSidesA > 0 ? instance.currentDiceSidesA : instance.cardData.partA.diceSides);
 
         // 设置 Part B
         if (instance.cardData.partB != null)
         {
-            SetPartDisplay(bText, diceIconB, instance.cardData.partB, instance.currentB, instance.isPrepared, showPreparedDiceValue);
+            SetPartDisplay(bText, diceIconB, instance.cardData.partB, instance.currentB, instance.isPrepared, showPreparedDiceValue,
+                instance.currentDiceSidesB > 0 ? instance.currentDiceSidesB : instance.cardData.partB.diceSides);
         }
     }
 
@@ -201,23 +203,25 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
 
     bool ShouldAnimateSettlementValue(NumberComponent component)
     {
-        return component != null && (component.isDice || component.isIncremental);
+        // 金融专家：黄金数字也拥有绿色数字特性，结算时同样播放递增效果动画
+        return component != null && (component.isDice || component.isIncremental ||
+            (component.isGolden && BlessingManager.Instance != null && BlessingManager.Instance.hasFinancialExpert));
     }
 
     /// <summary>
     /// 通用方法：设置单个部分的文本内容、颜色和图标
     /// </summary>
-    private void SetPartDisplay(Text textComp, Image iconComp, NumberComponent component, int currentValue, bool isPrepared, bool showPreparedDiceValue)
+    private void SetPartDisplay(Text textComp, Image iconComp, NumberComponent component, int currentValue, bool isPrepared, bool showPreparedDiceValue, int diceSides)
     {
         if (textComp == null || component == null) return;
 
         if (component.isDice)
         {
-            // 骰子显示：~面数~ (红色)
+            // 骰子显示：~面数~ (红色)；面数优先取实例当前值（赌场专员可能已升级）
             if (!showPreparedDiceValue || !isPrepared)
             {
                 // 展示卡牌信息时，或者未结算时：显示最大面数
-                textComp.text = $"{component.diceSides}";
+                textComp.text = $"{diceSides}";
             }
             else
             {
@@ -229,7 +233,7 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
             // 显示骰子图标
             if (showDiceIcon && DiceIconManager.Instance != null && iconComp != null)
             {
-                SetDiceIcon(iconComp, component.diceSides);
+                SetDiceIcon(iconComp, diceSides);
             }
         }
         else if (component.isIncremental)

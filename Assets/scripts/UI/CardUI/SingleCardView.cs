@@ -59,11 +59,12 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
         // 设置文本和颜色
         if (component.isDice)
         {
-            // 骰子显示：~面数~ (红色)
+            // 骰子显示：~面数~ (红色)；面数优先取实例当前值（赌场专员可能已升级）
+            int diceSides = instance.currentDiceSidesA > 0 ? instance.currentDiceSidesA : component.diceSides;
             if (!showPreparedDiceValue || !instance.isPrepared)
             {
                 // 展示卡牌信息时，或者未结算时：显示最大面数
-                valueText.text = $"{component.diceSides}";
+                valueText.text = $"{diceSides}";
             }
             else
             {
@@ -75,7 +76,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
             // 显示骰子图标
             if (showDiceIcon && DiceIconManager.Instance != null)
             {
-                SetDiceIcon(component.diceSides);
+                SetDiceIcon(diceSides);
             }
         }
         else if (component.isIncremental)
@@ -148,7 +149,9 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
 
     bool ShouldAnimateSettlementValue(NumberComponent component)
     {
-        return component != null && (component.isDice || component.isIncremental);
+        // 金融专家：黄金数字也拥有绿色数字特性，结算时同样播放递增效果动画
+        return component != null && (component.isDice || component.isIncremental ||
+            (component.isGolden && BlessingManager.Instance != null && BlessingManager.Instance.hasFinancialExpert));
     }
 
     /// <summary>

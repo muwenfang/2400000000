@@ -47,6 +47,9 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     public int currentB = 0;
     // 标记该卡牌本回合是否已经投过骰子/递增过
     public bool isPrepared = false;
+    // 当前骰子面数（赌场专员升级后可能高于库中原始面数；独立于 cardData，避免影响共享库数据）
+    public int currentDiceSidesA = 0;
+    public int currentDiceSidesB = 0;
     public NumberCardInstance(NumberCardData cardData)//构造函数，初始化当前数值
     {
         this.cardData = cardData;
@@ -66,6 +69,12 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         {
             currentB = cardData.partB.value;
         }
+
+        // 初始化当前骰子面数（与库中数据一致，供赌场专员升级使用）
+        if (cardData != null && cardData.partA != null)
+            currentDiceSidesA = cardData.partA.isDice ? cardData.partA.diceSides : 0;
+        if (cardData != null && cardData.partB != null)
+            currentDiceSidesB = cardData.partB.isDice ? cardData.partB.diceSides : 0;
     }
 
     /// <summary>
@@ -76,7 +85,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         //对于骰子卡，应该使用 diceSides 而不是 value
         if (cardData.partA.isDice)
         {
-            currentA = cardData.partA.diceSides;  // 骰子：用面数初始化
+            currentA = currentDiceSidesA > 0 ? currentDiceSidesA : cardData.partA.diceSides;  // 骰子：用面数初始化
         }
 
 
@@ -84,13 +93,27 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         {
             if (cardData.partB.isDice)
             {
-                currentB = cardData.partB.diceSides;  // 骰子：用面数初始化
+                currentB = currentDiceSidesB > 0 ? currentDiceSidesB : cardData.partB.diceSides;  // 骰子：用面数初始化
             }
 
         }
 
         // 标记为未投掷/未递增状态
         isPrepared = false;
+    }
+
+    /// <summary>
+    /// 判断该数字组件是否应作为递增数字处理：
+    /// 绿色数字（isIncremental）恒递增；拥有金融专家祝福时，黄金数字也视为递增。
+    /// 仅作用于本实例的 currentA/currentB，不会修改库中的 NumberCardData。
+    /// </summary>
+    private bool ShouldIncrement(NumberComponent component)
+    {
+        if (component == null) return false;
+        if (component.isIncremental) return true;
+        return component.isGolden &&
+               BlessingManager.Instance != null &&
+               BlessingManager.Instance.hasFinancialExpert;
     }
 
     /// <summary>
@@ -101,7 +124,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         // 投掷骰子（如果是骰子）
         if (cardData.partA.isDice)
         {
-            int sides = cardData.partA.diceSides;
+            int sides = currentDiceSidesA > 0 ? currentDiceSidesA : cardData.partA.diceSides;
             // 唯心主义：同级骰子结果一致
             if (BlessingManager.Instance.hasIdealism)
             {
@@ -122,19 +145,26 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             }
 
             BlessingManager.Instance.CheckGambleToWin(currentA);// 赌为赢判定
-            // 大成功
-            int sidesA = cardData.partA.diceSides;
-            if (currentA == sidesA && BlessingManager.Instance.bigSuccessCount > 0)
+
+            // 大成功（按掷骰前的面数判定）
+            if (currentA == sides && BlessingManager.Instance.bigSuccessCount > 0)
             {
-                int rank = BlessingManager.Instance.GetDiceRank(sidesA);
+                int rank = BlessingManager.Instance.GetDiceRank(sides);
                 BlessingManager.Instance.totalMultiplierBonus += rank;
-                Debug.Log($"【大成功】{sidesA}面骰掷出最大值！获得 {rank} 永久倍率");
-            }     
+                Debug.Log($"【大成功】{sides}面骰掷出最大值！获得 {rank} 永久倍率");
+            }
+
+            // 赌场专员：骰子判定为其最大值后自动升一级，直至20
+            if (currentA == sides && BlessingManager.Instance.hasCasinoCommissioner && currentDiceSidesA < 20)
+            {
+                currentDiceSidesA = UpgradeDiceLevel(currentDiceSidesA);
+                Debug.Log($"【赌场专员】{sides}面骰掷出最大值！骰子升级为 {currentDiceSidesA} 面");
+            }
         }
 
         if (cardData.partB != null && cardData.partB.isDice)
         {
-            int sides = cardData.partB.diceSides;
+            int sides = currentDiceSidesB > 0 ? currentDiceSidesB : cardData.partB.diceSides;
 
             //唯心主义
             if (BlessingManager.Instance.hasIdealism)
@@ -153,13 +183,20 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             }
 
             BlessingManager.Instance.CheckGambleToWin(currentB);// 赌为赢判定
-            // 大成功
-            int sidesB = cardData.partB.diceSides;
-            if (currentB == sidesB && BlessingManager.Instance.bigSuccessCount > 0)
+
+            // 大成功（按掷骰前的面数判定）
+            if (currentB == sides && BlessingManager.Instance.bigSuccessCount > 0)
             {
-                int rank = BlessingManager.Instance.GetDiceRank(sidesB);
+                int rank = BlessingManager.Instance.GetDiceRank(sides);
                 BlessingManager.Instance.totalMultiplierBonus += rank;
-                Debug.Log($"【大成功】{sidesB}面骰掷出最大值！获得 {rank} 永久倍率");
+                Debug.Log($"【大成功】{sides}面骰掷出最大值！获得 {rank} 永久倍率");
+            }
+
+            // 赌场专员：骰子判定为其最大值后自动升一级，直至20
+            if (currentB == sides && BlessingManager.Instance.hasCasinoCommissioner && currentDiceSidesB < 20)
+            {
+                currentDiceSidesB = UpgradeDiceLevel(currentDiceSidesB);
+                Debug.Log($"【赌场专员】{sides}面骰掷出最大值！骰子升级为 {currentDiceSidesB} 面");
             }
         }
 
@@ -203,6 +240,22 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         isPrepared = true;
     }    
 
+
+    /// <summary>
+    /// 骰子面数升级规则：4→6→8→12→20，20不再升
+    /// </summary>
+    private static int UpgradeDiceLevel(int currentSides)
+    {
+        switch (currentSides)
+        {
+            case 4: return 6;
+            case 6: return 8;
+            case 8: return 12;
+            case 12: return 20;
+            case 20: return 20;
+            default: return currentSides;
+        }
+    }
 
     // 祝福:能量扩散
     public void EnergySpread()

@@ -85,7 +85,6 @@ public class BlessingManager : MonoBehaviour
     public int compassionStarCount = 0;                 //慈爱星
     public int bigSevenStarCount = 0;                   //大七星
     public bool hasFinancialExpert = false;             //金融专家
-    public bool hasBettingExpert = false;               //博彩专家
     public bool hasCasinoCommissioner = false;          //赌场专员
     public int luxuriant = 0;                              //琳琅满目
     public int sellOff = 0;                                //变卖
@@ -165,7 +164,6 @@ public class BlessingManager : MonoBehaviour
         compassionStarCount = 0;                 //慈爱星
         bigSevenStarCount = 0;                   //大七星
         hasFinancialExpert = false;             //金融专家
-        hasBettingExpert = false;               //博彩专家
         hasCasinoCommissioner = false;          //赌场专员
         luxuriant = 0;                              //琳琅满目
         sellOff = 0;                                //变卖
@@ -624,6 +622,7 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.BigSevenStar:
                 // 大七星：如果可能，失去除自身外所有名称末尾为星字的祝福各一个，然后获得24亿点，你每拥有一个大七星，获得的点数翻10倍
                 bigSevenStarCount++;
+                ActivateBigSevenStar();
                 Debug.Log($"大七星祝福激活：当前大七星数量 {bigSevenStarCount}");
                 break;
 
@@ -733,6 +732,100 @@ public class BlessingManager : MonoBehaviour
         {
             morningStarTargetCards.Add(card);
             Debug.Log($"启明星已锁定：下一回合必抽【{card.cardData.cardName}】");
+        }
+    }
+
+    // 触发大七星结算
+    private void ActivateBigSevenStar()
+    {
+        Debug.Log("=== 大七星：开始结算 ===");
+
+        if (blessingLibrary == null)
+        {
+            Debug.LogWarning("大七星：祝福库(blessingLibrary)为空，无法结算，祝福不生效");
+            return;
+        }
+
+        // 找出所有名称末尾为"星"字的祝福（含大七星自身）
+        List<BlessingData> starBlessings = new List<BlessingData>();
+        foreach (var data in blessingLibrary.allBlessings)
+        {
+            if (data != null && !string.IsNullOrEmpty(data.blessingName) && data.blessingName.EndsWith("星"))
+            {
+                starBlessings.Add(data);
+            }
+        }
+
+        // 检查是否拥有所有星字祝福（含大七星自身）
+        bool ownsAllStars = true;
+        foreach (var star in starBlessings)
+        {
+            if (GetBlessingCount(star.blessingId) <= 0)
+            {
+                ownsAllStars = false;
+                Debug.Log($"大七星：缺少星字祝福【{star.blessingName}】，本次不生效");
+                break;
+            }
+        }
+
+        // 失去除自身（大七星）外所有星字祝福各一个
+        foreach (var star in starBlessings)
+        {
+            if (star.blessingType == BlessingData.BlessingType.BigSevenStar) continue;
+            DecreaseBlessingByOne(star);
+        }
+
+        // 获得 24亿 × 10^大七星数量 的点数
+        BigInteger reward = (BigInteger)2400000000 * BigInteger.Pow(10, bigSevenStarCount);
+        GameManager.Instance.AddPoints(reward);
+        Debug.Log($"大七星：获得点数 {reward}（大七星数量 {bigSevenStarCount}）");
+    }
+
+    /// <summary>
+    /// 将某祝福的拥有数量减少 1（用于大七星"失去各一个"）
+    /// </summary>
+    private void DecreaseBlessingByOne(BlessingData data)
+    {
+        if (data == null) return;
+
+        // 1. 递减 ownedBlessings（ID -> 数量）
+        if (ownedBlessings.ContainsKey(data.blessingId))
+        {
+            ownedBlessings[data.blessingId]--;
+            if (ownedBlessings[data.blessingId] <= 0)
+                ownedBlessings.Remove(data.blessingId);
+        }
+
+        // 2. 递减 blessingTypeCount（类型 -> 数量）
+        if (blessingTypeCount.ContainsKey(data.blessingType))
+        {
+            blessingTypeCount[data.blessingType]--;
+            if (blessingTypeCount[data.blessingType] <= 0)
+                blessingTypeCount.Remove(data.blessingType);
+        }
+
+        // 3. 从 ownedBlessingInstance 移除一条对应记录
+        var instance = ownedBlessingInstance.Find(i => i.data != null && i.data.blessingId == data.blessingId);
+        if (instance != null)
+            ownedBlessingInstance.Remove(instance);
+
+        // 4. 递减对应的类型计数变量
+        DecreaseStarCountVariable(data);
+    }
+
+    /// <summary>
+    /// 递减星字祝福对应的类型计数变量（按 blessingId 精确匹配，避免类型枚举歧义）
+    /// </summary>
+    private void DecreaseStarCountVariable(BlessingData data)
+    {
+        switch (data.blessingId)
+        {
+            case 49: luckyStarCount = Math.Max(0, luckyStarCount - 1); break;        // 幸运星
+            case 50: fortuneStarCount = Math.Max(0, fortuneStarCount - 1); break;    // 福星
+            case 51: wealthStarCount = Math.Max(0, wealthStarCount - 1); break;      // 财星
+            case 52: disasterStarCount = Math.Max(0, disasterStarCount - 1); break;  // 祸星
+            case 53: compassionStarCount = Math.Max(0, compassionStarCount - 1); break; // 慈爱星
+            case 54: morningsStarCount = Math.Max(0, morningsStarCount - 1); break; // 启明星
         }
     }
 

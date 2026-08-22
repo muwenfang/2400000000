@@ -480,6 +480,7 @@ GameObject:
   - component: {fileID: 6994160903523590064}
   - component: {fileID: 3620570132582677884}
   - component: {fileID: 7099995316750335835}
+  - component: {fileID: 6135947629564206640}
   m_Layer: 5
   m_Name: ShopNumberCard
   m_TagString: Untagged
@@ -592,6 +593,18 @@ MonoBehaviour:
   unlockButton: {fileID: 2601802609368190676}
   unlockCostText: {fileID: 3997725979046193476}
   numberCardLibrary: {fileID: 0}
+--- !u!114 &6135947629564206640
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8140211545429105159}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: dc849b2d0ed56f546a78480d48dc3f05, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1001 &2822641936768805749
 PrefabInstance:
   m_ObjectHideFlags: 0

@@ -159,7 +159,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 15,
             name: "卡牌大师",
-            description: "你每拥有一张数字卡，倍率+1",
+            description: "每拥有一张数字卡，倍率+1",
             type: BlessingData.BlessingType.CardMaster,
             basePrice: 100000,
             isStackable: true
@@ -594,7 +594,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 54,
             name: "启明星",
-            description: "购买此祝福后，选择一张数字卡：在下一回合一定会抽到它",
+            description: "购买此祝福后，选择一张已有数字卡：在下一回合一定会抽到它",
             type: BlessingData.BlessingType.MorningStar,
             basePrice: 0,
             isStackable: true,
@@ -616,23 +616,13 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 56,
             name: "金融专家",
-            description: "黄金数字同时也拥有绿色数字的特性",
+            description: "黄金数字同时也能递增",
             type: BlessingData.BlessingType.FinancialExpert,
             basePrice: 20000000,
             isStackable: false,
             refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
         ));
-        
-        //博彩专家
-        allBlessings.Add(CreateBlessing(
-            id: 57,
-            name: "博彩专家",
-            description: "绿色数字同时也拥有黄金数字的特性",
-            type: BlessingData.BlessingType.BettingExpert,
-            basePrice: 100000,
-            isStackable: false,
-            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
-        ));
+
 
         //赌场专员
         allBlessings.Add(CreateBlessing(

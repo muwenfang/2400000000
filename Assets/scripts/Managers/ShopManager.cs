@@ -721,13 +721,38 @@ public class ShopManager : MonoBehaviour
 
     /// <summary>
     /// 刷新商店删除按钮旁边的删卡费用文本。
+    /// 数字卡界面显示“至少保留六张”，公式卡界面显示“至少保留一张”。
     /// </summary>
     public void RefreshDeleteCostText()
     {
         if (deleteCardCostText == null) return;
 
         BigInteger deleteCost = CalculateDeletionCost();
-        deleteCardCostText.text = "  " + FormatBigNumber(deleteCost);
+        string costStr = FormatBigNumber(deleteCost);
+
+        bool isNumberView = false;
+        bool isFormulaView = false;
+
+        if (UIManager.Instance != null)
+        {
+            isNumberView = UIManager.Instance.myNumberCardPanel != null &&
+                           UIManager.Instance.myNumberCardPanel.activeInHierarchy;
+            isFormulaView = UIManager.Instance.myFormulaCardPanel != null &&
+                            UIManager.Instance.myFormulaCardPanel.activeInHierarchy;
+        }
+
+        if (isNumberView)
+        {
+            deleteCardCostText.text = "至少保留六张     $" + costStr;
+        }
+        else if (isFormulaView)
+        {
+            deleteCardCostText.text = "至少保留一张     $" + costStr;
+        }
+        else
+        {
+            deleteCardCostText.text = "  " + costStr;
+        }
     }
 
     /// <summary>

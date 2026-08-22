@@ -315,7 +315,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
             deletionCostPanel.gameObject.SetActive(true);   
             deletionCostPanel.transform.SetAsLastSibling();
 
-            deletionCostText.text = "点数 " + FormatBigNumber(cost);
+           deletionCostText.text = "至少保留一张。$" + FormatBigNumber(cost);
 
         }
 

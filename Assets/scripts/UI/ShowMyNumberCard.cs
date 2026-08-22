@@ -208,7 +208,7 @@ public class ShowMyNumberCard : MonoBehaviour
             deletionCostPanel.gameObject.SetActive(true);
             deletionCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
 
-            deletionCostText.text = "点数 " + FormatBigNumber(cost);
+           deletionCostText.text = "至少保留六张。$" + FormatBigNumber(cost);
 
             Debug.Log($"[ShowMyNumberCard] 更新UI ");
         }

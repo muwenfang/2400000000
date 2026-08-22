@@ -1947,8 +1947,8 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 59.801, y: 1.2114}
-  m_SizeDelta: {x: 430.9854, y: 73.366}
+  m_AnchoredPosition: {x: 7.7609, y: 1.2114}
+  m_SizeDelta: {x: 535.0682, y: 73.366}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &152407951
 MonoBehaviour:
@@ -1983,7 +1983,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: "\u516D        1111"
+  m_Text: 123456789
 --- !u!222 &152407952
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -4827,7 +4827,6 @@ GameObject:
   - component: {fileID: 496826564}
   - component: {fileID: 496826563}
   - component: {fileID: 496826565}
-  - component: {fileID: 496826566}
   m_Layer: 5
   m_Name: MyFormula
   m_TagString: Untagged
@@ -4916,18 +4915,6 @@ MonoBehaviour:
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
   goldenColor: {r: 0.72, g: 0.52, b: 0.02, a: 1}
---- !u!114 &496826566
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 496826560}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc849b2d0ed56f546a78480d48dc3f05, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &499162756
 GameObject:
   m_ObjectHideFlags: 0
@@ -6768,6 +6755,8 @@ MonoBehaviour:
   hasFinancialExpert: 0
   hasBettingExpert: 0
   hasCasinoCommissioner: 0
+  luxuriant: 0
+  sellOff: 0
 --- !u!4 &679115385
 Transform:
   m_ObjectHideFlags: 0
@@ -8780,7 +8769,6 @@ GameObject:
   - component: {fileID: 896898554}
   - component: {fileID: 896898553}
   - component: {fileID: 896898556}
-  - component: {fileID: 896898557}
   m_Layer: 5
   m_Name: MyBless
   m_TagString: Untagged
@@ -8863,18 +8851,7 @@ MonoBehaviour:
   scrollRect: {fileID: 1348500147}
   tempAddedButtons: []
   cardScale: 1
---- !u!114 &896898557
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 896898551}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc849b2d0ed56f546a78480d48dc3f05, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
+  deletionUnavailablePanel: {fileID: 0}
 --- !u!1 &898847913
 GameObject:
   m_ObjectHideFlags: 0
@@ -10136,85 +10113,6 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1001422961}
   m_CullTransparentMesh: 1
---- !u!1 &1001431305
-GameObject:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  serializedVersion: 6
-  m_Component:
-  - component: {fileID: 1001431306}
-  - component: {fileID: 1001431308}
-  - component: {fileID: 1001431307}
-  m_Layer: 5
-  m_Name: cost
-  m_TagString: Untagged
-  m_Icon: {fileID: 0}
-  m_NavMeshLayer: 0
-  m_StaticEditorFlags: 0
-  m_IsActive: 1
---- !u!224 &1001431306
-RectTransform:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1001431305}
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
-  m_ConstrainProportionsScale: 0
-  m_Children: []
-  m_Father: {fileID: 1081799471}
-  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -157.10947, y: 0.60589}
-  m_SizeDelta: {x: 216.4353, y: 74.577}
-  m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &1001431307
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1001431305}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5f7201a12d95ffc409449d95f23cf332, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  m_Material: {fileID: 0}
-  m_Color: {r: 0.19607843, g: 0.19607843, b: 0.19607843, a: 1}
-  m_RaycastTarget: 1
-  m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
-  m_Maskable: 1
-  m_OnCullStateChanged:
-    m_PersistentCalls:
-      m_Calls: []
-  m_FontData:
-    m_Font: {fileID: 12800000, guid: 41c695345cc1a1542a90ee923c732278, type: 3}
-    m_FontSize: 35
-    m_FontStyle: 0
-    m_BestFit: 0
-    m_MinSize: 3
-    m_MaxSize: 40
-    m_Alignment: 3
-    m_AlignByGeometry: 0
-    m_RichText: 1
-    m_HorizontalOverflow: 0
-    m_VerticalOverflow: 0
-    m_LineSpacing: 1
-  m_Text: "\u81F3\u5C11\u4FDD\u7559   \u5F20  $"
---- !u!222 &1001431308
-CanvasRenderer:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1001431305}
-  m_CullTransparentMesh: 1
 --- !u!224 &1005591055 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 4248042415642894507, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
@@ -11094,7 +10992,6 @@ RectTransform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 152407950}
-  - {fileID: 1001431306}
   m_Father: {fileID: 1329721510}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
@@ -14563,9 +14460,6 @@ PrefabInstance:
     - targetCorrespondingSourceObject: {fileID: 8286434712523788241, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       insertIndex: -1
       addedObject: {fileID: 1329721532}
-    - targetCorrespondingSourceObject: {fileID: 8286434712523788241, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
-      insertIndex: -1
-      addedObject: {fileID: 1329721533}
   m_SourcePrefab: {fileID: 100100000, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
 --- !u!224 &1329721510 stripped
 RectTransform:
@@ -14662,18 +14556,6 @@ MonoBehaviour:
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
   goldenColor: {r: 0.72, g: 0.52, b: 0.02, a: 1}
---- !u!114 &1329721533
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1329721518}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: dc849b2d0ed56f546a78480d48dc3f05, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!1 &1336500455
 GameObject:
   m_ObjectHideFlags: 0
