@@ -494,7 +494,25 @@ public class ShopManager : MonoBehaviour
         // 构建可用祝福池（根据刷新行为过滤）
         List<BlessingData> availableBlessings = BuildAvailableBlessingPool();
         RemoveDisplayedBlessingsFromPool(availableBlessings);
-        
+
+        // 琳琅满目：下次商店刷新的所有祝福均为未拥有的祝福
+        if (BlessingManager.Instance != null && BlessingManager.Instance.luxuriant > 0)
+        {
+            List<BlessingData> unownedPool = availableBlessings.FindAll(b =>
+                BlessingManager.Instance.GetBlessingCount(b.blessingId) <= 0);
+
+            if (unownedPool.Count > 0)
+            {
+                availableBlessings = unownedPool;
+                BlessingManager.Instance.luxuriant--;
+                Debug.Log($"琳琅满目生效：本次刷新祝福均为未拥有（剩余次数：{BlessingManager.Instance.luxuriant}）");
+            }
+            else
+            {
+                Debug.LogWarning("琳琅满目：当前没有未拥有的祝福，本次刷新不生效");
+            }
+        }
+
         int remainingSlots = MaxBlessingCardCount - wishAdded - darkBoxAdded;//减去许愿币和暗箱操作占位
         
         // 生成所有槽位（包括锁定的）。

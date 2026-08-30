@@ -88,6 +88,9 @@ public class BlessingManager : MonoBehaviour
     public bool hasCasinoCommissioner = false;          //赌场专员
     public int luxuriant = 0;                              //琳琅满目
     public int sellOff = 0;                                //变卖
+    public bool hasAddictedtoGambling = false;                //嗜赌如命
+    public bool hasLovingWealth = false;                      //爱财如命
+    public int SpiritGodRealm = 0;                              //鬼神境
     private void Awake()
     {
         if (Instance == null)
@@ -118,59 +121,59 @@ public class BlessingManager : MonoBehaviour
         ownedBlessings.Clear();
         blessingTypeCount.Clear();
         blessingsEverPurchased.Clear();
-        totalMultiplierBonus = 0;
-        totalDialecticalCount = 0;
-        AllGodsCount = 0;
-        LuckTurnsCount = 0;
-        CardMasterCount = 0;
-        hasJackpot7 = false;
-        wishCoinTargetBlessing = null; 
-        HasRichTreasure = 0;
-        nihilismCount = 0;
-        hasLeadingCharge = false;
-        hasGambleToWin = false; 
-        hasLoanWallet = 0;
-        hasIdealism = false;
-        hasUnstoppable = 0;
-        hasEnergySpread = 0;
-        hasRisingUp = 0;
-        hasTemperlance = 0;
-        wishCoinPurchaseCount = 0; 
-        ApplyPragmatism = 0;    
-        hasGodOfGambler = false;  
-        shortSightCount = 0;                     
-        dialecticalPricePercent = 0f;
-        minimalismMultiplier = 0;//极简主义
-        minimalismCount = 0;//极简主义数量
-        pragmatismDeleteCount = 0;
-        dayAfterDayCount = 0; // 日积月累数量
-        hasHastyAppreciation = 0; // 走马观花
-        hastyAppreciationBonus = 0;// 走马观花的临时倍率
-        bigSuccessCount = 0;      // 大成功数量
-        delaySatisfactionList.Clear();  //延迟满足
-        darkBoxTargetBlessing = null;   // 暗箱操作目标祝福
-        darkBoxPurchaseCount = 0;       // 暗箱操作购买次数
-        hasYinYang = false;             // 阴阳
-        hasFall = false;                // 坠落
-        reverse = 0;                    // 翻转
-        hasJustice = false;                     // 绝对正义
-        luckyStarCount = 0;                      // 幸运星数量
-        fortuneStarCount = 0;                    // 福星数量
-        meteor = 0;                              // 流星
-        wealthStarCount = 0;                     //财星
-        disasterStarCount = 0;                   //祸星
-        morningsStarCount = 0;                   //启明星
-        morningStarTargetCards.Clear();          //启明星锁定的数字卡
-        compassionStarCount = 0;                 //慈爱星
-        bigSevenStarCount = 0;                   //大七星
-        hasFinancialExpert = false;             //金融专家
-        hasCasinoCommissioner = false;          //赌场专员
-        luxuriant = 0;                              //琳琅满目
-        sellOff = 0;                                //变卖
+        totalMultiplierBonus = 0;           // 永久倍率
 
-
-
-
+        totalDialecticalCount = 0;          // 辩证主义购买次数
+        AllGodsCount = 0;                   // 众神归位数量
+        LuckTurnsCount = 0;                 // 转运
+        CardMasterCount = 0;                //卡牌大师
+        hasJackpot7 = false;                //逢七过
+        wishCoinTargetBlessing = null;      //许愿币储存的祝福
+        HasRichTreasure = 0;                //丰盈宝库
+        nihilismCount = 0;                  //虚无主义数量
+        hasLeadingCharge = false;           // 打头阵
+        hasGambleToWin = false;             // 是否拥有赌为赢祝福
+        hasLoanWallet = 0;                  // 贷款钱包
+        hasIdealism = false;                //唯心主义
+        hasUnstoppable = 0;                 // 势如破竹
+        hasEnergySpread = 0;                // 是否拥有能量扩散
+        hasRisingUp = 0;                    // 是否拥有节节高
+        hasTemperlance = 0;                 // 是否拥有平衡节制
+        wishCoinPurchaseCount = 0;          // 许愿币购买次数
+        ApplyPragmatism = 0;                //实用主义
+        hasGodOfGambler = false;            //赌神传说
+        shortSightCount = 0;                // 短视数量
+        dialecticalPricePercent = 0f;       // 辩证主义
+        minimalismMultiplier = 0;           //极简主义
+        minimalismCount = 0;                //极简主义数量
+        pragmatismDeleteCount = 0;          //实用主义删除次数
+        dayAfterDayCount = 0;               // 日积月累数量
+        hasHastyAppreciation = 0;           // 走马观花
+        hastyAppreciationBonus = 0;         // 走马观花的临时倍率
+        bigSuccessCount = 0;                // 大成功数量
+        delaySatisfactionList.Clear();      //延迟满足
+        darkBoxTargetBlessing = null;       // 暗箱操作目标祝福
+        darkBoxPurchaseCount = 0;           // 暗箱操作购买次数
+        hasYinYang = false;                 // 阴阳
+        hasFall = false;                    // 坠落
+        reverse = 0;                        // 翻转
+        hasJustice = false;                 // 绝对正义
+        luckyStarCount = 0;                 // 幸运星数量
+        fortuneStarCount = 0;               // 福星数量
+        meteor = 0;                         // 流星
+        wealthStarCount = 0;                //财星
+        disasterStarCount = 0;              //祸星
+        morningsStarCount = 0;              //启明星
+        morningStarTargetCards.Clear();     //启明星锁定的数字卡
+        compassionStarCount = 0;            //慈爱星
+        bigSevenStarCount = 0;              //大七星
+        hasFinancialExpert = false;         //金融专家
+        hasCasinoCommissioner = false;      //赌场专员
+        luxuriant = 0;                      //琳琅满目
+        sellOff = 0;                        //变卖
+        hasAddictedtoGambling = false;      //嗜赌如命
+        hasLovingWealth = false;            //爱财如命
+        SpiritGodRealm = 0;                 //鬼神境
 
         GetCurrentPriceMultiplier(); //重置折扣
 
@@ -632,17 +635,39 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log("金融专家祝福激活：你的黄金数字同时也拥有绿色数字的特性");
                 break;
 
-            case BlessingData.BlessingType.BettingExpert:
-                // 博彩专家：你的骰子判定点数同时也拥有黄金数字的特性
-                hasBettingExpert = true;
-                Debug.Log("博彩专家祝福激活：你的骰子判定点数同时也拥有黄金数字的特性");
+            case BlessingData.BlessingType.Luxuriant:
+                // 琳琅满目 - 可叠加：祝福“琳琅满目”的价格翻倍，下次商店刷新的所有祝福均为未拥有的祝福
+                luxuriant++;
+                Debug.Log($"琳琅满目已激活！剩余次数：{luxuriant}");
                 break;
 
-            case BlessingData.BlessingType.CasinoCommissioner:
-                // 赌场专员：你的骰子点数判定为其最大值后将自动升一级
-                hasCasinoCommissioner = true;
-                Debug.Log("赌场专员祝福激活：你的骰子点数判定为其最大值后将自动升一级");
+            case BlessingData.BlessingType.SellOff:
+                // 变卖 - 可叠加：如果至少有六张不含黄金数的数字卡，失去所有含黄金数的数字卡，获得黄金数总和两倍的永久倍率
+                sellOff++;
+                ApplySellOffEffect();
+                Debug.Log($"变卖祝福激活：当前变卖数量 {sellOff}");
                 break;
+
+            case BlessingData.BlessingType.AddictedtoGambling:
+                // 嗜赌如命 - 不可叠加：倍率+7，若抽卡时未抽取到含有骰子的数字卡，本回合的最终计算结果视为0
+                hasAddictedtoGambling = true;
+                totalMultiplierBonus += 7;
+                Debug.Log("嗜赌如命已激活：倍率+7，未抽到含骰子的数字卡时本回合最终结果视为0");
+                break;
+
+            case BlessingData.BlessingType.LovingWealth:
+                // 爱财如命 - 不可叠加：倍率+7，若抽卡时未抽取到含有黄金数的数字卡，本回合的最终计算结果视为0
+                hasLovingWealth = true;
+                totalMultiplierBonus += 7;
+                Debug.Log("爱财如命已激活：倍率+7，未抽到含黄金数的数字卡时本回合最终结果视为0");
+                break;
+
+            case BlessingData.BlessingType.SpiritGodRealm:
+                // 鬼神境 - 可叠加：接下来每回合获得骰子判定点数总和数量的随机可叠加祝福
+                SpiritGodRealm++;
+                Debug.Log($"鬼神境已激活！接下来每回合获得骰子判定点数总和数量的随机可叠加祝福，当前层数：{SpiritGodRealm}");
+                break;
+
         }
     }
 
@@ -769,16 +794,21 @@ public class BlessingManager : MonoBehaviour
         }
 
         // 失去除自身（大七星）外所有星字祝福各一个
-        foreach (var star in starBlessings)
+        if(ownsAllStars)
         {
-            if (star.blessingType == BlessingData.BlessingType.BigSevenStar) continue;
-            DecreaseBlessingByOne(star);
-        }
+            Debug.Log("大七星：拥有所有星字祝福，开始失去各一个");
+            foreach (var star in starBlessings)
+            {
+                if (star.blessingType == BlessingData.BlessingType.BigSevenStar) continue;
+                DecreaseBlessingByOne(star);
 
-        // 获得 24亿 × 10^大七星数量 的点数
-        BigInteger reward = (BigInteger)2400000000 * BigInteger.Pow(10, bigSevenStarCount);
-        GameManager.Instance.AddPoints(reward);
-        Debug.Log($"大七星：获得点数 {reward}（大七星数量 {bigSevenStarCount}）");
+                // 获得 24亿 × 10^大七星数量 的点数
+                BigInteger reward = (BigInteger)2400000000 * BigInteger.Pow(10, bigSevenStarCount);
+                GameManager.Instance.AddPoints(reward);
+                Debug.Log($"大七星：获得点数 {reward}（大七星数量 {bigSevenStarCount}）");
+            }
+        }
+       
     }
 
     /// <summary>
@@ -1008,13 +1038,28 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 神灯
+    /// 随机获取 count 个可叠加祝福并应用其效果（神灯/鬼神境共用）
     /// </summary>
-    private void AddStackableBlessingsToOwned(int count)
+    /// <param name="count">获取数量</param>
+    /// <param name="excludedTypes">额外排除的祝福类型（例如鬼神境排除会弹出选择UI的祝福）</param>
+    private void AddStackableBlessingsToOwned(int count, params BlessingData.BlessingType[] excludedTypes)
     {
+        if (blessingLibrary == null) return;
+        if (count <= 0) return;
+
         // 1. 获取祝福库中所有可叠加祝福
         List<BlessingData> allStackable = blessingLibrary.GetAllStackableBlessing();
-        allStackable.RemoveAll(b=>b.blessingType == BlessingData.BlessingType.MagicLamp);
+        // 始终排除：神灯（避免递归获得）、鬼神境（避免自我放大）
+        allStackable.RemoveAll(b => b.blessingType == BlessingData.BlessingType.MagicLamp
+                                 || b.blessingType == BlessingData.BlessingType.SpiritGodRealm);
+        // 额外排除调用方指定的类型
+        if (excludedTypes != null && excludedTypes.Length > 0)
+        {
+            allStackable.RemoveAll(b => excludedTypes.Contains(b.blessingType));
+        }
+
+        if (allStackable.Count <= 0) return;
+
         System.Random rnd = new System.Random();
         // 2. 随机选择 count 个祝福
         for (int i = 0; i < count; i++)
@@ -1023,18 +1068,18 @@ public class BlessingManager : MonoBehaviour
             BlessingData selected = allStackable[randomIdx];
             if (selected == null) continue;
 
-        // 3. 直接添加到 ownedBlessings
+            // 3. 直接添加到 ownedBlessings
             if (ownedBlessings.ContainsKey(selected.blessingId)) ownedBlessings[selected.blessingId]++;
             else ownedBlessings[selected.blessingId] = 1;
 
-        // 4. 同步关联数据
+            // 4. 同步关联数据
             blessingsEverPurchased.Add(selected.blessingId);
             if (!blessingTypeCount.ContainsKey(selected.blessingType)) blessingTypeCount[selected.blessingType] = 0;
             blessingTypeCount[selected.blessingType]++;
 
-        // 5. 触发该祝福的效果
+            // 5. 触发该祝福的效果
             ApplyBlessingEffect(selected);
-            Debug.Log($"神灯获得：{selected.blessingName}（当前次数：{ownedBlessings[selected.blessingId]}）");
+            Debug.Log($"获得祝福：{selected.blessingName}（当前次数：{ownedBlessings[selected.blessingId]}）");
         }
     }   
 
@@ -1461,12 +1506,10 @@ public class BlessingManager : MonoBehaviour
         }
     }
     /// <summary>
-    /// 祝福：赌神传说 —— 本回合所有骰子点数 → 额外临时倍率
+    /// 获取本回合骰子判定点数总和（参与计算的数字卡中所有骰子的判定结果之和）
     /// </summary>
-    public int GetGodOfGamblerTempMultiplier()
+    public int GetCurrentTurnDiceTotal()
     {
-        if (!hasGodOfGambler) return 0;
-
         int totalDiceValue = 0;
 
         // 遍历本回合使用的所有数字卡
@@ -1474,13 +1517,13 @@ public class BlessingManager : MonoBehaviour
         {
             foreach (var card in CardManager.Instance.selectedNumberCards)
             {
-               if (card == null || card.cardData == null) continue;
+                if (card == null || card.cardData == null) continue;
 
-               // PartA 是骰子 → 加当前掷出值
-               if (card.cardData.partA != null && card.cardData.partA.isDice)
-               {
+                // PartA 是骰子 → 加当前掷出值
+                if (card.cardData.partA != null && card.cardData.partA.isDice)
+                {
                     totalDiceValue += card.currentA;
-               }
+                }
 
                 // PartB 是骰子 → 加当前掷出值
                 if (card.cardData.partB != null && card.cardData.partB.isDice)
@@ -1490,8 +1533,41 @@ public class BlessingManager : MonoBehaviour
             }
         }
 
+        return totalDiceValue;
+    }
+
+    /// <summary>
+    /// 祝福：赌神传说 —— 本回合所有骰子点数 → 额外临时倍率
+    /// </summary>
+    public int GetGodOfGamblerTempMultiplier()
+    {
+        if (!hasGodOfGambler) return 0;
+
+        int totalDiceValue = GetCurrentTurnDiceTotal();
         Debug.Log($"【赌神传说】本回合骰子总点数 = {totalDiceValue} → 临时倍率 +{totalDiceValue}");
         return totalDiceValue;
+    }
+
+    /// <summary>
+    /// 祝福：鬼神境 —— 每回合获得骰子判定点数总和数量的随机可叠加祝福
+    /// 在每回合结算完成后调用（骰子判定结果已确定）
+    /// </summary>
+    public void ApplySpiritGodRealm()
+    {
+        if (SpiritGodRealm <= 0) return;
+
+        int diceTotal = GetCurrentTurnDiceTotal();
+        if (diceTotal <= 0) return;
+
+        // 每层鬼神境 → 骰子判定点数总和数量的祝福（可叠加）
+        int count = diceTotal * SpiritGodRealm;
+        Debug.Log($"【鬼神境】本回合骰子判定点数总和 = {diceTotal}，获得 {count} 个随机可叠加祝福");
+        AddStackableBlessingsToOwned(count,
+            BlessingData.BlessingType.WishingCoin,      // 许愿币：会弹出选择UI
+            BlessingData.BlessingType.DarkBoxOperation, // 暗箱操作：会弹出选择UI
+            BlessingData.BlessingType.MorningStar,      // 启明星：会弹出选择UI
+            BlessingData.BlessingType.CardCheat,        // 老千：会弹出选择UI
+            BlessingData.BlessingType.MoreMoreBetter);  // 多多益善：会弹出选择UI
     }
     
     /// <summary>
@@ -1599,6 +1675,70 @@ public class BlessingManager : MonoBehaviour
         selectedComponent.value += 1;
 
         Debug.Log($"福星祝福：{selectedCard.cardData.cardName} 的黄金数字 +1，当前值: {selectedComponent.value}");
+    }
+
+    /// <summary>
+    /// 变卖祝福效果：如果至少有六张不含黄金数的数字卡，
+    /// 失去所有含黄金数的数字卡，获得黄金数总和两倍的永久倍率
+    /// </summary>
+    private void ApplySellOffEffect()
+    {
+        var inventory = PlayerCardInventory.Instance;
+        if (inventory == null)
+        {
+            Debug.LogWarning("变卖祝福：玩家卡牌库存为空，无法生效");
+            return;
+        }
+
+        // 1. 分类：含黄金数的数字卡 / 不含黄金数的数字卡
+        var goldenCards = new List<NumberCardInstance>();
+        int nonGoldenCardCount = 0;
+
+        foreach (var card in inventory.numberCards)
+        {
+            if (card == null || card.cardData == null) continue;
+
+            bool hasGolden = card.cardData.partA.isGolden ||
+                             (card.cardData.partB != null && card.cardData.partB.isGolden);
+
+            if (hasGolden)
+                goldenCards.Add(card);
+            else
+                nonGoldenCardCount++;
+        }
+
+        // 2. 条件判定：至少六张不含黄金数的数字卡
+        if (nonGoldenCardCount < 6)
+        {
+            Debug.LogWarning($"变卖祝福：不含黄金数的数字卡不足6张（当前{nonGoldenCardCount}张），本次不生效");
+            return;
+        }
+
+        // 3. 计算黄金数总和（所有含黄金数卡片的黄金数字组件值之和）
+        long goldenSum = 0;
+        foreach (var card in goldenCards)
+        {
+            if (card.cardData.partA.isGolden)
+                goldenSum += card.cardData.partA.value;
+            if (card.cardData.partB != null && card.cardData.partB.isGolden)
+                goldenSum += card.cardData.partB.value;
+        }
+
+        // 4. 失去所有含黄金数的数字卡
+        foreach (var card in goldenCards)
+        {
+            inventory.RemoveNumberCard(card);
+        }
+
+        // 5. 获得黄金数总和两倍的永久倍率
+        totalMultiplierBonus += goldenSum * 2;
+
+        // 6. 同步牌堆（移除的卡不再进入后续抽卡）
+        if (CardManager.Instance != null)
+            CardManager.Instance.SyncDeckFromInventory();
+
+        Debug.Log($"变卖祝福生效：失去 {goldenCards.Count} 张含黄金数的数字卡，黄金数总和 {goldenSum}，" +
+            $"获得永久倍率 +{goldenSum * 2}，当前永久倍率 {totalMultiplierBonus}");
     }
 
     /// <summary>

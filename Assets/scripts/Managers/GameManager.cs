@@ -90,7 +90,7 @@ public class GameManager : MonoBehaviour
         // 重置本局统计数据
         ResetRoundStatistics();
 
-        currentPoints = 99999999990;
+        currentPoints = 0;
 
         currentRound = 1;
 
@@ -354,6 +354,22 @@ public class GameManager : MonoBehaviour
             finalScore = BigInteger.Zero;
         }
 
+        // 嗜赌如命效果：若抽卡时未抽取到含有骰子的数字卡，本回合最终计算结果视为0
+        if (blessingManager != null && blessingManager.hasAddictedtoGambling &&
+            (formula == null || !formula.drewDiceCardThisRound))
+        {
+            finalScore = BigInteger.Zero;
+            Debug.Log("嗜赌如命：本回合未抽到含有骰子的数字卡，最终计算结果视为0");
+        }
+
+        // 爱财如命效果：若抽卡时未抽取到含有黄金数的数字卡，本回合最终计算结果视为0
+        if (blessingManager != null && blessingManager.hasLovingWealth &&
+            (formula == null || !formula.drewGoldenCardThisRound))
+        {
+            finalScore = BigInteger.Zero;
+            Debug.Log("爱财如命：本回合未抽到含有黄金数的数字卡，最终计算结果视为0");
+        }
+
         // 财星效果：finalScore *= 1.02^wealthStarCount（向下取整）
         if (blessingManager != null && blessingManager.wealthStarCount > 0)
         {
@@ -405,6 +421,12 @@ public class GameManager : MonoBehaviour
         yield return new WaitForSeconds(totalScoreDisplayTime);
 
         UIManager.Instance.HideAllCardScoreOverlays();
+
+        // 鬼神境祝福：每回合获得骰子判定点数总和数量的随机可叠加祝福
+        if (BlessingManager.Instance != null && BlessingManager.Instance.SpiritGodRealm > 0)
+        {
+            BlessingManager.Instance.ApplySpiritGodRealm();
+        }
 
         // 第3步：进入商店
         EndTurn();

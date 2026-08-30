@@ -90,7 +90,10 @@ public class BlessingData : ScriptableObject
         FinancialExpert,      //金融专家
         CasinoCommissioner ,   //赌场专员
         Luxuriant,              //琳琅满目
-        SellOff,                //变卖  
+        SellOff,                //变卖 
+        AddictedtoGambling,     //嗜赌如命
+        LovingWealth,           //爱财如命
+        SpiritGodRealm,         //鬼神境
     }
 
     /// <summary>

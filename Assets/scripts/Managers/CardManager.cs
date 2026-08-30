@@ -35,6 +35,11 @@ public class CardManager : MonoBehaviour
     public List<NumberCardInstance> currentNumberCards = new();
     public FormulaCardData currentFormulaCard;
 
+    // 嗜赌如命祝福：记录本回合抽卡时是否抽到含有骰子的数字卡
+    public bool drewDiceCardThisRound = false;
+    // 爱财如命祝福：记录本回合抽卡时是否抽到含有黄金数的数字卡
+    public bool drewGoldenCardThisRound = false;
+
     [Header("当前填入公式的数字卡")]
     public List<NumberCardInstance> selectedNumberCards = new();
     public int filledNumber = 0;   
@@ -84,6 +89,11 @@ public class CardManager : MonoBehaviour
     public void DrawCardsForTurn()// 抽取当前回合手牌
     {
         ClearHand();
+
+        // 嗜赌如命祝福：重置本回合“是否抽到含骰子数字卡”的标记
+        drewDiceCardThisRound = false;
+        // 爱财如命祝福：重置本回合“是否抽到含黄金数数字卡”的标记
+        drewGoldenCardThisRound = false;
 
         if (numberCardDeck == null || numberCardDeck.Count == 0)
         {
@@ -146,6 +156,8 @@ public class CardManager : MonoBehaviour
                     tempPool.Remove(target);
                     target.OnDrawn();
                     currentNumberCards.Add(target);
+                    MarkDiceCardIfNeeded(target);
+                    MarkGoldenCardIfNeeded(target);
                     Debug.Log("[启明星]必抽到: " + target.cardData.cardName);
                 }
             }
@@ -172,6 +184,8 @@ public class CardManager : MonoBehaviour
 
                 selectedInstance.OnDrawn();
                 currentNumberCards.Add(selectedInstance);
+                MarkDiceCardIfNeeded(selectedInstance);
+                MarkGoldenCardIfNeeded(selectedInstance);
                 Debug.Log("[经验主义]优先抽到: " + selectedInstance.cardData.cardName);
             }
             else
@@ -195,6 +209,8 @@ public class CardManager : MonoBehaviour
 
                 selectedInstance.OnDrawn();
                 currentNumberCards.Add(selectedInstance);
+                MarkDiceCardIfNeeded(selectedInstance);
+                MarkGoldenCardIfNeeded(selectedInstance);
 
                 Debug.Log($"抽到卡牌: {selectedInstance.cardData.cardName}, 当前值: A={selectedInstance.currentA}, B={selectedInstance.currentB}");
             }
@@ -216,7 +232,33 @@ public class CardManager : MonoBehaviour
 
                 card.OnDrawn();
                 currentNumberCards.Add(card);
+                MarkDiceCardIfNeeded(card);
+                MarkGoldenCardIfNeeded(card);
             }
+        }
+    }
+
+    /// <summary>
+    /// 嗜赌如命祝福：抽到含有骰子的数字卡时，标记本回合已抽到骰子
+    /// </summary>
+    private void MarkDiceCardIfNeeded(NumberCardInstance card)
+    {
+        if (card == null || card.cardData == null) return;
+        if (card.cardData.partA.isDice || (card.cardData.partB != null && card.cardData.partB.isDice))
+        {
+            drewDiceCardThisRound = true;
+        }
+    }
+
+    /// <summary>
+    /// 爱财如命祝福：抽到含有黄金数的数字卡时，标记本回合已抽到黄金数
+    /// </summary>
+    private void MarkGoldenCardIfNeeded(NumberCardInstance card)
+    {
+        if (card == null || card.cardData == null) return;
+        if (card.cardData.partA.isGolden || (card.cardData.partB != null && card.cardData.partB.isGolden))
+        {
+            drewGoldenCardThisRound = true;
         }
     }
     

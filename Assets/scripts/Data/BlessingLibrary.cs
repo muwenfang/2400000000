@@ -654,6 +654,36 @@ public class BlessingLibrary : ScriptableObject
             isStackable: true,
             refreshBehavior: BlessingData.RefreshBehavior.CurrentRoundOnly
         ));
+        //嗜赌如命
+        allBlessings.Add(CreateBlessing(
+            id: 61,
+            name: "嗜赌如命",
+            description: "倍率+7，若抽卡时未抽取到含有骰子的数字卡，本回合的最终计算结果视为0",
+            type: BlessingData.BlessingType.AddictedtoGambling,
+            basePrice: 0,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+        //爱财如命
+        allBlessings.Add(CreateBlessing(
+            id: 62,
+            name: "爱财如命",
+            description: "倍率+7，若抽卡时未抽取到含有黄金数的数字卡，本回合的最终计算结果视为0",
+            type: BlessingData.BlessingType.LovingWealth,
+            basePrice: 0,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+        //鬼神境
+        allBlessings.Add(CreateBlessing(
+            id: 63,
+            name: "鬼神境",
+            description: "接下来每回合获得骰子判定点数总和数量的随机可叠加祝福",
+            type: BlessingData.BlessingType.SpiritGodRealm,
+            basePrice: 2400000000,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.AlwaysRefresh
+        )); 
     }
 
     /// <summary>
