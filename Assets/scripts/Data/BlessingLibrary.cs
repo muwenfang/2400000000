@@ -678,7 +678,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 63,
             name: "鬼神境",
-            description: "接下来每回合获得骰子判定点数总和数量的随机可叠加祝福",
+            description: "接下来每回合随机购买骰子判定点数总和数量的可叠加祝福",
             type: BlessingData.BlessingType.SpiritGodRealm,
             basePrice: 2400000000,
             isStackable: true,

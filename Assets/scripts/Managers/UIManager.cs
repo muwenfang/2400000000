@@ -60,6 +60,10 @@ public class UIManager : MonoBehaviour
     public Button courseButtonc;             // 教程按钮
     public Button courseButtons;             // 教程按钮
 
+    [Header("祝福选择提示")]
+    [Tooltip("带选择功能的祝福效果提示：在场景中拖入位于最顶层的 Text（如 Canvas 直属子物体），显示格式为 name:description")]
+    public Text cardSelectionBlessingText;
+
     [Header("点数获得提示")]
     public Text pointsGainText; // 显示获得的点数数值
     public float pointsGainDisplayTime = 2f; // 显示时长
@@ -1046,6 +1050,37 @@ public class UIManager : MonoBehaviour
 
         foreach (Transform child in area)
             Destroy(child.gameObject);
+    }
+    #endregion
+
+    #region 祝福选择提示
+    /// <summary>
+    /// 显示祝福选择提示（格式：name:description）并置顶显示。
+    /// 在触发带选择功能的祝福（老千/许愿币/暗箱操作/启明星/多多益善）时调用，
+    /// 重复调用会直接更新文本内容；选择结束后由 HideCardSelectionBlessing 关闭。
+    /// </summary>
+    public void ShowCardSelectionBlessing(string blessingName, string description)
+    {
+        if (cardSelectionBlessingText == null)
+        {
+            Debug.LogWarning("[UIManager] cardSelectionBlessingText 未赋值，无法显示祝福选择提示");
+            return;
+        }
+
+        cardSelectionBlessingText.text = $"{blessingName}:{description}";
+        cardSelectionBlessingText.gameObject.SetActive(true);
+        cardSelectionBlessingText.transform.SetAsLastSibling(); // 实时置顶显示
+    }
+
+    /// <summary>
+    /// 关闭祝福选择提示（卡牌/祝福选择结束或界面被关闭时调用）
+    /// </summary>
+    public void HideCardSelectionBlessing()
+    {
+        if (cardSelectionBlessingText != null)
+        {
+            cardSelectionBlessingText.gameObject.SetActive(false);
+        }
     }
     #endregion
 

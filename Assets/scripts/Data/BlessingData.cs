@@ -88,12 +88,16 @@ public class BlessingData : ScriptableObject
         MorningStar,          //启明星
         BigSevenStar,         //大七星
         FinancialExpert,      //金融专家
-        CasinoCommissioner ,   //赌场专员
-        Luxuriant,              //琳琅满目
-        SellOff,                //变卖 
-        AddictedtoGambling,     //嗜赌如命
-        LovingWealth,           //爱财如命
-        SpiritGodRealm,         //鬼神境
+        CasinoCommissioner ,  //赌场专员
+        Luxuriant,            //琳琅满目
+        SellOff,              //变卖 
+        AddictedtoGambling,   //嗜赌如命
+        LovingWealth,         //爱财如命
+        SpiritGodRealm,       //鬼神境
+        KingOfTheBoard,       //国王棋盘
+        AntimatterNucleus,     //反物质核
+        Colorful,             //缤纷多彩
+        AntimatterCloud       //反物质云
     }
 
     /// <summary>

@@ -278,6 +278,7 @@ public class BlessingManager : MonoBehaviour
         {
             case BlessingData.BlessingType.CardCheat:
                 ActivateCardCheatSelection();
+                ShowCardSelectionBlessingHint(blessingData);
                 Debug.Log("老千 已激活！");
                 break;
             
@@ -302,6 +303,7 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log("许愿币效果激活：请选择一个已拥有的可叠加祝福");
                 wishCoinPurchaseCount++;
                 ActivateWishCoinSelection();
+                ShowCardSelectionBlessingHint(blessingData);
                 UIManager.Instance.RefreshShopUI();
                 break;
 
@@ -332,6 +334,7 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.MoreMoreBetter:
                 // 多多益善 - 复制一张填空卡（需要玩家选择）
                 ActivateMoreMoreBetter();
+                ShowCardSelectionBlessingHint(blessingData);
                 Debug.Log("多多益善效果已激活，等待玩家选择填空卡");
                 break;
 
@@ -556,6 +559,7 @@ public class BlessingManager : MonoBehaviour
                 // 暗箱操作：选择一个已拥有的可叠加祝福，下次商店刷新时该祝福以-2倍价格出现并扣2倍点数
                 darkBoxPurchaseCount++;
                 ActivateDarkBoxSelection();
+                ShowCardSelectionBlessingHint(blessingData);
                 break;
 
             case BlessingData.BlessingType.Reverse:
@@ -619,6 +623,7 @@ public class BlessingManager : MonoBehaviour
                 // 启明星：购买此祝福后，选择一张数字卡：你在下一回合一定会抽到它
                 morningsStarCount++;
                 ActivateMorningStarSelection();
+                ShowCardSelectionBlessingHint(blessingData);
                 Debug.Log($"启明星祝福激活：当前启明星数量 {morningsStarCount}");
                 break;
 
@@ -668,6 +673,18 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log($"鬼神境已激活！接下来每回合获得骰子判定点数总和数量的随机可叠加祝福，当前层数：{SpiritGodRealm}");
                 break;
 
+        }
+    }
+
+    /// <summary>
+    /// 触发带选择功能的祝福时，在最顶层显示 名字:描述 提示（选择结束后由 EndCardSelection 统一关闭）。
+    /// </summary>
+    private void ShowCardSelectionBlessingHint(BlessingData blessingData)
+    {
+        if (blessingData == null) return;
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.ShowCardSelectionBlessing(blessingData.blessingName, blessingData.description);
         }
     }
 
@@ -793,22 +810,21 @@ public class BlessingManager : MonoBehaviour
             }
         }
 
-        // 失去除自身（大七星）外所有星字祝福各一个
-        if(ownsAllStars)
+        if (ownsAllStars)
         {
-            Debug.Log("大七星：拥有所有星字祝福，开始失去各一个");
+            // 失去除自身（大七星）外所有星字祝福各一个
             foreach (var star in starBlessings)
             {
                 if (star.blessingType == BlessingData.BlessingType.BigSevenStar) continue;
                 DecreaseBlessingByOne(star);
-
-                // 获得 24亿 × 10^大七星数量 的点数
-                BigInteger reward = (BigInteger)2400000000 * BigInteger.Pow(10, bigSevenStarCount);
-                GameManager.Instance.AddPoints(reward);
-                Debug.Log($"大七星：获得点数 {reward}（大七星数量 {bigSevenStarCount}）");
             }
+
+            // 获得 24亿 × 10^大七星数量 的点数
+            BigInteger reward = (BigInteger)2400000000 * BigInteger.Pow(10, bigSevenStarCount);
+            GameManager.Instance.AddPoints(reward);
+            Debug.Log($"大七星：获得点数 {reward}（大七星数量 {bigSevenStarCount}）");
         }
-       
+      
     }
 
     /// <summary>
@@ -1038,28 +1054,15 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 随机获取 count 个可叠加祝福并应用其效果（神灯/鬼神境共用）
+    /// 神灯
     /// </summary>
-    /// <param name="count">获取数量</param>
-    /// <param name="excludedTypes">额外排除的祝福类型（例如鬼神境排除会弹出选择UI的祝福）</param>
-    private void AddStackableBlessingsToOwned(int count, params BlessingData.BlessingType[] excludedTypes)
+    private void AddStackableBlessingsToOwned(int count)
     {
-        if (blessingLibrary == null) return;
-        if (count <= 0) return;
-
+        count *= SpiritGodRealm; // 鬼神境叠加效果
+         
         // 1. 获取祝福库中所有可叠加祝福
         List<BlessingData> allStackable = blessingLibrary.GetAllStackableBlessing();
-        // 始终排除：神灯（避免递归获得）、鬼神境（避免自我放大）
-        allStackable.RemoveAll(b => b.blessingType == BlessingData.BlessingType.MagicLamp
-                                 || b.blessingType == BlessingData.BlessingType.SpiritGodRealm);
-        // 额外排除调用方指定的类型
-        if (excludedTypes != null && excludedTypes.Length > 0)
-        {
-            allStackable.RemoveAll(b => excludedTypes.Contains(b.blessingType));
-        }
-
-        if (allStackable.Count <= 0) return;
-
+        allStackable.RemoveAll(b=>b.blessingType == BlessingData.BlessingType.MagicLamp);
         System.Random rnd = new System.Random();
         // 2. 随机选择 count 个祝福
         for (int i = 0; i < count; i++)
@@ -1068,18 +1071,18 @@ public class BlessingManager : MonoBehaviour
             BlessingData selected = allStackable[randomIdx];
             if (selected == null) continue;
 
-            // 3. 直接添加到 ownedBlessings
+        // 3. 直接添加到 ownedBlessings
             if (ownedBlessings.ContainsKey(selected.blessingId)) ownedBlessings[selected.blessingId]++;
             else ownedBlessings[selected.blessingId] = 1;
 
-            // 4. 同步关联数据
+        // 4. 同步关联数据
             blessingsEverPurchased.Add(selected.blessingId);
             if (!blessingTypeCount.ContainsKey(selected.blessingType)) blessingTypeCount[selected.blessingType] = 0;
             blessingTypeCount[selected.blessingType]++;
 
-            // 5. 触发该祝福的效果
+        // 5. 触发该祝福的效果
             ApplyBlessingEffect(selected);
-            Debug.Log($"获得祝福：{selected.blessingName}（当前次数：{ownedBlessings[selected.blessingId]}）");
+            Debug.Log($"神灯获得：{selected.blessingName}（当前次数：{ownedBlessings[selected.blessingId]}）");
         }
     }   
 
@@ -1211,6 +1214,13 @@ public class BlessingManager : MonoBehaviour
         morningsStarCount = 0;          // 启明星
         morningStarTargetCards.Clear(); // 启明星锁定的数字卡
         compassionStarCount = 0;        // 慈爱星
+        hasFinancialExpert = false;     // 金融专家
+        luxuriant = 0;                  // 琳琅满目
+        sellOff = 0;                    // 变卖
+        hasAddictedtoGambling = false;  // 嗜赌如命
+        hasLovingWealth = false;        // 爱财如命
+        SpiritGodRealm = 0;             // 鬼神境
+        
     }
 
     /// <summary>
@@ -1549,8 +1559,9 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 祝福：鬼神境 —— 每回合获得骰子判定点数总和数量的随机可叠加祝福
+    /// 祝福：鬼神境 —— 每回合随机购买骰子判定点数总和数量的可叠加祝福
     /// 在每回合结算完成后调用（骰子判定结果已确定）
+    /// 仅排除鬼神境自身；需要选择卡牌的祝福（许愿币/暗箱操作/启明星/老千/多多益善）也可随机购买到
     /// </summary>
     public void ApplySpiritGodRealm()
     {
@@ -1559,15 +1570,27 @@ public class BlessingManager : MonoBehaviour
         int diceTotal = GetCurrentTurnDiceTotal();
         if (diceTotal <= 0) return;
 
-        // 每层鬼神境 → 骰子判定点数总和数量的祝福（可叠加）
-        int count = diceTotal * SpiritGodRealm;
-        Debug.Log($"【鬼神境】本回合骰子判定点数总和 = {diceTotal}，获得 {count} 个随机可叠加祝福");
-        AddStackableBlessingsToOwned(count,
-            BlessingData.BlessingType.WishingCoin,      // 许愿币：会弹出选择UI
-            BlessingData.BlessingType.DarkBoxOperation, // 暗箱操作：会弹出选择UI
-            BlessingData.BlessingType.MorningStar,      // 启明星：会弹出选择UI
-            BlessingData.BlessingType.CardCheat,        // 老千：会弹出选择UI
-            BlessingData.BlessingType.MoreMoreBetter);  // 多多益善：会弹出选择UI
+        if (blessingLibrary == null) return;
+
+        // 获取所有可叠加祝福，仅排除鬼神境本身
+        List<BlessingData> candidates = blessingLibrary.GetAllStackableBlessing();
+        candidates.RemoveAll(b => b.blessingType == BlessingData.BlessingType.SpiritGodRealm);
+        if (candidates.Count <= 0) return;
+
+        System.Random rnd = new System.Random();
+        int buyCount = 0;
+        for (int i = 0; i < diceTotal; i++)
+        {
+            BlessingData selected = candidates[rnd.Next(candidates.Count)];
+            if (selected == null) continue;
+
+            // 直接调用购买祝福逻辑
+            if (TryBuyBlessing(selected))
+            {
+                buyCount++;
+            }
+        }
+        Debug.Log($"【鬼神境】本回合骰子判定点数总和 = {diceTotal}，随机购买 {buyCount} 个可叠加祝福");
     }
     
     /// <summary>

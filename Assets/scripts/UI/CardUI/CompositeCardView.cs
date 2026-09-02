@@ -91,14 +91,22 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         }
     }
 
+    /// <summary>
+    /// 格式化数值显示：数据为负数时加上小括号，如（-1）
+    /// </summary>
+    private static string FormatValue(int value)
+    {
+        return value < 0 ? $"（{value}）" : value.ToString();
+    }
+
     public void Bind(NumberCardData data)
     {
         // 确保组件存在
         EnsureComponentsExist();
         CacheTextScales();
 
-        aText.text = data.partA.value.ToString();
-        bText.text = data.partB.value.ToString();
+        aText.text = FormatValue(data.partA.value);
+        bText.text = FormatValue(data.partB.value);
 
         aText.color = data.partA.isGolden ? goldenColor : normalColor;
         bText.color = data.partB != null && data.partB.isGolden ? goldenColor : normalColor;
@@ -225,8 +233,8 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
             }
             else
             {
-                // 结算时：显示投出的具体数值
-                textComp.text = currentValue.ToString();
+                // 结算时：显示投出的具体数值（骰子结果恒为正，格式化无副作用）
+                textComp.text = FormatValue(currentValue);
             }
             textComp.color = component.isGolden ? goldenColor : diceColor;
 
@@ -239,7 +247,7 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         else if (component.isIncremental)
         {
             // 递增显示：{当前值} (绿色)
-            textComp.text = $"{currentValue}";
+            textComp.text = FormatValue(currentValue);
             textComp.color = component.isGolden ? goldenColor : incrementalColor;
 
             // 隐藏非骰子的图标
@@ -251,7 +259,7 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         else
         {
             // 普通显示：数值 (黑色)
-            textComp.text = currentValue.ToString();
+            textComp.text = FormatValue(currentValue);
             textComp.color = component.isGolden ? goldenColor : normalColor;
 
             // 隐藏非骰子的图标

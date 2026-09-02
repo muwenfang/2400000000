@@ -74,6 +74,12 @@ public class CardSelectionManager : MonoBehaviour
 
         // 通知所有订阅面板切换回普通模式
         OnSelectionModeChanged?.Invoke(SelectionMode.None);
+
+        // 选择结束：关闭祝福选择提示文本（若处于祝福选择流程中）
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.HideCardSelectionBlessing();
+        }
     }
 
     public SelectionMode GetCurrentMode()
