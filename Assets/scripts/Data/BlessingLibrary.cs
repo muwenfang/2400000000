@@ -684,6 +684,76 @@ public class BlessingLibrary : ScriptableObject
             isStackable: true,
             refreshBehavior: BlessingData.RefreshBehavior.AlwaysRefresh
         )); 
+        //国王棋盘
+        allBlessings.Add(CreateBlessing(
+            id: 64,
+            name: "国王棋盘",
+            description: "每回合获得1点点数，每经过一回合依靠此祝福获得的点数翻倍",
+            type: BlessingData.BlessingType.KingOfTheBoard,
+            basePrice: 24000000,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+        //反物质核
+        allBlessings.Add(CreateBlessing(
+            id: 65,
+            name: "反物质核",
+            description: "获得此祝福后，使永久倍率变为其相反数",
+            type: BlessingData.BlessingType.AntimatterNucleus,
+            basePrice: 0,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.AlwaysRefresh
+        ));
+        //缤纷多彩
+        allBlessings.Add(CreateBlessing(
+            id: 66,
+            name: "缤纷多彩",
+            description: "若抽的所有数字卡中同时包含普通数字，黄金数，绿色数字和骰子，永久倍率+20，20%的概率获得一个“缤纷多彩",
+            type: BlessingData.BlessingType.Colorful,
+            basePrice: 24000,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+        //反物质云
+        allBlessings.Add(CreateBlessing(
+            id: 67,
+            name: "反物质云",
+            description: "每有一张数字卡的结果被判定为负数一次，若永久倍率为负值，获得-10永久倍率，否则获得5永久倍率",
+            type: BlessingData.BlessingType.AntimatterCloud,
+            basePrice: 24000,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.AlwaysRefresh
+        ));
+        //反刍
+        allBlessings.Add(CreateBlessing(
+            id: 68,
+            name: "反刍",
+            description: "若通过计算获得的点数（合计倍率）为负数，记录此点数。三回合后获得此点数的相反数",
+            type: BlessingData.BlessingType.Rumination,
+            basePrice: 2400,
+            isStackable: false,
+            refreshBehavior: BlessingData.RefreshBehavior.NeverRefresh
+        ));
+        //步步高升
+        allBlessings.Add(CreateBlessing(
+            id: 69,
+            name: "步步高升",
+            description: "若数字卡在算式里的判定点数从左往右恰为从小到大的排列，本回合你获得100临时倍率",
+            type: BlessingData.BlessingType.RisingUpStepbyStep,
+            basePrice: 100000,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.AlwaysRefresh
+        ));
+        //八方来财
+        allBlessings.Add(CreateBlessing(
+            id: 70,
+            name: "八方来财",
+            description: "依靠祝福获得的点数*1.01(向下取整）",
+            type: BlessingData.BlessingType.EightWaysToWealth,
+            basePrice: 2000000,
+            isStackable: true,
+            refreshBehavior: BlessingData.RefreshBehavior.AlwaysRefresh
+        ));
     }
 
     /// <summary>

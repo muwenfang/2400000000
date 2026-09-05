@@ -1,0 +1,21 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 56b1e2f934b6fe543bb677f86e8aad86, type: 3}
+  m_Name: "71\u53CD\u520D"
+  m_EditorClassIdentifier: 
+  blessingId: 71
+  blessingName: "\u53CD\u520D"
+  description: "\u82E5\u901A\u8FC7\u8BA1\u7B97\u83B7\u5F97\u7684\u70B9\u6570\uFF08\u5408\u8BA1\u500D\u7387\uFF09\u4E3A\u8D1F\u6570\uFF0C\u8BB0\u5F55\u6B64\u70B9\u6570\u3002\u4E09\u56DE\u5408\u540E\u83B7\u5F97\u6B64\u70B9\u6570\u7684\u76F8\u53CD\u6570"
+  basePrice: 2400
+  isStackable: 0
+  blessingType: 68
+  refreshBehavior: 1

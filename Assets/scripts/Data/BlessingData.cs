@@ -95,9 +95,12 @@ public class BlessingData : ScriptableObject
         LovingWealth,         //爱财如命
         SpiritGodRealm,       //鬼神境
         KingOfTheBoard,       //国王棋盘
-        AntimatterNucleus,     //反物质核
+        AntimatterNucleus,    //反物质核
         Colorful,             //缤纷多彩
-        AntimatterCloud       //反物质云
+        AntimatterCloud,      //反物质云
+        Rumination,           //反刍
+        RisingUpStepbyStep,   //步步高升
+        EightWaysToWealth,    //八方来财
     }
 
     /// <summary>

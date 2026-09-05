@@ -86,11 +86,19 @@ public class BlessingManager : MonoBehaviour
     public int bigSevenStarCount = 0;                   //大七星
     public bool hasFinancialExpert = false;             //金融专家
     public bool hasCasinoCommissioner = false;          //赌场专员
-    public int luxuriant = 0;                              //琳琅满目
-    public int sellOff = 0;                                //变卖
-    public bool hasAddictedtoGambling = false;                //嗜赌如命
-    public bool hasLovingWealth = false;                      //爱财如命
-    public int SpiritGodRealm = 0;                              //鬼神境
+    public int luxuriant = 0;                           //琳琅满目
+    public int sellOff = 0;                             //变卖
+    public bool hasAddictedtoGambling = false;          //嗜赌如命
+    public bool hasLovingWealth = false;                //爱财如命
+    public int SpiritGodRealm = 0;                      //鬼神境
+    public bool hasKingOfTheBoard = false;              //国王棋盘
+    public BigInteger kingBoardGain = BigInteger.Zero;  //国王棋盘：当前每回合可获得的点数（每回合翻倍）
+    public int AntimatterNucleus = 0;                   //反物质核
+    public int Colorful = 0;                            //缤纷多彩
+    public int AntimatterCloud = 0;                     //反物质云
+    public bool hasRumination = false;                  //反刍
+    public int RisingUpStepbyStep = 0;                  //步步高升
+    public int EightWaysToWealth = 0;                   //八方来财
     private void Awake()
     {
         if (Instance == null)
@@ -174,6 +182,14 @@ public class BlessingManager : MonoBehaviour
         hasAddictedtoGambling = false;      //嗜赌如命
         hasLovingWealth = false;            //爱财如命
         SpiritGodRealm = 0;                 //鬼神境
+        hasKingOfTheBoard = false;          //国王棋盘
+        kingBoardGain = BigInteger.Zero;    //国王棋盘：每回合点数重置
+        AntimatterNucleus = 0;              //反物质核
+        Colorful = 0;                       //缤纷多彩
+        AntimatterCloud = 0;                //反物质云
+        hasRumination = false;              //反刍
+        RisingUpStepbyStep = 0;             //步步高升
+        EightWaysToWealth = 0;              //八方来财
 
         GetCurrentPriceMultiplier(); //重置折扣
 
@@ -672,6 +688,26 @@ public class BlessingManager : MonoBehaviour
                 SpiritGodRealm++;
                 Debug.Log($"鬼神境已激活！接下来每回合获得骰子判定点数总和数量的随机可叠加祝福，当前层数：{SpiritGodRealm}");
                 break;
+
+            case BlessingData.BlessingType.KingOfTheBoard:
+                // 国王棋盘 - 不可叠加：每回合获得1点，此后每经过一回合依靠此祝福获得的点数翻倍
+                hasKingOfTheBoard = true;
+                kingBoardGain = BigInteger.One;
+                Debug.Log("国王棋盘已激活！每回合获得1点，此后每经过一回合翻倍");
+                break;
+
+            case BlessingData.BlessingType.AntimatterNucleus:
+                // 反物质核 - 可叠加：结算计算总倍率时使其变为相反数（逻辑在 GameManager.CalculateProcessSequence）
+                AntimatterNucleus++;
+                Debug.Log($"反物质核已激活！当前数量：{AntimatterNucleus}，此后每次结算总倍率将变为相反数");
+                break;
+
+            case BlessingData.BlessingType.Colorful:
+                // 缤纷多彩 - 可叠加：每回合抽卡后，若抽到的所有数字卡同时含普通/黄金/绿色/骰子，则每层永久倍率+20且每层20%概率再获得一个缤纷多彩
+                Colorful++;
+                Debug.Log($"缤纷多彩已激活！当前数量：{Colorful}");
+                break;
+
 
         }
     }
@@ -1174,53 +1210,60 @@ public class BlessingManager : MonoBehaviour
         AllGodsCount = 0;
         LuckTurnsCount = 0;
         CardMasterCount = 0;
-        hasJackpot7 = false;
-        HasRichTreasure = 0;
-        wishCoinTargetBlessing = null;
-        nihilismCount = 0;
-        hasLeadingCharge = false;
-        ownedBlessingInstance.Clear();
-        hasGambleToWin = false;
-        hasIdealism = false;
-        hasEnergySpread = 0;
-        hasRisingUp = 0;
-        hasTemperlance = 0;
-        wishCoinPurchaseCount = 0;
+        hasJackpot7 = false;                // 逢七过
+        HasRichTreasure = 0;                // 财富宝藏
+        wishCoinTargetBlessing = null;      // 许愿币锁定的祝福
+        nihilismCount = 0;                  // 虚无主义
+        hasLeadingCharge = false;           // 先发制人
+        ownedBlessingInstance.Clear();      // 祝福实例列表
+        hasGambleToWin = false;             // 赌为赢
+        hasIdealism = false;                // 理想主义
+        hasEnergySpread = 0;                // 能量扩散
+        hasRisingUp = 0;                    //节节高
+        hasTemperlance = 0;                 //节制
+        wishCoinPurchaseCount = 0;          // 许愿币购买次数
         globalPriceDiscountPercent = 0f;    // 友情折扣
         blessDiscountPerBlessing = 0f;      // 眷顾
-        maxBlessDiscountPercent = 80f;
-        shortSightCount = 0;                     
-        GetCurrentPriceMultiplier(); // 强制刷新价格
-        hasGodOfGambler = false;
-        ApplyPragmatism = 0;//实用主义
-        dialecticalPricePercent = 0f;
-        hasLoanWallet = 0;  // 贷款钱包
-        hasUnstoppable = 0;  // 势如破竹
-        minimalismMultiplier = 0; //极简主义
-        minimalismCount = 0;//极简主义数量
-        pragmatismDeleteCount = 0;
-        dayAfterDayCount = 0; // 日积月累数量
-        hasHastyAppreciation = 0; // 走马观花
-        hastyAppreciationBonus = 0;// 走马观花的临时倍率
-        bigSuccessCount = 0;      // 大成功数量
-        delaySatisfactionList.Clear();  //延迟满足
-        darkBoxTargetBlessing = null;   // 暗箱操作目标祝福
-        darkBoxPurchaseCount = 0;       // 暗箱操作购买次数
-        hasYinYang = false;             // 阴阳
-        hasFall = false;                // 坠落
-        reverse = 0;                    // 翻转
-        wealthStarCount = 0;            // 财星
-        disasterStarCount = 0;          // 祸星
-        morningsStarCount = 0;          // 启明星
-        morningStarTargetCards.Clear(); // 启明星锁定的数字卡
-        compassionStarCount = 0;        // 慈爱星
-        hasFinancialExpert = false;     // 金融专家
-        luxuriant = 0;                  // 琳琅满目
-        sellOff = 0;                    // 变卖
-        hasAddictedtoGambling = false;  // 嗜赌如命
-        hasLovingWealth = false;        // 爱财如命
-        SpiritGodRealm = 0;             // 鬼神境
-        
+        maxBlessDiscountPercent = 80f;      // 眷顾封顶
+        shortSightCount = 0;                // 短视         
+        GetCurrentPriceMultiplier();        // 强制刷新价格
+        hasGodOfGambler = false;            // 赌神
+        ApplyPragmatism = 0;                //实用主义
+        dialecticalPricePercent = 0f;       // 辩证主义每回合累计百分比
+        hasLoanWallet = 0;                  // 贷款钱包
+        hasUnstoppable = 0;                 // 势如破竹
+        minimalismMultiplier = 0;           //极简主义
+        minimalismCount = 0;                //极简主义数量
+        pragmatismDeleteCount = 0;          // 实用主义删除数量
+        dayAfterDayCount = 0;               // 日积月累数量
+        hasHastyAppreciation = 0;           // 走马观花
+        hastyAppreciationBonus = 0;         // 走马观花的临时倍率
+        bigSuccessCount = 0;                // 大成功数量
+        delaySatisfactionList.Clear();      //延迟满足
+        darkBoxTargetBlessing = null;       // 暗箱操作目标祝福
+        darkBoxPurchaseCount = 0;           // 暗箱操作购买次数
+        hasYinYang = false;                 // 阴阳
+        hasFall = false;                    // 坠落
+        reverse = 0;                        // 翻转
+        wealthStarCount = 0;                // 财星
+        disasterStarCount = 0;              // 祸星
+        morningsStarCount = 0;              // 启明星
+        morningStarTargetCards.Clear();     // 启明星锁定的数字卡
+        compassionStarCount = 0;            // 慈爱星
+        hasFinancialExpert = false;         // 金融专家
+        luxuriant = 0;                      // 琳琅满目
+        sellOff = 0;                        // 变卖
+        hasAddictedtoGambling = false;      // 嗜赌如命
+        hasLovingWealth = false;            // 爱财如命
+        SpiritGodRealm = 0;                 // 鬼神境
+        hasKingOfTheBoard = false;          // 国王棋盘
+        kingBoardGain = BigInteger.Zero;    // 国王棋盘：每回合点数重置
+        AntimatterNucleus = 0;              // 反物质核
+        Colorful = 0;                       // 缤纷多彩
+        AntimatterCloud = 0;                // 反物质云
+        hasRumination = false;              // 反刍
+        RisingUpStepbyStep = 0;             // 步步高升
+        EightWaysToWealth = 0;              // 八方来财
     }
 
     /// <summary>
@@ -1323,6 +1366,101 @@ public class BlessingManager : MonoBehaviour
         dialecticalPricePercent += layer;
 
         Debug.Log($"辩证回合：层数{layer}，倍率+{layer}，点数+{24*layer}，价格每层+1%");
+    }
+
+    /// <summary>
+    /// 国王棋盘：每回合开始时结算（本回合获得当前点数，每经过一回合该点数翻倍）
+    /// </summary>
+    public void ApplyKingOfTheBoardPerRound()
+    {
+        if (!hasKingOfTheBoard) return;
+        if (GameManager.Instance == null) return;
+
+        // 每回合获得当前点数
+        GameManager.Instance.AddPoints(kingBoardGain);
+        Debug.Log($"国王棋盘：本回合获得 {kingBoardGain} 点，下回合翻倍");
+        // 每经过一回合，此祝福获得的点数翻倍
+        kingBoardGain *= 2;
+    }
+
+    /// <summary>
+    /// 缤纷多彩：每回合抽卡后判定一次。
+    /// 若抽到的所有数字卡中同时包含普通数字、黄金数、绿色数字和骰子，
+    /// 则每拥有1个缤纷多彩：永久倍率+20，并有20%概率再获得一个缤纷多彩。
+    /// </summary>
+    public void ApplyColorfulPerRound()
+    {
+        if (Colorful <= 0) return;
+        if (CardManager.Instance == null) return;
+
+        // 判定本回合抽到的所有数字卡（按组件互斥分类）是否四类齐全
+        bool hasNormal = false, hasGolden = false, hasGreen = false, hasDice = false;
+        foreach (var card in CardManager.Instance.currentNumberCards)
+        {
+            if (card == null || card.cardData == null) continue;
+            ClassifyColorfulComponent(card.cardData.partA, ref hasNormal, ref hasGolden, ref hasGreen, ref hasDice);
+            if (card.cardData.partB != null)
+                ClassifyColorfulComponent(card.cardData.partB, ref hasNormal, ref hasGolden, ref hasGreen, ref hasDice);
+        }
+
+        // 四类需同时存在才触发
+        if (!(hasNormal && hasGolden && hasGreen && hasDice))
+        {
+            Debug.Log($"缤纷多彩：本回合抽卡未四类齐全（普通={hasNormal}，黄金={hasGolden}，绿色={hasGreen}，骰子={hasDice}），不触发");
+            return;
+        }
+
+        int layers = Colorful; // 按本回合开始时的拥有数量结算，本回合新获得的从下回合生效
+        totalMultiplierBonus += 20 * layers;
+
+        // 每层 20% 概率获得一个缤纷多彩
+        int gain = 0;
+        for (int i = 0; i < layers; i++)
+        {
+            if (UnityEngine.Random.value < 0.2f) gain++;
+        }
+
+        Debug.Log($"缤纷多彩触发！拥有 {layers} 层 → 永久倍率+{20 * layers}，{gain} 层roll中20%，获得 {gain} 个缤纷多彩");
+        if (gain > 0) GrantColorfulCopies(gain);
+    }
+
+    /// <summary>
+    /// 缤纷多彩：按组件判定四类（互斥）：骰子 > 绿色(递增) > 黄金数 > 普通数字
+    /// </summary>
+    private void ClassifyColorfulComponent(NumberComponent comp,
+        ref bool hasNormal, ref bool hasGolden, ref bool hasGreen, ref bool hasDice)
+    {
+        if (comp == null) return;
+        if (comp.isDice) hasDice = true;
+        else if (comp.isIncremental) hasGreen = true;
+        else if (comp.isGolden) hasGolden = true;
+        else hasNormal = true;
+    }
+
+    /// <summary>
+    /// 缤纷多彩：直接添加指定数量的缤纷多彩（只登记拥有数量，不立即触发效果，避免递归）
+    /// </summary>
+    private void GrantColorfulCopies(int count)
+    {
+        if (count <= 0 || blessingLibrary == null) return;
+        BlessingData data = blessingLibrary.GetBlessingByType(BlessingData.BlessingType.Colorful);
+        if (data == null) return;
+
+        if (ownedBlessings.ContainsKey(data.blessingId)) ownedBlessings[data.blessingId] += count;
+        else ownedBlessings[data.blessingId] = count;
+
+        blessingsEverPurchased.Add(data.blessingId);
+
+        if (!blessingTypeCount.ContainsKey(data.blessingType)) blessingTypeCount[data.blessingType] = 0;
+        blessingTypeCount[data.blessingType] += count;
+
+        for (int i = 0; i < count; i++)
+        {
+            ownedBlessingInstance.Add(new BlessingInstance(data, ownedBlessings[data.blessingId]));
+        }
+
+        Colorful += count;
+        Debug.Log($"缤纷多彩：获得 {count} 个新副本，当前拥有 {Colorful} 个");
     }
 
     /// <summary>

@@ -241,6 +241,12 @@ public class GameManager : MonoBehaviour
             blessingManager.NewRound_IdealismReset();
         }
 
+        // 祝福国王棋盘：每回合获得1点，每经过一回合此祝福获得的点数翻倍
+        if (BlessingManager.Instance != null)
+        {
+            BlessingManager.Instance.ApplyKingOfTheBoardPerRound();
+        }
+
         // 祝福贷款钱包：每回合扣除贷款15%的点数
         if (BlessingManager.Instance.hasLoanWallet == 1)
         {
@@ -257,6 +263,12 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.UpdateTargetRoundDisplay(nextTarget);
         // 抽填空计算卡和对应数量的数字卡targetPoints
         cardManager.DrawCardsForTurn();
+
+        // 祝福缤纷多彩：抽卡后判定本回合抽到的所有数字卡是否同时包含普通/黄金/绿色/骰子
+        if (BlessingManager.Instance != null)
+        {
+            BlessingManager.Instance.ApplyColorfulPerRound();
+        }
     }
 
     #region 计算并显示得分
@@ -334,6 +346,14 @@ public class GameManager : MonoBehaviour
                 totalMultiplier += (long)goldenValue;
                 Debug.Log($"黄金数字 {card.cardData.cardName} 增加 {goldenValue} 倍率，当前总倍率: {totalMultiplier}");
             }
+        }
+
+        // 反物质核祝福：结算计算总倍率时，将总倍率（基础+祝福+黄金等所有来源）变为其相反数
+        if (blessingManager != null &&
+            blessingManager.GetBlessingTypeCount(BlessingData.BlessingType.AntimatterNucleus)%2 == 1)
+        {
+            totalMultiplier = -totalMultiplier;
+            Debug.Log($"反物质核：总倍率变为相反数，当前总倍率: {totalMultiplier}");
         }
 
         // 记录本局最高倍率
