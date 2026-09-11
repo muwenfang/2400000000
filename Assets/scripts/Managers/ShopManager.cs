@@ -738,8 +738,71 @@ public class ShopManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 刷新商店删除按钮旁边的删卡费用文本。
-    /// 数字卡界面显示“至少保留六张”，公式卡界面显示“至少保留一张”。
+    /// 当前显示的卡牌库界面类型，用于决定删卡费用提示文案。
+    /// </summary>
+    private enum DeckView { None, Number, Formula, Blessing }
+
+    /// <summary>
+    /// 判断当前显示的是数字卡库、公式卡库还是祝福库。
+    /// 删卡界面会同时激活多个面板，此时以显示在最前（层级最高）的面板为准。
+    /// </summary>
+    private DeckView GetCurrentDeckView()
+    {
+        if (UIManager.Instance == null) return DeckView.None;
+
+        DeckView best = DeckView.None;
+        int bestIndex = int.MinValue;
+
+        ConsiderPanel(UIManager.Instance.myNumberCardPanel, DeckView.Number, ref best, ref bestIndex);
+        ConsiderPanel(UIManager.Instance.myFormulaCardPanel, DeckView.Formula, ref best, ref bestIndex);
+        ConsiderPanel(UIManager.Instance.myBlessPanel, DeckView.Blessing, ref best, ref bestIndex);
+
+        return best;
+    }
+
+    /// <summary>
+    /// 在候洗面板中记录层级最高（最靠前显示）的那个。
+    /// </summary>
+    private static void ConsiderPanel(GameObject panel, DeckView view, ref DeckView best, ref int bestIndex)
+    {
+        if (panel == null || !panel.activeInHierarchy) return;
+
+        int index = panel.transform.GetSiblingIndex();
+        if (index >= bestIndex)
+        {
+            bestIndex = index;
+            best = view;
+        }
+    }
+
+    /// <summary>
+    /// 刷新删卡费用提示面板的显示状态与文本（唯一数据源）。
+    /// 删卡模式下切到祝福界面时，也会显示该面板并提示“无法在该界面删除”。
+    /// </summary>
+    public void RefreshDeletionCostUI()
+    {
+        bool shouldShow = isDeletionMode && GetCurrentDeckView() != DeckView.None;
+
+        if (deleteCostPanel != null)
+        {
+            deleteCostPanel.SetActive(shouldShow);
+
+            if (shouldShow)
+            {
+                deleteCostPanel.transform.SetAsLastSibling();
+            }
+        }
+
+        if (shouldShow)
+        {
+            RefreshDeleteCostText();
+        }
+    }
+
+    /// <summary>
+    /// 刷新删卡费用提示文本（唯一数据源）。
+    /// 数字卡界面显示“至少保留六张”，公式卡界面显示“至少保留一张”，祝福界面提示无法删除。
+    /// 数字卡/公式卡面板不再各自写入文本，统一调用此方法，避免相互覆盖。
     /// </summary>
     public void RefreshDeleteCostText()
     {
@@ -748,28 +811,20 @@ public class ShopManager : MonoBehaviour
         BigInteger deleteCost = CalculateDeletionCost();
         string costStr = FormatBigNumber(deleteCost);
 
-        bool isNumberView = false;
-        bool isFormulaView = false;
-
-        if (UIManager.Instance != null)
+        switch (GetCurrentDeckView())
         {
-            isNumberView = UIManager.Instance.myNumberCardPanel != null &&
-                           UIManager.Instance.myNumberCardPanel.activeInHierarchy;
-            isFormulaView = UIManager.Instance.myFormulaCardPanel != null &&
-                            UIManager.Instance.myFormulaCardPanel.activeInHierarchy;
-        }
-
-        if (isNumberView)
-        {
-            deleteCardCostText.text = "至少保留六张     $" + costStr;
-        }
-        else if (isFormulaView)
-        {
-            deleteCardCostText.text = "至少保留一张     $" + costStr;
-        }
-        else
-        {
-            deleteCardCostText.text = "  " + costStr;
+            case DeckView.Number:
+                deleteCardCostText.text = "至少保留六张     $" + costStr;
+                break;
+            case DeckView.Formula:
+                deleteCardCostText.text = "至少保留一张     $" + costStr;
+                break;
+            case DeckView.Blessing:
+                deleteCardCostText.text = "无法在该界面删除";
+                break;
+            default:
+                deleteCardCostText.text = "  " + costStr;
+                break;
         }
     }
 

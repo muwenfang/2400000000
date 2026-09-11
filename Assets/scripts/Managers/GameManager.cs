@@ -204,7 +204,7 @@ public class GameManager : MonoBehaviour
         //  关键：通知 UI 刷新视觉显示
         UIManager.Instance.RefreshGameUI();
     }
-
+    //无尽模式
     public void EnterEndlessMode()
     {
         Debug.Log("进入无尽模式 - 从第61回合开始");
@@ -228,6 +228,8 @@ public class GameManager : MonoBehaviour
         }
         // 祝福：延迟满足
         BlessingManager.Instance.UpdateDelaySatisfactionPerRound();
+        // 祝福：反刍（每回合倒计时，到期发放记录点数的相反数）
+        BlessingManager.Instance.UpdateRuminationPerRound();
         // 祝福：日积月累倍率
         if(blessingManager.dayAfterDayCount > 0)
         {
@@ -310,6 +312,8 @@ public class GameManager : MonoBehaviour
         // 3. 先按槽位顺序显示每张卡本次实际结算出的点数
         List<BigInteger> rawCardScores = FormulaCalculator.GetCardValuesForDisplay(formula.selectedNumberCards, false);
         List<BigInteger> adjustedCardScores = FormulaCalculator.GetCardValuesForDisplay(formula.selectedNumberCards, true);
+
+
         yield return StartCoroutine(UIManager.Instance.ShowSelectedCardScoreSequence(
             formula.selectedNumberCards,
             rawCardScores,
@@ -332,18 +336,28 @@ public class GameManager : MonoBehaviour
             }
         }
 
+
         // 计算基础倍率（根据公式卡数量）
         int baseMultiplier = PlayerCardInventory.Instance.GetFormulaCardCount();
         long blessingBonusMultiplier = GetCurrentMultiplier();
         long totalMultiplier = baseMultiplier + blessingBonusMultiplier;
+        
+        // 反物质云：每有一张判定结果为负数的数字卡，按永久倍率正负获得 -10 / +5 永久倍率
+        if (blessingManager != null && blessingManager.GetBlessingTypeCount(BlessingData.BlessingType.AntimatterCloud) > 0)
+        {
+            blessingManager.ApplyAntimatterCloud(rawCardScores, totalMultiplier);
+        }
 
         // 黄金数字：将黄金数字的数值增加到倍率中
+        // goldenMultiplierTotal：黄金数贡献的倍率（与公式卡数同属“非祝福倍率”，供八方来财区分祝福部分）
+        long goldenMultiplierTotal = 0;
         foreach (var card in formula.selectedNumberCards)
         {
             if (card.cardData.partA.isGolden || (card.cardData.partB != null && card.cardData.partB.isGolden))
             {
                 BigInteger goldenValue = card.GetOutPutValue();
                 totalMultiplier += (long)goldenValue;
+                goldenMultiplierTotal += (long)goldenValue;
                 Debug.Log($"黄金数字 {card.cardData.cardName} 增加 {goldenValue} 倍率，当前总倍率: {totalMultiplier}");
             }
         }
@@ -390,6 +404,22 @@ public class GameManager : MonoBehaviour
             Debug.Log("爱财如命：本回合未抽到含有黄金数的数字卡，最终计算结果视为0");
         }
 
+        // 八方来财效果：本回合得分中“依靠祝福获得的点数”×1.01^层数（向下取整），并入本轮得分
+        if (blessingManager != null && blessingManager.EightWaysToWealth > 0)
+        {
+            // 非祝福来源倍率 = 公式卡数 + 黄金数（不含祝福倍率）
+            long nonBlessingMultiplier = baseMultiplier + goldenMultiplierTotal;
+            // 祝福获得的点数 = 总点数(finalScore) - 算式点数 × (公式卡数+黄金数)
+            BigInteger blessingPortion = finalScore - baseScore * nonBlessingMultiplier;
+            if (blessingPortion > 0)
+            {
+                BigInteger boostedPortion = blessingManager.BoostByEightWaysToWealth(blessingPortion);
+                // 非祝福部分保持不变，祝福部分 ×1.01^层数
+                finalScore = finalScore - blessingPortion + boostedPortion;
+                Debug.Log($"八方来财×{blessingManager.EightWaysToWealth}层：祝福获得点数 {blessingPortion} → {boostedPortion}，最终得分 {finalScore}");
+            }
+        }
+
         // 财星效果：finalScore *= 1.02^wealthStarCount（向下取整）
         if (blessingManager != null && blessingManager.wealthStarCount > 0)
         {
@@ -406,6 +436,16 @@ public class GameManager : MonoBehaviour
         {
             roundMaxCalculationValue = finalScore;
             Debug.Log($"【统计数据】更新本局最高结算点: {roundMaxCalculationValue}");
+        }
+
+        // 反刍祝福：通过计算获得的点数（合计倍率）为负数时记录，3回合后获得相反数
+        if (BlessingManager.Instance != null && BlessingManager.Instance.hasRumination && finalScore < 0)
+        {
+            BlessingManager.Instance.RecordRumination(finalScore);
+        }
+        
+        {
+            BlessingManager.Instance.RecordRumination(finalScore);
         }
 
         // 启动原有分步显示协程

@@ -5,21 +5,16 @@ using UnityEngine;
 using UnityEngine.UI;
 public class ShowMyFormula : MonoBehaviour, ISelectablePanel
 {
-    [Header("��������")]
     public Transform contentRoot;
 
-    [Header("��������")]
     public ScrollRect scrollRect; // �ؼ�����Ҫ�� ScrollRect ���
 
-    [Header("��ʾ����")]
     public float cardScale = 1.0f;
 
-    [Header("ɾ����������")]
-    [Tooltip("ɾ����ʽ����ť - ��Inspector����")]
     public Button deleteFormulaCardButton;
 
+    // 删卡费用提示面板：数字卡/公式卡/商店共用同一个对象，文本统一由 ShopManager 写入。
     public GameObject deletionCostPanel;
-    public Text deletionCostText;
     public BigInteger deletionCost = 200;
 
     // 反向映射：GameObject → FormulaCardData，供 CardClickHandler 查找
@@ -151,7 +146,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
     }
 
     /// <summary>
-    /// ִ�й�ʽ��ɾ���߼�
+    /// ִ删除公式卡的实际逻辑，包括库存检查、删卡费用计算和库存同步。
     /// </summary>
     private void ExecuteFormulaCardDeletion(FormulaCardData cardToDelete)
     {
@@ -162,7 +157,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
             return;
         }
 
-        // --- �����̵��ܲ���ɾ ---
+        // 计算删卡费用并检查是否允许删除
         if (ShopManager.Instance != null)
         {
             if (!ShopManager.Instance.OnFormulaCardDeleted(cardToDelete))
@@ -171,13 +166,11 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
                 return;
             }
         }
-        // ʹ��Լ�������ɾ������
         bool deleted = PlayerCardInventory.Instance.RemoveFormulaCard(cardToDelete);
 
         if (deleted)
         {
             CardManager.Instance.SyncDeckFromInventory();
-            // ˢ����ʾ
             RefreshAllCards();
         }
         else
@@ -186,7 +179,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
         }
     }
     /// <summary>
-    /// ��ʼ������֧��
+    ///  初始化滚动区域
     /// </summary>
     void InitializeScrollRect()
     {
@@ -209,24 +202,22 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
             }
         }
 
-        // ȷ�� contentRoot �� LayoutElement
+        // contentRoot  LayoutElement
         LayoutElement le = contentRoot.GetComponent<LayoutElement>();
         if (le == null)
         {
             le = contentRoot.gameObject.AddComponent<LayoutElement>();
         }
-        le.preferredWidth = -1;      // �����ÿ��Լ��
-        le.preferredHeight = -1;     // �����ø߶�Լ���������ݾ�����
-        le.flexibleHeight = 1;       // �������߶�
+        le.preferredWidth = -1;     
+        le.preferredHeight = -1;   
+        le.flexibleHeight = 1;    
 
-        // �ҵ��򴴽� ScrollRect
         if (scrollRect == null)
         {
-            // �����ڵ�ǰ������
+
             scrollRect = GetComponent<ScrollRect>();
         }
 
-        // ���û�ҵ����Զ�����
         if (scrollRect == null && contentRoot != null)
         {
             Transform scrollParent = contentRoot.parent;
@@ -238,11 +229,11 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
                 {
                     scrollRect = scrollParent.gameObject.AddComponent<ScrollRect>();
                     scrollRect.content = (RectTransform)contentRoot;
-                    scrollRect.horizontal = false;      // ����ˮƽ����
-                    scrollRect.vertical = true;         // ���ô�ֱ����
+                    scrollRect.horizontal = false;     
+                    scrollRect.vertical = true;       
                     scrollRect.movementType = ScrollRect.MovementType.Elastic;
                     scrollRect.elasticity = 0.1f;
-                    scrollRect.scrollSensitivity = 15;   // �������������
+                    scrollRect.scrollSensitivity = 15;   
 
                     Image image = scrollParent.GetComponent<Image>();
                     if (image == null)
@@ -256,23 +247,21 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
             }
         }
 
-        //ȷ�� contentRoot ������� RectTransform ������ȷ
         RectTransform scrollRectTransform = scrollRect.GetComponent<RectTransform>();
         if (scrollRectTransform != null)
         {
-            // ���� ScrollRect �Ĵ�СԼ��
             LayoutElement scrollLE = scrollRect.GetComponent<LayoutElement>();
             if (scrollLE == null)
             {
                 scrollLE = scrollRect.gameObject.AddComponent<LayoutElement>();
             }
-            scrollLE.preferredHeight = 600;  //���ù�������ĸ߶ȣ��ɸ�����Ҫ������
+            scrollLE.preferredHeight = 600;  //
         }
 
     }
     public void RefreshAllCards()
     {
-        // 1. ����ɿ���
+
         foreach (Transform child in contentRoot)
         {
             Destroy(child.gameObject);
@@ -280,7 +269,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
 
         GenerateFormulaCards();
         
-        // 3. ǿ���ؽ�����
+
         if (contentRoot != null)
         {
             LayoutRebuilder.ForceRebuildLayoutImmediate((RectTransform)contentRoot);
@@ -307,18 +296,17 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
         if(!shouldShow)
         {
             HideDeletionCostUI();
-        }
-        else
-        {
-            if (deletionCostPanel == null || deletionCostText == null) return;
-
-            deletionCostPanel.gameObject.SetActive(true);   
-            deletionCostPanel.transform.SetAsLastSibling();
-
-           deletionCostText.text = "至少保留一张。$" + FormatBigNumber(cost);
-
+            return;
         }
 
+        if (deletionCostPanel == null) return;
+
+        deletionCostPanel.SetActive(true);
+        deletionCostPanel.transform.SetAsLastSibling();
+
+        // 文本内容统一由 ShopManager 依据当前显示的卡牌库界面决定，
+        // 避免数字卡/公式卡面板同时写入同一个文本而互相覆盖。
+        ShopManager.Instance.RefreshDeleteCostText();
     }
 
     /// <summary>

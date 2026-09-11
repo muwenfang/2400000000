@@ -258,6 +258,8 @@ public class UIManager : MonoBehaviour
         myNumberCardPanel.SetActive(false);
         myFormulaCardPanel.SetActive(false);
 
+        myBlessPanel.transform.SetAsLastSibling(); // 确保祝福卡库在其他卡库之上显示
+
          // 删卡模式下：切到祝福界面不退出删卡模式，改为显示"无法在此界面删除"提示
          if (ShopManager.Instance != null && ShopManager.Instance.isDeletionMode)
          {
@@ -266,13 +268,15 @@ public class UIManager : MonoBehaviour
              {
                  blessView.SetDeletionUnavailableHintVisible(true);
              }
+
+             // 共享的删卡费用提示面板同样在祝福界面显示，文案为“无法在该界面删除”。
+             // 在祝福面板置顶后再刷新，保证提示显示在祝福界面之上。
+             ShopManager.Instance.RefreshDeletionCostUI();
          }
          else
          {
              HideDeletionCostPanelsForBlessView();
          }
-
-        myBlessPanel.transform.SetAsLastSibling(); // 确保祝福卡库在其他卡库之上显示
 
         if (myCardButton != null)
         {

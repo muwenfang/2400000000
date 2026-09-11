@@ -43,8 +43,8 @@ public class ShowMyNumberCard : MonoBehaviour
     [Tooltip("删除卡牌按钮 - 从Inspector拖入")]
     public Button deleteNumberCardButton;
 
+    // 删卡费用提示面板：数字卡/公式卡/商店共用同一个对象，文本统一由 ShopManager 写入。
     public GameObject deletionCostPanel;
-    public Text deletionCostText;
     public BigInteger deletionCost = 10;
 
     [Header("颜色配置")]
@@ -200,19 +200,17 @@ public class ShowMyNumberCard : MonoBehaviour
         if (!shouldShow)
         {
             HideDeletionCostUI();
+            return;
         }
-        else
-        {
-            if (deletionCostPanel == null || deletionCostText == null) return;
 
-            deletionCostPanel.gameObject.SetActive(true);
-            deletionCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
+        if (deletionCostPanel == null) return;
 
-           deletionCostText.text = "至少保留六张。$" + FormatBigNumber(cost);
+        deletionCostPanel.SetActive(true);
+        deletionCostPanel.transform.SetAsLastSibling(); // 确保在最前面显示
 
-            Debug.Log($"[ShowMyNumberCard] 更新UI ");
-        }
-        
+        // 文本内容统一由 ShopManager 依据当前显示的卡牌库界面决定，
+        // 避免数字卡/公式卡面板同时写入同一个文本而互相覆盖。
+        ShopManager.Instance.RefreshDeleteCostText();
     }
 
     /// <summary>

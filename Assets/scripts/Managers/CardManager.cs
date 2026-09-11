@@ -341,7 +341,40 @@ public class CardManager : MonoBehaviour
                 }
              }
          }
-       
+
+        // 步步高升祝福：数字卡在算式里的判定点数（输出值 GetOutPutValue）从左往右严格递增时，
+        // 本回合获得 100×数量 临时倍率（可叠加，倍率=100×数量）。每次结算前都会重新判定。
+        long risingUpBonus = 0;
+        if (BlessingManager.Instance != null && BlessingManager.Instance.RisingUpStepbyStep > 0)
+        {
+            bool isAscending = true;
+            bool hasPrevious = false;
+            BigInteger previousValue = BigInteger.Zero;
+            for (int i = 0; i < selectedNumberCards.Count; i++)
+            {
+                var card = selectedNumberCards[i];
+                if (card == null) { isAscending = false; break; }
+                BigInteger value = card.GetOutPutValue();
+                if (hasPrevious && value <= previousValue) { isAscending = false; break; }
+                previousValue = value;
+                hasPrevious = true;
+            }
+
+            if (isAscending)
+            {
+                risingUpBonus = 100L * BlessingManager.Instance.RisingUpStepbyStep;
+                Debug.Log($"步步高升：判定点数从左到右严格递增！");
+            }
+            else
+            {
+                Debug.Log("步步高升：判定点数未从左到右严格递增，本回合不触发");
+            }
+        }
+        if (BlessingManager.Instance != null)
+        {
+            BlessingManager.Instance.risingUpStepbyStepBonus = risingUpBonus;
+        }
+
         return lastRoundMaxCard;
     }
 

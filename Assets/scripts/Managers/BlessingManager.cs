@@ -98,6 +98,7 @@ public class BlessingManager : MonoBehaviour
     public int AntimatterCloud = 0;                     //反物质云
     public bool hasRumination = false;                  //反刍
     public int RisingUpStepbyStep = 0;                  //步步高升
+    public long risingUpStepbyStepBonus = 0;            //步步高升：本回合临时倍率（判定递增时 =100×数量）
     public int EightWaysToWealth = 0;                   //八方来财
     private void Awake()
     {
@@ -120,6 +121,14 @@ public class BlessingManager : MonoBehaviour
         public int rewardMul;
     }
     public List<DelayRecord> delaySatisfactionList = new List<DelayRecord>();
+
+    // 反刍单条记录
+    public struct RuminationRecord
+    {
+        public int remainTurn;               // 剩余回合数（3回合后结算）
+        public BigInteger recordedPoints;    // 记录的点数（负数）
+    }
+    public List<RuminationRecord> ruminationList = new List<RuminationRecord>();
     
     /// <summary>
     /// 初始化祝福系统
@@ -160,6 +169,7 @@ public class BlessingManager : MonoBehaviour
         hastyAppreciationBonus = 0;         // 走马观花的临时倍率
         bigSuccessCount = 0;                // 大成功数量
         delaySatisfactionList.Clear();      //延迟满足
+        ruminationList.Clear();             //反刍
         darkBoxTargetBlessing = null;       // 暗箱操作目标祝福
         darkBoxPurchaseCount = 0;           // 暗箱操作购买次数
         hasYinYang = false;                 // 阴阳
@@ -189,6 +199,7 @@ public class BlessingManager : MonoBehaviour
         AntimatterCloud = 0;                //反物质云
         hasRumination = false;              //反刍
         RisingUpStepbyStep = 0;             //步步高升
+        risingUpStepbyStepBonus = 0;        //步步高升：本回合临时倍率
         EightWaysToWealth = 0;              //八方来财
 
         GetCurrentPriceMultiplier(); //重置折扣
@@ -708,6 +719,24 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log($"缤纷多彩已激活！当前数量：{Colorful}");
                 break;
 
+            case BlessingData.BlessingType.Rumination:
+                // 反刍 - 不可叠加：若通过计算获得的点数（合计倍率）为负数，记录此点数；3回合后获得此点数的相反数
+                hasRumination = true;
+                Debug.Log("反刍已激活：计算所得点数为负时记录，3回合后获得相反数");
+                break;
+
+            case BlessingData.BlessingType.RisingUpStepbyStep:
+                // 步步高升 - 可叠加：判定点数从左往右严格递增时，本回合获得 100×数量 临时倍率
+                RisingUpStepbyStep++;
+                Debug.Log($"步步高升已激活！当前数量：{RisingUpStepbyStep}，判定点数递增时获得 {100 * RisingUpStepbyStep} 临时倍率");
+                break;
+
+            case BlessingData.BlessingType.EightWaysToWealth:
+                // 八方来财 - 可叠加：依靠祝福获得的点数 ×1.01^层数（向下取整）
+                EightWaysToWealth++;
+                Debug.Log($"八方来财已激活！当前层数：{EightWaysToWealth}，依靠祝福获得的点数将×1.01^{EightWaysToWealth}");
+                break;
+
 
         }
     }
@@ -855,9 +884,9 @@ public class BlessingManager : MonoBehaviour
                 DecreaseBlessingByOne(star);
             }
 
-            // 获得 24亿 × 10^大七星数量 的点数
+            // 获得 24亿 × 10^大七星数量 的点数（八方来财：×1.01^层数）
             BigInteger reward = (BigInteger)2400000000 * BigInteger.Pow(10, bigSevenStarCount);
-            GameManager.Instance.AddPoints(reward);
+            GameManager.Instance.AddPoints(BoostByEightWaysToWealth(reward));
             Debug.Log($"大七星：获得点数 {reward}（大七星数量 {bigSevenStarCount}）");
         }
       
@@ -1240,6 +1269,7 @@ public class BlessingManager : MonoBehaviour
         hastyAppreciationBonus = 0;         // 走马观花的临时倍率
         bigSuccessCount = 0;                // 大成功数量
         delaySatisfactionList.Clear();      //延迟满足
+        ruminationList.Clear();             //反刍
         darkBoxTargetBlessing = null;       // 暗箱操作目标祝福
         darkBoxPurchaseCount = 0;           // 暗箱操作购买次数
         hasYinYang = false;                 // 阴阳
@@ -1263,6 +1293,7 @@ public class BlessingManager : MonoBehaviour
         AntimatterCloud = 0;                // 反物质云
         hasRumination = false;              // 反刍
         RisingUpStepbyStep = 0;             // 步步高升
+        risingUpStepbyStepBonus = 0;        // 步步高升：本回合临时倍率
         EightWaysToWealth = 0;              // 八方来财
     }
 
@@ -1295,6 +1326,7 @@ public class BlessingManager : MonoBehaviour
         total += CalculateAllGodsInPlaceBonus();
         total += CalculateCardMasterBonus();
         total += hastyAppreciationBonus;// 走马观花
+        total += risingUpStepbyStepBonus;// 步步高升（本回合临时倍率，判定递增时=100×数量）
         return total;
     }
 
@@ -1342,7 +1374,7 @@ public class BlessingManager : MonoBehaviour
         int totalDice = PlayerCardInventory.Instance.CountOwnedDiceTotalNumber();
         if (totalDice < 20) return;
 
-        GameManager.Instance.AddPoints(GambleToWinReward);
+        GameManager.Instance.AddPoints(BoostByEightWaysToWealth(GambleToWinReward));
         Debug.Log($"【赌为赢】触发！骰子=20，总骰子数{totalDice}，获得24亿点！");
     }
     ///<summary>
@@ -1360,12 +1392,30 @@ public class BlessingManager : MonoBehaviour
 
         // 1. 永久倍率+1/每层
         totalMultiplierBonus += layer;
-        // 2. 每回合得24点/每层
-        GameManager.Instance.AddPoints(24 * layer);
+        // 2. 每回合得24点/每层（八方来财：×1.01^层数）
+        GameManager.Instance.AddPoints(BoostByEightWaysToWealth(24 * layer));
         // 3. 全局价格永久+1%/每层
         dialecticalPricePercent += layer;
 
         Debug.Log($"辩证回合：层数{layer}，倍率+{layer}，点数+{24*layer}，价格每层+1%");
+    }
+
+    /// <summary>
+    /// 八方来财：把一笔“依靠祝福获得的点数”放大为 ×1.01^层数（每一步 ×1.01 向下取整）。
+    /// 仅当拥有八方来财且点数为正时生效；负数/零（如扣点、贷款、取反）原样返回，不放大损失。
+    /// </summary>
+    public BigInteger BoostByEightWaysToWealth(BigInteger blessingPoints)
+    {
+        if (blessingPoints <= 0 || EightWaysToWealth <= 0) return blessingPoints;
+
+        BigInteger result = blessingPoints;
+        for (int i = 0; i < EightWaysToWealth; i++)
+        {
+            // ×1.01 向下取整 = 原值 + 原值/100（BigInteger 整除正数即向下取整）
+            result = result + result / 100;
+        }
+        Debug.Log($"八方来财：祝福获得点数 {blessingPoints} ×1.01^{EightWaysToWealth} → {result}");
+        return result;
     }
 
     /// <summary>
@@ -1376,8 +1426,8 @@ public class BlessingManager : MonoBehaviour
         if (!hasKingOfTheBoard) return;
         if (GameManager.Instance == null) return;
 
-        // 每回合获得当前点数
-        GameManager.Instance.AddPoints(kingBoardGain);
+        // 每回合获得当前点数（八方来财：×1.01^层数）
+        GameManager.Instance.AddPoints(BoostByEightWaysToWealth(kingBoardGain));
         Debug.Log($"国王棋盘：本回合获得 {kingBoardGain} 点，下回合翻倍");
         // 每经过一回合，此祝福获得的点数翻倍
         kingBoardGain *= 2;
@@ -1422,6 +1472,33 @@ public class BlessingManager : MonoBehaviour
 
         Debug.Log($"缤纷多彩触发！拥有 {layers} 层 → 永久倍率+{20 * layers}，{gain} 层roll中20%，获得 {gain} 个缤纷多彩");
         if (gain > 0) GrantColorfulCopies(gain);
+    }
+
+    /// <summary>
+    /// 反物质云：结算时，每有一张数字卡的判定结果为负数：
+    /// 若当前永久倍率为负值 → 永久倍率 -10；否则 → 永久倍率 +5。
+    /// cardScores 需传入本次结算中每张数字卡实际参与计算的判定点数（含计算类祝福调整后）。
+    /// </summary>
+    public void ApplyAntimatterCloud(List<BigInteger> cardScores, long totalMultiplier)
+    {
+        if (AntimatterCloud <= 0) return;
+        if (cardScores == null || cardScores.Count == 0) return;
+
+        // 统计判定结果为负数的数字卡
+        int negativeCount = 0;
+        foreach (var score in cardScores)
+        {
+            if (score < 0) negativeCount++;
+        }
+        if (negativeCount <= 0) return;
+
+        // 永久倍率为负值 → -10/张；否则 → +5/张
+        // （-10 不会让负倍率变正，+5 不会让非负倍率变负，符号在结算期间保持不变）
+        long perCardGain = totalMultiplier < 0 ? -10 : 5;
+        totalMultiplierBonus += perCardGain * negativeCount * AntimatterCloud;
+
+        Debug.Log($"反物质云：{negativeCount} 张数字卡判定结果为负数，" );
+
     }
 
     /// <summary>
@@ -1784,9 +1861,9 @@ public class BlessingManager : MonoBehaviour
         }
         else
         {
-            // 已集齐 → 24亿 + 清空空想主义
+            // 已集齐 → 24亿 + 清空空想主义（八方来财：×1.01^层数）
             if (GameManager.Instance != null)
-                GameManager.Instance.AddPoints(2400000000);
+                GameManager.Instance.AddPoints(BoostByEightWaysToWealth(2400000000));
 
             RemoveAllUtopianism();
             Debug.Log("【空想主义】已集齐全部公式卡！获得 24 亿点！");
@@ -1956,6 +2033,60 @@ public class BlessingManager : MonoBehaviour
             _ => 0
         };
     }
+    /// <summary>
+    /// 反刍：结算时若通过计算获得的点数（最终得分 = 基础分 × 合计倍率）为负数，记录该负数点数。
+    /// 3回合后（每回合开始结算）获得该点数的相反数（补偿回同等正数）。
+    /// </summary>
+    public void RecordRumination(BigInteger finalScore)
+    {
+        if (!hasRumination) return;
+        if (finalScore >= 0) return;
+
+        ruminationList.Add(new RuminationRecord
+        {
+            remainTurn = 3,
+            recordedPoints = finalScore
+        });
+        Debug.Log($"反刍：本回合计算获得的点数为负（{finalScore}），已记录，3回合后获得相反数 {-finalScore}");
+    }
+
+    /// <summary>
+    /// 反刍：每回合开始倒计时，倒计时结束（记录后经过3回合）获得记录点数的相反数。
+    /// </summary>
+    public void UpdateRuminationPerRound()
+    {
+        if (!hasRumination || ruminationList.Count == 0) return;
+
+        List<int> removeIndex = new List<int>();
+        for (int i = 0; i < ruminationList.Count; i++)
+        {
+            RuminationRecord record = ruminationList[i];
+            record.remainTurn--;
+
+            if (record.remainTurn <= 0)
+            {
+                // 获得此点数的相反数（负数 → 正数补偿）（八方来财：×1.01^层数）
+                BigInteger gain = -record.recordedPoints;
+                if (GameManager.Instance != null)
+                {
+                    GameManager.Instance.AddPoints(BoostByEightWaysToWealth(gain));
+                    Debug.Log($"反刍：记录点数 {record.recordedPoints}，3回合已到，获得相反数 {gain}");
+                }
+                removeIndex.Add(i);
+            }
+            else
+            {
+                ruminationList[i] = record;
+            }
+        }
+
+        // 倒序删除索引，防止列表移位错乱
+        for (int i = removeIndex.Count - 1; i >= 0; i--)
+        {
+            ruminationList.RemoveAt(removeIndex[i]);
+        }
+    }
+
     //延迟满足分开计数的方法
     public void UpdateDelaySatisfactionPerRound()
     {
