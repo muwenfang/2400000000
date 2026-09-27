@@ -134,6 +134,13 @@ public class ShopManager : MonoBehaviour
 
     public void InitializeRefreshCost()
     {
+        // 丰盈宝库：商店刷新永久免费
+        if (BlessingManager.Instance != null && BlessingManager.Instance.HasRichTreasure == 1)
+        {
+            refreshCostText.text = "免费";
+            return;
+        }
+
         BigInteger refreshCost = CalculateRefreshCost();
         refreshCostText.text = "$ " + FormatBigNumber(refreshCost);
     }

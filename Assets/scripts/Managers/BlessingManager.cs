@@ -1295,6 +1295,12 @@ public class BlessingManager : MonoBehaviour
         RisingUpStepbyStep = 0;             // 步步高升
         risingUpStepbyStepBonus = 0;        // 步步高升：本回合临时倍率
         EightWaysToWealth = 0;              // 八方来财
+
+        // 丰盈宝库被清空后，立即恢复刷新费用显示（不再显示“免费”）
+        if (ShopManager.Instance != null)
+        {
+            ShopManager.Instance.InitializeRefreshCost();
+        }
     }
 
     /// <summary>
@@ -1872,6 +1878,7 @@ public class BlessingManager : MonoBehaviour
 
     /// <summary>
     /// 福星祝福效果：随机选择背包中一个黄金数字+1
+    /// 通过克隆卡牌数据实现，只影响玩家拥有的这张卡，不修改共享的库资产（商店界面不变）
     /// </summary>
     private void ApplyFortuneStarEffect()
     {
@@ -1886,6 +1893,7 @@ public class BlessingManager : MonoBehaviour
         var goldenCards = new List<NumberCardInstance>();
         foreach (var card in inventory.numberCards)
         {
+            if (card == null || card.cardData == null) continue;
             if (card.cardData.partA.isGolden || (card.cardData.partB != null && card.cardData.partB.isGolden))
             {
                 goldenCards.Add(card);
@@ -1901,18 +1909,50 @@ public class BlessingManager : MonoBehaviour
         // 随机选择一张黄金卡牌
         var selectedCard = goldenCards[UnityEngine.Random.Range(0, goldenCards.Count)];
 
-        // 收集该卡牌中的所有黄金数字组件
-        var goldenComponents = new List<NumberComponent>();
-        if (selectedCard.cardData.partA.isGolden)
-            goldenComponents.Add(selectedCard.cardData.partA);
-        if (selectedCard.cardData.partB != null && selectedCard.cardData.partB.isGolden)
-            goldenComponents.Add(selectedCard.cardData.partB);
+        // 收集该卡牌中的黄金数字组件索引（0=PartA，1=PartB）
+        var goldenParts = new List<int>();
+        if (selectedCard.cardData.partA.isGolden) goldenParts.Add(0);
+        if (selectedCard.cardData.partB != null && selectedCard.cardData.partB.isGolden) goldenParts.Add(1);
+        int partIndex = goldenParts[UnityEngine.Random.Range(0, goldenParts.Count)];
 
-        // 随机选择一个黄金数字组件并+1
-        var selectedComponent = goldenComponents[UnityEngine.Random.Range(0, goldenComponents.Count)];
-        selectedComponent.value += 1;
+        // 克隆卡牌数据（避免直接修改共享资产导致商店显示同步变化）
+        NumberCardData oldData = selectedCard.cardData;
+        NumberCardData newData = ScriptableObject.CreateInstance<NumberCardData>();
+        newData.cardName = oldData.cardName;
+        newData.logicalType = oldData.logicalType;
+        newData.layoutType = oldData.layoutType;
 
-        Debug.Log($"福星祝福：{selectedCard.cardData.cardName} 的黄金数字 +1，当前值: {selectedComponent.value}");
+        newData.partA = CloneNumberComponent(oldData.partA);
+        if (oldData.partB != null)
+            newData.partB = CloneNumberComponent(oldData.partB);
+
+        // 黄金数字 +1
+        NumberComponent goldenComponent = partIndex == 0 ? newData.partA : newData.partB;
+        goldenComponent.value += 1;
+
+        // 替换库存中的旧实例（删旧加新，同步牌堆）
+        inventory.RemoveNumberCard(selectedCard);
+        inventory.AddNumberCard(newData);
+        if (CardManager.Instance != null)
+            CardManager.Instance.SyncDeckFromInventory();
+
+        Debug.Log($"福星祝福：{newData.cardName} 的黄金数字 +1，当前值: {goldenComponent.value}（仅影响背包中的这张卡）");
+    }
+
+    /// <summary>
+    /// 克隆一个数字组件（福星/赌具升级等克隆卡牌时使用）
+    /// </summary>
+    private NumberComponent CloneNumberComponent(NumberComponent source)
+    {
+        if (source == null) return null;
+        return new NumberComponent
+        {
+            isDice = source.isDice,
+            isIncremental = source.isIncremental,
+            isGolden = source.isGolden,
+            value = source.value,
+            diceSides = source.diceSides
+        };
     }
 
     /// <summary>

@@ -348,17 +348,22 @@ public class GameManager : MonoBehaviour
             blessingManager.ApplyAntimatterCloud(rawCardScores, totalMultiplier);
         }
 
-        // 黄金数字：将黄金数字的数值增加到倍率中
+        // 黄金数字：仅将黄金数字本身的数值增加到倍率中（不含卡牌其他部分的值）
         // goldenMultiplierTotal：黄金数贡献的倍率（与公式卡数同属“非祝福倍率”，供八方来财区分祝福部分）
         long goldenMultiplierTotal = 0;
         foreach (var card in formula.selectedNumberCards)
         {
-            if (card.cardData.partA.isGolden || (card.cardData.partB != null && card.cardData.partB.isGolden))
+            BigInteger goldenValue = BigInteger.Zero;
+            if (card.cardData.partA.isGolden)
+                goldenValue += card.currentA;
+            if (card.cardData.partB != null && card.cardData.partB.isGolden)
+                goldenValue += card.currentB;
+
+            if (goldenValue != 0)
             {
-                BigInteger goldenValue = card.GetOutPutValue();
                 totalMultiplier += (long)goldenValue;
                 goldenMultiplierTotal += (long)goldenValue;
-                Debug.Log($"黄金数字 {card.cardData.cardName} 增加 {goldenValue} 倍率，当前总倍率: {totalMultiplier}");
+                Debug.Log($"黄金数字 {card.cardData.cardName} 的黄金数 {goldenValue} 计入倍率，当前总倍率: {totalMultiplier}");
             }
         }
 

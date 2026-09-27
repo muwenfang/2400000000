@@ -241,7 +241,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 22,
             name: "丰盈宝库",
-            description: "每回合第一次商店刷新免费",
+            description: "商店刷新永久免费",
             type: BlessingData.BlessingType.RichTreasury,
             basePrice: 30000,
             isStackable: false,

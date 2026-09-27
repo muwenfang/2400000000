@@ -25,8 +25,6 @@ public class BlessingUI : MonoBehaviour
     public Sprite currentRoundOnlySprite;   // 本回合限购祝福的图标
     
     [Header("颜色配置")]
-    [SerializeField] private Color stackableNameColor = Color.green;      // 可叠加祝福：绿色
-    [SerializeField] private Color unStackableNameColor = Color.black;    // 不可叠加祝福：白色
     [SerializeField] private Color stackCountColor = new Color(1, 0.84f, 0); // 叠加数量：金色
 
     private BlessingData currentBlessingData;
@@ -109,20 +107,11 @@ public class BlessingUI : MonoBehaviour
             return;
         }
 
-        // 设置名称
+        // 设置名称（标题统一黑字，不再区分是否可叠加）
         if (blessingNameText != null)
         {
             blessingNameText.text = currentBlessingData.blessingName;
-
-            // 根据是否可叠加改变颜色
-            if (currentBlessingData.isStackable)
-            {
-                blessingNameText.color = stackableNameColor;  // 绿色 - 可叠加
-            }
-            else
-            {
-                blessingNameText.color = unStackableNameColor; //不可叠加
-            }
+            blessingNameText.color = Color.black;
         }
 
         // 设置描述
