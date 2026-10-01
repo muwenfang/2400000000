@@ -284,19 +284,20 @@ public class CardManager : MonoBehaviour
         if (selectedNumberCards == null) 
         {return null;}
 
-        // 慈爱星：下一回合参与计算的绿色数字中最小的一个额外+1（一次性祝福，使用后清零）
-        // 慈爱星：检测到数量增加时，下一回合参与计算的绿色数字中最小的一个额外+增加量
+        // 慈爱星：购买后的下一回合结算时，参与计算的绿色数字中最小的一个额外+1
+        // 严格"下一回合一次性消费"：无论本回合是否有绿色数字，效果都在本次结算后消耗
         if (BlessingManager.Instance != null && BlessingManager.Instance.compassionStarCount > lastAppliedCompassionStarCount)
         {
+            int pendingBonus = BlessingManager.Instance.compassionStarCount - lastAppliedCompassionStarCount;
             NumberCardInstance minGreenCard = null;
             int minGreenValue = int.MaxValue;
             bool isPartA = true;
-            
+
             for (int i = 0; i < selectedNumberCards.Count; i++)
             {
                 var card = selectedNumberCards[i];
                 if (card == null) continue;
-                
+
                 if (card.cardData.partA.isIncremental && card.currentA < minGreenValue)
                 {
                     minGreenValue = card.currentA;
@@ -310,20 +311,23 @@ public class CardManager : MonoBehaviour
                     isPartA = false;
                 }
             }
-            
+
+            // 无论是否找到绿色数字，都标记为已消费（严格下一回合生效）
+            lastAppliedCompassionStarCount = BlessingManager.Instance.compassionStarCount;
+
             if (minGreenCard != null)
             {
-                int bonus = 1;
                 if (isPartA)
-                    minGreenCard.currentA += bonus;
+                    minGreenCard.currentA += pendingBonus;
                 else
-                    minGreenCard.currentB += bonus;
+                    minGreenCard.currentB += pendingBonus;
 
-                Debug.Log($"慈爱星触发：{minGreenCard.cardData.cardName} 的最小绿色数字 +{bonus}");
-
-                lastAppliedCompassionStarCount = BlessingManager.Instance.compassionStarCount;
+                Debug.Log($"慈爱星触发：{minGreenCard.cardData.cardName} 的最小绿色数字 +{pendingBonus}");
             }
-
+            else
+            {
+                Debug.Log("慈爱星：本回合参与计算的卡牌中没有绿色数字，效果未能生效（已消耗）");
+            }
         }
 
         for (int i = 0; i < selectedNumberCards.Count; i++)

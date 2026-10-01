@@ -464,7 +464,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 160, y: 250}
+  m_SizeDelta: {x: 180, y: 250}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!222 &2795174381603939040
 CanvasRenderer:
@@ -768,6 +768,7 @@ MonoBehaviour:
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
+  goldenColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
   pointsText: {fileID: 0}
 --- !u!114 &6480514336977354050
 MonoBehaviour:

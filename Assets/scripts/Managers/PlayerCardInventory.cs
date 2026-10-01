@@ -38,6 +38,15 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
         OnInventoryChanged?.Invoke();
     }
 
+    /// <summary>
+    /// 卡牌"数值"在实例内发生变化（未被序列化的 currentA/currentB，例如福星、金融专家递增）时调用。
+    /// 卡牌增删之外的数值变化不会自动触发通知，需要主动调用此方法让面板重建。
+    /// </summary>
+    public void NotifyCardValueChanged()
+    {
+        NotifyInventoryChanged();
+    }
+
     //倍率逻辑:获取玩家拥有的公式卡数量，作为每回合的基础倍率
     public int GetFormulaCardCount()
     {

@@ -425,15 +425,15 @@ public class GameManager : MonoBehaviour
             }
         }
 
-        // 财星效果：finalScore *= 1.02^wealthStarCount（向下取整）
-        if (blessingManager != null && blessingManager.wealthStarCount > 0)
+        // 财星效果：仅购买后的下一回合结算时 finalScore *= 1.02^层数（向下取整），用后即失效
+        int wealthStarCharges = blessingManager != null ? blessingManager.ConsumeWealthStarCharges() : 0;
+        if (wealthStarCharges > 0)
         {
-            int starCount = blessingManager.wealthStarCount;
-            for (int i = 0; i < starCount; i++)
+            for (int i = 0; i < wealthStarCharges; i++)
             {
                 finalScore = finalScore * 102 / 100;
             }
-            Debug.Log($"财星效果：×1.02^{starCount}，最终得分: {finalScore}");
+            Debug.Log($"财星效果：×1.02^{wealthStarCharges}（下一回合生效，本次消耗），最终得分: {finalScore}");
         }
 
         // 记录本回合的结算点数（baseScore，这是一次完整结算的值）

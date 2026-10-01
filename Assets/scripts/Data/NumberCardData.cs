@@ -103,17 +103,43 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     }
 
     /// <summary>
-    /// 判断该数字组件是否应作为递增数字处理：
-    /// 绿色数字（isIncremental）恒递增；拥有金融专家祝福时，黄金数字也视为递增。
-    /// 仅作用于本实例的 currentA/currentB，不会修改库中的 NumberCardData。
+    /// 判断该数字组件是否具备"递增"特性：
+    /// 绿色数字（isIncremental）恒递增；拥有金融专家祝福时，黄金数字也能递增。
+    /// 只读标志位，不修改任何数据。
     /// </summary>
-    private bool ShouldIncrement(NumberComponent component)
+    public static bool CanIncrement(NumberComponent component)
     {
         if (component == null) return false;
         if (component.isIncremental) return true;
         return component.isGolden &&
                BlessingManager.Instance != null &&
                BlessingManager.Instance.hasFinancialExpert;
+    }
+
+    /// <summary>PartA 是否为黄金数字</summary>
+    public bool IsGoldenPartA => cardData != null && cardData.partA != null && cardData.partA.isGolden;
+
+    /// <summary>PartB 是否为黄金数字</summary>
+    public bool IsGoldenPartB => cardData != null && cardData.partB != null && cardData.partB.isGolden;
+
+    /// <summary>该卡是否含有黄金数字</summary>
+    public bool HasGolden => IsGoldenPartA || IsGoldenPartB;
+
+    /// <summary>读取指定黄金组件的当前值（0=PartA，1=PartB）</summary>
+    public int GetGoldenValue(int partIndex)
+    {
+        return partIndex == 0 ? currentA : currentB;
+    }
+
+    /// <summary>
+    /// 提升本卡黄金数字（0=PartA，1=PartB）。
+    /// 只修改本实例的 currentA/currentB —— 该数值未被序列化，与库资产完全解耦，
+    /// 因此商店里同款卡仍显示资产原始数值（福星、金融专家等一切"黄金数增加"都走这里）。
+    /// </summary>
+    public void IncreaseGoldenValue(int partIndex, int amount = 1)
+    {
+        if (partIndex == 0 && IsGoldenPartA) currentA += amount;
+        else if (partIndex == 1 && IsGoldenPartB) currentB += amount;
     }
 
     /// <summary>
@@ -200,11 +226,13 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             }
         }
 
-        // 更新递增值（+1）
-        if (cardData.partA.isIncremental)
+        // 更新递增值（+1）：绿色数字恒递增；拥有金融专家祝福时，黄金数字也能递增
+        if (CanIncrement(cardData.partA))
         {
-            //祝福节节高效果：大于等于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+20
-            if (BlessingManager.Instance.hasRisingUp == 1 && currentA >= 9)
+            bool isGreenA = cardData.partA.isIncremental;
+
+            //祝福节节高效果：大于等于9的绿色数字递增后将变为绿色的{1}；触发此效果时，你的倍率永久+50
+            if (isGreenA && BlessingManager.Instance.hasRisingUp == 1 && currentA >= 9)
             {
                 currentA = 1;
                 BlessingManager.Instance.totalMultiplierBonus += 50;
@@ -213,15 +241,17 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             {
                 currentA++;
                 //祝福势如破竹效果：你的绿色数字的正增量将转化为永久倍率
-                if (BlessingManager.Instance.hasUnstoppable == 1)
+                if (isGreenA && BlessingManager.Instance.hasUnstoppable == 1)
                     BlessingManager.Instance.totalMultiplierBonus += 1;
             }
 
         }
 
-        if (cardData.partB != null && cardData.partB.isIncremental)
+        if (CanIncrement(cardData.partB))
         {
-            if (BlessingManager.Instance.hasRisingUp == 1 && currentB >= 9)
+            bool isGreenB = cardData.partB.isIncremental;
+
+            if (isGreenB && BlessingManager.Instance.hasRisingUp == 1 && currentB >= 9)
             {
                 currentB = 1;
                 BlessingManager.Instance.totalMultiplierBonus += 50;
@@ -230,7 +260,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             {
                 currentB++;
                 //祝福势如破竹效果：你的绿色数字的正增量将转化为永久倍率
-                if (BlessingManager.Instance.hasUnstoppable == 1)
+                if (isGreenB && BlessingManager.Instance.hasUnstoppable == 1)
                     BlessingManager.Instance.totalMultiplierBonus += 1;
             }
 
@@ -343,11 +373,8 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
 
         try
         {
-            // 第一步：计算数学期望
-            long expectation = CalculateExpectation(a, b, logic);
-
-            // 第二步：倍率修正
-            double X = Math.Abs((double)expectation); // 用期望作为 X，取绝对值避免负数对数异常
+            // 第一步：计算数学期望（浮点：骰子~x~=(x+1)/2.0，绿色{y}=y+5，均值不做整数截断）
+            double X = Math.Abs(CalculateExpectation(a, b, logic));
             double rate = 1.0;
 
             // 1. 所有卡牌 × (log2(X) - 1) 倍
@@ -384,9 +411,9 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             }
 
             // 计算倍率后价格
-            long priceAfterRate = (long)(X * rate);
+            long priceAfterRate = (long)Math.Round(X * rate, MidpointRounding.AwayFromZero);
 
-            // 黄金数字加成：y = 所有黄金数之和，价格增加 100*y*(y+1)
+            // 第三步：黄金数修正：y = 所有黄金数之和，价格增加 100*y*(y+1)
             int goldenSum = 0;
             if (a.isGolden) goldenSum += a.value;
             if (b != null && b.isGolden) goldenSum += b.value;
@@ -413,9 +440,9 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
 
     /// <summary>
     /// 第一步：根据卡牌类型计算数学期望
-    /// 返回BigInteger，完全保留原计算逻辑
+    /// 返回double，保留小数精度（骰子期望 (x+1)/2.0，均值不做整数截断）
     /// </summary>
-    private long CalculateExpectation(NumberComponent a, NumberComponent b, NumberCardData.LogicalType logic)
+    private double CalculateExpectation(NumberComponent a, NumberComponent b, NumberCardData.LogicalType logic)
     {
         if (logic != NumberCardData.LogicalType.Power)
         {
@@ -434,9 +461,9 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
 
     /// <summary>
     /// 计算非指数型卡牌期望（加法/乘法/单数字）
-    /// 返回BigInteger，先乘后除避免浮点均值误差
+    /// 将~x~视为(x+1)/2.0，将{y}视为(y+5)，直接代入计算；{x}*{y}型用前九次均值公式 Σ(x+i)(y+i)/9
     /// </summary>
-    private long CalculateNonPowerExpectation(NumberComponent a, NumberComponent b, NumberCardData.LogicalType logic)
+    private double CalculateNonPowerExpectation(NumberComponent a, NumberComponent b, NumberCardData.LogicalType logic)
     {
         if (logic == NumberCardData.LogicalType.Normal)
         {
@@ -450,53 +477,51 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 return 0;
             }
 
-            long expA = GetComponentExpectation(a);
-            long expB = GetComponentExpectation(b);
+            double expA = GetComponentExpectation(a);
+            double expB = GetComponentExpectation(b);
 
-            // 特殊处理：{x}*{y}型（按文档公式计算前9次均值）
+            // 特殊处理：{x}*{y}型（前九次参与运算的均值）
             if (logic == NumberCardData.LogicalType.Multiplication && a.isIncremental && b.isIncremental)
             {
-                long sum = 0;
+                double sum = 0;
                 for (int i = 1; i <= 9; i++)
                 {
-                    long valA = Math.Abs(a.value) + i;
-                    long valB = Math.Abs(b.value) + i;
-                    sum += valA * valB;
+                    sum += (a.value + i) * (b.value + i);
                 }
-                return sum / 9;
+                return sum / 9.0;
             }
 
-            // 普通加法/乘法，直接BigInteger运算，结果取绝对值
-            return Math.Abs(logic == NumberCardData.LogicalType.Addition ? expA + expB : expA * expB);
+            // 普通加法/乘法，直接代入期望值
+            return logic == NumberCardData.LogicalType.Addition ? expA + expB : expA * expB;
         }
     }
 
     /// <summary>
-    /// 获取单个组件（PartA/PartB）的期望值（用long）
+    /// 获取单个组件（PartA/PartB）的期望值：骰子~x~=(x+1)/2.0，绿色{y}=y+5，普通数字=x
     /// </summary>
-    private long GetComponentExpectation(NumberComponent comp)
+    private double GetComponentExpectation(NumberComponent comp)
     {
         if (comp.isDice)
         {
-            return Math.Abs((comp.diceSides + 1) / 2);
+            return (comp.diceSides + 1) / 2.0;
         }
         else if (comp.isIncremental)
         {
-            // 递增数字期望值 = value + 5（平均递增值），取绝对值
-            return Math.Abs((long)(comp.value + 5));
+            // 绿色（递增）数字期望值 = value + 5
+            return comp.value + 5;
         }
         else
         {
-            // 普通数字，取绝对值
-            return Math.Abs((long)comp.value);
+            // 普通数字
+            return comp.value;
         }
     }
 
     /// <summary>
     /// 计算指数型卡牌价格期望（8种组合）
-    /// 返回long，用整数运算计算
+    /// 返回double：指数可能很大（如20^20≈1.05e26），必须用浮点避免整数溢出
     /// </summary>
-    private long CalculatePowerExpectation(NumberComponent a, NumberComponent b)
+    private double CalculatePowerExpectation(NumberComponent a, NumberComponent b)
     {
         bool aIsDice = a.isDice;
         bool aIsInc = a.isIncremental;
@@ -504,105 +529,110 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         bool bIsInc = b.isIncremental;
 
         // 骰子取面数，其他取数值
-        long x = Math.Abs(a.isDice ? a.diceSides : a.value);
-        long y = Math.Abs(b.isDice ? b.diceSides : b.value);
+        double x = Math.Abs(a.isDice ? a.diceSides : a.value);
+        double y = Math.Abs(b.isDice ? b.diceSides : b.value);
 
-        long sum = 0;
+        double sum;
         try
         {
-            // 1. x^~y~ （底数普通，指数骰子）
+            // 1. x^~y~ ：Σ_{j=1}^{y} x^j / y
             if (!aIsDice && !aIsInc && bIsDice && !bIsInc)
             {
-                for (long j = 1; j <= y; j++)
+                sum = 0;
+                for (int j = 1; j <= (int)y; j++)
                 {
-                    sum += (long)System.Math.Pow(x, (int)j);
+                    sum += Math.Pow(x, j);
                 }
-                sum = sum / y;
+                return Math.Abs(sum / y);
             }
-            // 2. ~x~^y （底数骰子，指数普通）
+            // 2. ~x~^y ：Σ_{i=1}^{x} i^y / x
             else if (aIsDice && !aIsInc && !bIsDice && !bIsInc)
             {
-                for (long i = 1; i <= x; i++)
+                sum = 0;
+                for (int i = 1; i <= (int)x; i++)
                 {
-                    sum += (long)System.Math.Pow((int)i, (int)y);
+                    sum += Math.Pow(i, y);
                 }
-                sum = sum / x;
+                return Math.Abs(sum / x);
             }
-            // 3. x^{y} （底数普通，指数递增）
+            // 3. x^{y} ：Σ_{i=y+1}^{y+9} x^i / 9
             else if (!aIsDice && !aIsInc && bIsInc && !bIsDice)
             {
+                sum = 0;
                 for (int j = 1; j <= 9; j++)
                 {
-                    sum += (long)System.Math.Pow(x, (int)(y + j));
+                    sum += Math.Pow(x, y + j);
                 }
-                sum = sum / 9;
+                return Math.Abs(sum / 9.0);
             }
-            // 4. {x}^y （底数递增，指数普通）
+            // 4. {x}^y ：Σ_{i=x+1}^{x+9} i^y / 9
             else if (aIsInc && !aIsDice && !bIsDice && !bIsInc)
             {
+                sum = 0;
                 for (int i = 1; i <= 9; i++)
                 {
-                    sum += (long)System.Math.Pow((int)(x + i), (int)y);
+                    sum += Math.Pow(x + i, y);
                 }
-                sum = sum / 9;
+                return Math.Abs(sum / 9.0);
             }
-            // 5. {x}^~y~ （底数递增，指数骰子）
+            // 5. {x}^~y~ ：Σ_{i=x+1}^{x+9}(Σ_{j=1}^{y} i^j) / (9y)
             else if (aIsInc && !aIsDice && bIsDice && !bIsInc)
             {
+                sum = 0;
                 for (int i = 1; i <= 9; i++)
                 {
-                    long innerSum = 0;
-                    for (long j = 1; j <= y; j++)
+                    double innerSum = 0;
+                    for (int j = 1; j <= (int)y; j++)
                     {
-                        innerSum += (long)System.Math.Pow((int)(x + i), (int)j);
+                        innerSum += Math.Pow(x + i, j);
                     }
                     sum += innerSum;
                 }
-                sum = sum / (9 * y);
+                return Math.Abs(sum / (9.0 * y));
             }
-            // 6. ~x~^{y} （底数骰子，指数递增）
+            // 6. ~x~^{y} ：Σ_{i=1}^{x}(Σ_{j=y+1}^{y+9} i^j) / (9x)
             else if (aIsDice && !aIsInc && bIsInc && !bIsDice)
             {
-                for (long i = 1; i <= x; i++)
+                sum = 0;
+                for (int i = 1; i <= (int)x; i++)
                 {
-                    long innerSum = 0;
+                    double innerSum = 0;
                     for (int j = 1; j <= 9; j++)
                     {
-                        innerSum += (long)System.Math.Pow((int)i, (int)(y + j));
+                        innerSum += Math.Pow(i, y + j);
                     }
                     sum += innerSum;
                 }
-                sum = sum / (9 * x);
+                return Math.Abs(sum / (9.0 * x));
             }
-            // 7. ~x~^~y~ （底数骰子，指数骰子）
+            // 7. ~x~^~y~ ：Σ_{i=1}^{x}(Σ_{j=1}^{y} i^j) / (xy)
             else if (aIsDice && !aIsInc && bIsDice && !bIsInc)
             {
-                for (long i = 1; i <= x; i++)
+                sum = 0;
+                for (int i = 1; i <= (int)x; i++)
                 {
-                    long innerSum = 0;
-                    for (long j = 1; j <= y; j++)
+                    for (int j = 1; j <= (int)y; j++)
                     {
-                        innerSum += (long)System.Math.Pow((int)i, (int)j);
+                        sum += Math.Pow(i, j);
                     }
-                    sum += innerSum;
                 }
-                sum = sum / (x * y);
+                return Math.Abs(sum / (x * y));
             }
-            // 8. {x}^{y} （底数递增，指数递增）
+            // 8. {x}^{y} ：Σ_{i=1}^{9}(x+i)^{y+i} / 9
             else if (aIsInc && !aIsDice && bIsInc && !bIsDice)
             {
+                sum = 0;
                 for (int i = 1; i <= 9; i++)
                 {
-                    sum += (long)System.Math.Pow((int)(x + i), (int)(y + i));
+                    sum += Math.Pow(x + i, y + i);
                 }
-                sum = sum / 9;
+                return Math.Abs(sum / 9.0);
             }
             else
             {
                 Debug.LogWarning($"未匹配的指数型组合：A(骰子={aIsDice},递增={aIsInc})，B(骰子={bIsDice},递增={bIsInc})");
-                sum = 0;
+                return 0;
             }
-            return Math.Abs(sum); // 返回绝对值，避免负数
         }
         catch (System.Exception e)
         {

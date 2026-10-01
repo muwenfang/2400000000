@@ -130,12 +130,15 @@ public class ShowMyBlessings : MonoBehaviour, ISelectablePanel
         BlessingUI blessingUI = newCard.GetComponent<BlessingUI>();
         if (blessingUI != null)
         {
-            blessingUI.SetBlessingData(blessing);
+            // 必须把叠加数量一并传入，否则 BlessingUI 会使用默认值 1，导致"×N"不显示
+            blessingUI.SetBlessingData(blessing, stackCount);
         }
         cardGameObjects[blessing] = newCard;
 
         // 填充反向映射，供 CardClickHandler 查找
         goToData[newCard] = blessing;
+        if (!blessingStackCounts.ContainsKey(blessing.blessingId))
+            blessingStackCounts[blessing.blessingId] = stackCount;
     }
 
     public void ClearTempWishCoinButtons()

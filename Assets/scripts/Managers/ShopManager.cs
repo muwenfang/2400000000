@@ -46,8 +46,11 @@ public class ShopManager : MonoBehaviour
     public int formulaCardCount = 1;
     public int blessingCardCount = 2;
 
-    //刷新次数
+    //刷新次数（全局累计，供"走马观花"等按累计次数结算的祝福使用）
     public int refreshCount = 0;
+
+    //本商店（本回合）的刷新次数——仅用于刷新费用公式 i² × 2^(n-1)，每次进入商店时清零
+    public int shopRefreshCount = 0;
 
     //删除卡牌相关配置
     [Header("删除功能配置")]
@@ -104,6 +107,9 @@ public class ShopManager : MonoBehaviour
         // 清除上次商店访问的排除列表（新回合/新进入商店时重置）
         blessingsExcludedFromRefresh.Clear();
 
+        // 刷新费用的叠加倍率按回合清零：每次进入商店重新从 i² × 2^0 开始
+        shopRefreshCount = 0;
+
         
         // 祸星：首次生成后即从后续刷新中排除（无论是否出现）
         MarkDisasterStarExcluded();
@@ -151,6 +157,7 @@ public class ShopManager : MonoBehaviour
         formulaSlotUnlockTimes = 0; // 公式卡已解锁次数
         blessingSlotUnlockTimes = 0;
         refreshCount = 0; // 重置刷新次数
+        shopRefreshCount = 0; // 重置本商店刷新次数（刷新费用倍率）
 
         totalRemovedFormulaCards = 0;
         totalRemovedNumberCards = 0;
@@ -645,6 +652,7 @@ public class ShopManager : MonoBehaviour
         }
 
         refreshCount++;
+        shopRefreshCount++;
 
         // 更新刷新费用显示
         InitializeRefreshCost();
@@ -669,10 +677,12 @@ public class ShopManager : MonoBehaviour
             return 0; // 丰盈宝库：永久免费
         }
 
-        // 公式: i² × 2^(n-1)，i=当前回合数，n=刷新次数(第1次刷新时n=1)
+        // 公式: i² × 2^(n-1)，i=当前回合数，n=本次商店的刷新次数(第1次刷新时n=1)
+        // 注意：使用 shopRefreshCount（每次进入商店清零），而不是全局累计的 refreshCount，
+        // 否则倍率会跨回合叠加，刷新费用指数膨胀。
         int currentRound = GameManager.Instance != null ? GameManager.Instance.currentRound : 1;
         BigInteger roundSquared = (BigInteger)currentRound * currentRound;
-        BigInteger refreshMultiplier = BigInteger.Pow(2, refreshCount); // refreshCount=0时 2^0=1
+        BigInteger refreshMultiplier = BigInteger.Pow(2, shopRefreshCount); // shopRefreshCount=0时 2^0=1
         return roundSquared * refreshMultiplier;
     }
 
@@ -719,29 +729,56 @@ public class ShopManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 计算删除卡牌消耗
+    /// 计算删除卡牌消耗（无参版本 = 数字卡删除费用，兼容旧调用）
     /// </summary>
     public BigInteger CalculateDeletionCost()
     {
-        int totalRemoved = totalRemovedNumberCards + totalRemovedFormulaCards;
-        BigInteger cost = 1 * (BigInteger)(totalRemoved * totalRemoved);
-        return cost;
+        return GetNextNumberCardDeletionCost();
     }
 
     /// <summary>
-    /// 获取下一个数字卡删除费用（同CalculateDeletionCost）
+    /// 获取下一张数字卡删除费用：10 × 5^(已删数字卡数)
+    /// 即 n = 已删除卡牌数（本次为第 n 次删除）时为 10 × 5^(n-1)：10、50、250、1250…
     /// </summary>
     public BigInteger GetNextNumberCardDeletionCost()
     {
-        return CalculateDeletionCost();
+        BigInteger cost = 10;
+        for (int i = 0; i < totalRemovedNumberCards; i++) cost *= 5;
+        return ApplyDeletionDifficultyMultiplier(cost);
     }
 
     /// <summary>
-    /// 计算删除卡牌消耗（带参数版本，与无参版本一致）
+    /// 获取下一张填空卡（公式卡）删除费用：200 × 5^(已删填空卡数)
+    /// 即 200 × 5^(n-1)：200、1000、5000、25000…
+    /// </summary>
+    public BigInteger GetNextFormulaCardDeletionCost()
+    {
+        BigInteger cost = 200;
+        for (int i = 0; i < totalRemovedFormulaCards; i++) cost *= 5;
+        return ApplyDeletionDifficultyMultiplier(cost);
+    }
+
+    /// <summary>
+    /// 应用难度设置中的"删卡价格"系数（默认 1.0x，即不改变结果）
+    /// </summary>
+    private BigInteger ApplyDeletionDifficultyMultiplier(BigInteger cost)
+    {
+        if (DataSavingManager.Instance == null)
+            return cost;
+
+        float multiplier = DataSavingManager.Instance.GetDifficultyMultiplier(DifficultySettingType.CardDeletionPrice);
+        if (multiplier <= 0f)
+            return cost;
+
+        return cost * (BigInteger)(multiplier * 100f) / 100;
+    }
+
+    /// <summary>
+    /// 计算删除卡牌消耗（带参数版本，数字卡与无参版本一致）
     /// </summary>
     public BigInteger CalculateDeletionCost(NumberCardInstance card)
     {
-        return CalculateDeletionCost();
+        return GetNextNumberCardDeletionCost();
     }
 
     /// <summary>
@@ -815,22 +852,19 @@ public class ShopManager : MonoBehaviour
     {
         if (deleteCardCostText == null) return;
 
-        BigInteger deleteCost = CalculateDeletionCost();
-        string costStr = FormatBigNumber(deleteCost);
-
         switch (GetCurrentDeckView())
         {
             case DeckView.Number:
-                deleteCardCostText.text = "至少保留六张     $" + costStr;
+                deleteCardCostText.text = "至少保留六张     $" + FormatBigNumber(GetNextNumberCardDeletionCost());
                 break;
             case DeckView.Formula:
-                deleteCardCostText.text = "至少保留一张     $" + costStr;
+                deleteCardCostText.text = "至少保留一张     $" + FormatBigNumber(GetNextFormulaCardDeletionCost());
                 break;
             case DeckView.Blessing:
                 deleteCardCostText.text = "无法在该界面删除";
                 break;
             default:
-                deleteCardCostText.text = "  " + costStr;
+                deleteCardCostText.text = "  " + FormatBigNumber(GetNextNumberCardDeletionCost());
                 break;
         }
     }
@@ -887,14 +921,13 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // 计算删除费用
-        BigInteger deleteCost = CalculateDeletionCost();
+        // 计算删除费用（数字卡：10 × 5^(已删数字卡数)）
+        BigInteger deleteCost = GetNextNumberCardDeletionCost();
         if (GameManager.Instance.currentPoints < deleteCost)
         {
             Debug.Log("点数不足，无法删除卡牌");
             return false;
         }
-
         // 扣除点数
         GameManager.Instance.AddPoints(-deleteCost);
 
@@ -954,6 +987,12 @@ public class ShopManager : MonoBehaviour
             multiplier *= DataSavingManager.Instance.GetDifficultyMultiplier(DifficultySettingType.ShopRefreshPrice);
         }
 
+        // 眷顾/友情折扣/辩证主义等祝福价格修正（此前未接入，导致眷顾全程未生效）
+        if (BlessingManager.Instance != null)
+        {
+            multiplier *= BlessingManager.Instance.GetCurrentPriceMultiplier();
+        }
+
         return multiplier;
     }
 
@@ -970,6 +1009,12 @@ public class ShopManager : MonoBehaviour
             multiplier *= DataSavingManager.Instance.GetDifficultyMultiplier(DifficultySettingType.ShopRefreshPrice);
         }
 
+        // 眷顾/友情折扣/辩证主义等祝福价格修正
+        if (BlessingManager.Instance != null)
+        {
+            multiplier *= BlessingManager.Instance.GetCurrentPriceMultiplier();
+        }
+
         return multiplier;
     }
 
@@ -984,6 +1029,12 @@ public class ShopManager : MonoBehaviour
         {
             multiplier *= DataSavingManager.Instance.GetDifficultyMultiplier(DifficultySettingType.BlessingPrice);
             multiplier *= DataSavingManager.Instance.GetDifficultyMultiplier(DifficultySettingType.ShopRefreshPrice);
+        }
+
+        // 眷顾/友情折扣/辩证主义等祝福价格修正
+        if (BlessingManager.Instance != null)
+        {
+            multiplier *= BlessingManager.Instance.GetCurrentPriceMultiplier();
         }
 
         return multiplier;
@@ -1038,8 +1089,8 @@ public class ShopManager : MonoBehaviour
             return false;
         }
     
-        // 计算删除费用
-        BigInteger deleteCost = CalculateDeletionCost();
+        // 计算删除费用（填空卡：200 × 5^(已删填空卡数)）
+        BigInteger deleteCost = GetNextFormulaCardDeletionCost();
         if (GameManager.Instance.currentPoints < deleteCost)
         {
             Debug.Log("点数不足，无法删除公式卡");
@@ -1111,20 +1162,20 @@ public class ShopManager : MonoBehaviour
             return false;
         }
 
-        // 检查点数
+        // 检查点数（预检查；实际扣费由 BlessingManager.TryBuyBlessing 统一执行，避免双重扣费）
         if (GameManager.Instance.currentPoints < item.price)
         {
             Debug.Log("点数不足，无法购买祝福");
             return false;
         }
 
-        // 扣除点数
-        GameManager.Instance.AddPoints(-item.price);
-
-        // 应用祝福效果
+        // 应用祝福效果（内部按当前折扣重新计价并扣费）
         if (BlessingManager.Instance != null)
         {
-            BlessingManager.Instance.TryBuyBlessing(item.cardData);
+            if (!BlessingManager.Instance.TryBuyBlessing(item.cardData))
+            {
+                return false;
+            }
         }
 
         // 记录本回合已购买

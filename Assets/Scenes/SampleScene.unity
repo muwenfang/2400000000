@@ -2024,10 +2024,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 699200108}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 0.000015259, y: 402.96533}
-  m_SizeDelta: {x: 1376.3, y: 76.4297}
+  m_AnchorMin: {x: 0.142, y: 0.8386296}
+  m_AnchorMax: {x: 0.8584792, y: 0.89514816}
+  m_AnchoredPosition: {x: 0, y: -3.0317078}
+  m_SizeDelta: {x: 0.3, y: -3.5645}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &170341867
 MonoBehaviour:
@@ -4929,10 +4929,10 @@ RectTransform:
   - {fileID: 1269274289}
   m_Father: {fileID: 1329721510}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 16.5}
-  m_SizeDelta: {x: 0, y: -267}
+  m_AnchorMin: {x: 0, y: 0.13900001}
+  m_AnchorMax: {x: 1, y: 0.89185196}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &496826563
 MonoBehaviour:
@@ -6905,6 +6905,7 @@ MonoBehaviour:
   fortuneStarCount: 0
   meteor: 0
   wealthStarCount: 0
+  wealthStarPendingCharges: 0
   disasterStarCount: 0
   morningsStarCount: 0
   compassionStarCount: 0
@@ -9001,10 +9002,10 @@ RectTransform:
   - {fileID: 1662474149}
   m_Father: {fileID: 1329721510}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 16.5}
-  m_SizeDelta: {x: 0, y: -267}
+  m_AnchorMin: {x: 0, y: 0.13900001}
+  m_AnchorMax: {x: 1, y: 0.89185196}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 0, y: 0}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &896898556
 MonoBehaviour:
@@ -13400,19 +13401,19 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 3755159042846121703, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_AnchorMax.y
-      value: 1
+      value: 0.89185196
       objectReference: {fileID: 0}
     - target: {fileID: 3755159042846121703, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 0.13900001
       objectReference: {fileID: 0}
     - target: {fileID: 3755159042846121703, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_SizeDelta.y
-      value: -267
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3755159042846121703, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 16.5
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 3829601806898697769, guid: 2695a2e03e1d5594ea675966e9498038, type: 3}
       propertyPath: m_Text
@@ -18401,6 +18402,7 @@ MonoBehaviour:
   formulaCardCount: 1
   blessingCardCount: 2
   refreshCount: 0
+  shopRefreshCount: 0
   deleteCardButton: {fileID: 1038536867}
   deleteCardCostText: {fileID: 152407951}
   deleteCostPanel: {fileID: 1081799470}

@@ -79,6 +79,7 @@ public class BlessingManager : MonoBehaviour
     public int fortuneStarCount = 0;                    // 福星数量
     public int meteor = 0;                              // 流星
     public int wealthStarCount = 0;                     //财星
+    public int wealthStarPendingCharges = 0;            //财星待生效次数（仅下一回合结算时消费）
     public int disasterStarCount = 0;                   //祸星
     public int morningsStarCount = 0;                   //启明星
     public List<NumberCardInstance> morningStarTargetCards = new List<NumberCardInstance>(); //启明星锁定的数字卡（下一回合必抽）
@@ -180,6 +181,7 @@ public class BlessingManager : MonoBehaviour
         fortuneStarCount = 0;               // 福星数量
         meteor = 0;                         // 流星
         wealthStarCount = 0;                //财星
+        wealthStarPendingCharges = 0;       //财星待生效次数
         disasterStarCount = 0;              //祸星
         morningsStarCount = 0;              //启明星
         morningStarTargetCards.Clear();     //启明星锁定的数字卡
@@ -629,9 +631,10 @@ public class BlessingManager : MonoBehaviour
                 break;
 
             case BlessingData.BlessingType.WealthStar:
-                // 财星：每回合结算 finalScore × 1.02^wealthStarCount（向下取整）
+                // 财星：仅购买后的下一回合结算时生效一次（×1.02^层数），用后即失效
                 wealthStarCount++;
-                Debug.Log($"财星祝福激活：当前财星数量 {wealthStarCount}");
+                wealthStarPendingCharges++;
+                Debug.Log($"财星祝福激活：当前财星数量 {wealthStarCount}，待生效次数 {wealthStarPendingCharges}");
                 break;
 
             case BlessingData.BlessingType.DisasterStar:
@@ -925,18 +928,18 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 递减星字祝福对应的类型计数变量（按 blessingId 精确匹配，避免类型枚举歧义）
+    /// 递减星字祝福对应的类型计数变量（按 blessingType 匹配，与资产数据的 ID 体系解耦）
     /// </summary>
     private void DecreaseStarCountVariable(BlessingData data)
     {
-        switch (data.blessingId)
+        switch (data.blessingType)
         {
-            case 49: luckyStarCount = Math.Max(0, luckyStarCount - 1); break;        // 幸运星
-            case 50: fortuneStarCount = Math.Max(0, fortuneStarCount - 1); break;    // 福星
-            case 51: wealthStarCount = Math.Max(0, wealthStarCount - 1); break;      // 财星
-            case 52: disasterStarCount = Math.Max(0, disasterStarCount - 1); break;  // 祸星
-            case 53: compassionStarCount = Math.Max(0, compassionStarCount - 1); break; // 慈爱星
-            case 54: morningsStarCount = Math.Max(0, morningsStarCount - 1); break; // 启明星
+            case BlessingData.BlessingType.LuckyStar:     luckyStarCount = Math.Max(0, luckyStarCount - 1); break;      // 幸运星
+            case BlessingData.BlessingType.FortuneStar:   fortuneStarCount = Math.Max(0, fortuneStarCount - 1); break;  // 福星
+            case BlessingData.BlessingType.DisasterStar:  disasterStarCount = Math.Max(0, disasterStarCount - 1); break; // 祸星
+            case BlessingData.BlessingType.WealthStar:    wealthStarCount = Math.Max(0, wealthStarCount - 1); break;    // 财星
+            case BlessingData.BlessingType.CompassionStar: compassionStarCount = Math.Max(0, compassionStarCount - 1); break; // 慈爱星
+            case BlessingData.BlessingType.MorningStar:   morningsStarCount = Math.Max(0, morningsStarCount - 1); break;  // 启明星
         }
     }
 
@@ -1187,6 +1190,16 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 财星：取出并清空待生效次数（每次结算只消费一次，实现“仅下一回合生效”）
+    /// </summary>
+    public int ConsumeWealthStarCharges()
+    {
+        int charges = wealthStarPendingCharges;
+        wealthStarPendingCharges = 0;
+        return charges;
+    }
+
+    /// <summary>
     /// 执行"逢七过"效果 - 判定结果是否符合触发条件
     /// </summary>
     public bool CheckJackpot7Effect(BigInteger score)
@@ -1276,6 +1289,7 @@ public class BlessingManager : MonoBehaviour
         hasFall = false;                    // 坠落
         reverse = 0;                        // 翻转
         wealthStarCount = 0;                // 财星
+        wealthStarPendingCharges = 0;       // 财星待生效次数
         disasterStarCount = 0;              // 祸星
         morningsStarCount = 0;              // 启明星
         morningStarTargetCards.Clear();     // 启明星锁定的数字卡
@@ -1877,8 +1891,9 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 福星祝福效果：随机选择背包中一个黄金数字+1
-    /// 通过克隆卡牌数据实现，只影响玩家拥有的这张卡，不修改共享的库资产（商店界面不变）
+    /// 福星祝福效果：随机选择背包中一个黄金数字+1。
+    /// 只修改玩家手中该卡实例的当前值（currentA/currentB，未被序列化、与库资产解耦），
+    /// 因此商店里同款卡仍显示资产原始数值，玩家已有的绿色数字进度/骰子升级也不会被重置。
     /// </summary>
     private void ApplyFortuneStarEffect()
     {
@@ -1893,8 +1908,7 @@ public class BlessingManager : MonoBehaviour
         var goldenCards = new List<NumberCardInstance>();
         foreach (var card in inventory.numberCards)
         {
-            if (card == null || card.cardData == null) continue;
-            if (card.cardData.partA.isGolden || (card.cardData.partB != null && card.cardData.partB.isGolden))
+            if (card != null && card.HasGolden)
             {
                 goldenCards.Add(card);
             }
@@ -1911,48 +1925,33 @@ public class BlessingManager : MonoBehaviour
 
         // 收集该卡牌中的黄金数字组件索引（0=PartA，1=PartB）
         var goldenParts = new List<int>();
-        if (selectedCard.cardData.partA.isGolden) goldenParts.Add(0);
-        if (selectedCard.cardData.partB != null && selectedCard.cardData.partB.isGolden) goldenParts.Add(1);
+        if (selectedCard.IsGoldenPartA) goldenParts.Add(0);
+        if (selectedCard.IsGoldenPartB) goldenParts.Add(1);
         int partIndex = goldenParts[UnityEngine.Random.Range(0, goldenParts.Count)];
 
-        // 克隆卡牌数据（避免直接修改共享资产导致商店显示同步变化）
-        NumberCardData oldData = selectedCard.cardData;
-        NumberCardData newData = ScriptableObject.CreateInstance<NumberCardData>();
-        newData.cardName = oldData.cardName;
-        newData.logicalType = oldData.logicalType;
-        newData.layoutType = oldData.layoutType;
+        // 黄金数字 +1（仅作用于该实例的当前值，不影响商店/库资产）
+        selectedCard.IncreaseGoldenValue(partIndex);
 
-        newData.partA = CloneNumberComponent(oldData.partA);
-        if (oldData.partB != null)
-            newData.partB = CloneNumberComponent(oldData.partB);
+        // 数值在实例内变化，通知面板刷新（版本号自增；面板正打开时立即重建）
+        inventory.NotifyCardValueChanged();
+        RefreshOpenNumberCardPanel();
 
-        // 黄金数字 +1
-        NumberComponent goldenComponent = partIndex == 0 ? newData.partA : newData.partB;
-        goldenComponent.value += 1;
-
-        // 替换库存中的旧实例（删旧加新，同步牌堆）
-        inventory.RemoveNumberCard(selectedCard);
-        inventory.AddNumberCard(newData);
-        if (CardManager.Instance != null)
-            CardManager.Instance.SyncDeckFromInventory();
-
-        Debug.Log($"福星祝福：{newData.cardName} 的黄金数字 +1，当前值: {goldenComponent.value}（仅影响背包中的这张卡）");
+        Debug.Log($"福星祝福：{selectedCard.cardData.cardName} 的黄金数字 +1 → {selectedCard.GetGoldenValue(partIndex)}（仅影响玩家手中这张卡，商店数值不变）");
     }
 
     /// <summary>
-    /// 克隆一个数字组件（福星/赌具升级等克隆卡牌时使用）
+    /// 数字卡数值在实例内变化后，若玩家此刻正打开着数字卡面板，立即重建以显示最新数值。
+    /// （面板关闭状态下由 InventoryVersion 脏检查在下次打开时自动重建）
     /// </summary>
-    private NumberComponent CloneNumberComponent(NumberComponent source)
+    private void RefreshOpenNumberCardPanel()
     {
-        if (source == null) return null;
-        return new NumberComponent
+        if (ShopManager.Instance == null) return;
+
+        ShowMyNumberCard panel = ShopManager.Instance.showNumberCard;
+        if (panel != null && panel.gameObject.activeInHierarchy && panel.contentRoot != null)
         {
-            isDice = source.isDice,
-            isIncremental = source.isIncremental,
-            isGolden = source.isGolden,
-            value = source.value,
-            diceSides = source.diceSides
-        };
+            panel.RefreshAllCards();
+        }
     }
 
     /// <summary>
@@ -1992,14 +1991,14 @@ public class BlessingManager : MonoBehaviour
             return;
         }
 
-        // 3. 计算黄金数总和（所有含黄金数卡片的黄金数字组件值之和）
+        // 3. 计算黄金数总和（取实例当前值，含福星/金融专家带来的增加）
         long goldenSum = 0;
         foreach (var card in goldenCards)
         {
-            if (card.cardData.partA.isGolden)
-                goldenSum += card.cardData.partA.value;
-            if (card.cardData.partB != null && card.cardData.partB.isGolden)
-                goldenSum += card.cardData.partB.value;
+            if (card.IsGoldenPartA)
+                goldenSum += card.currentA;
+            if (card.IsGoldenPartB)
+                goldenSum += card.currentB;
         }
 
         // 4. 失去所有含黄金数的数字卡

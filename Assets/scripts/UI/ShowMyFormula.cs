@@ -52,7 +52,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
             // 仅更新删卡费用 UI（不重建卡片）
             if (ShopManager.Instance != null)
             {
-                UpdateDeletionUI(ShopManager.Instance.CalculateDeletionCost());
+                UpdateDeletionUI(ShopManager.Instance.GetNextFormulaCardDeletionCost());
             }
         }
         // 记录当前库存版本
@@ -87,7 +87,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
         {
             if (ShopManager.Instance != null)
             {
-                deletionCost = ShopManager.Instance.CalculateDeletionCost();
+                deletionCost = ShopManager.Instance.GetNextFormulaCardDeletionCost();
                 UpdateDeletionUI(deletionCost);
             }
         }
@@ -139,7 +139,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
 
         // 触发CardSelectionManager的回调
         CardSelectionManager.Instance.OnCardSelected(selectedFormula);
-        deletionCost = ShopManager.Instance.CalculateDeletionCost();
+        deletionCost = ShopManager.Instance.GetNextFormulaCardDeletionCost();
 
         // 执行删卡逻辑
         ExecuteFormulaCardDeletion(selectedFormula);
@@ -162,7 +162,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
         {
             if (!ShopManager.Instance.OnFormulaCardDeleted(cardToDelete))
             {
-                deletionCost = ShopManager.Instance.CalculateDeletionCost();
+                deletionCost = ShopManager.Instance.GetNextFormulaCardDeletionCost();
                 return;
             }
         }
@@ -285,7 +285,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
 
         if (ShopManager.Instance != null)
         {
-            deletionCost = ShopManager.Instance.CalculateDeletionCost();
+            deletionCost = ShopManager.Instance.GetNextFormulaCardDeletionCost();
         }
 
         UpdateDeletionUI(deletionCost);
@@ -326,7 +326,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
      public void RefreshDeletionCostDisplay()
      {
          if (ShopManager.Instance == null) return;
-         deletionCost = ShopManager.Instance.CalculateDeletionCost();
+         deletionCost = ShopManager.Instance.GetNextFormulaCardDeletionCost();
          UpdateDeletionUI(deletionCost);
      }
 

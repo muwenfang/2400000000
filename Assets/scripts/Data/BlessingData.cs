@@ -151,7 +151,14 @@ public class BlessingData : ScriptableObject
             for (int i = 0; i < purchaseCount; i++)
                 calculatedPrice *= 2;
 
-        // 虚无主义保底（最后保底）
+        // 应用全局价格乘数（难度/眷顾/友情折扣/辩证主义等）
+        // BigInteger 不能直接与 float 相乘，按整数百分比换算（与 ShopManager.ApplyMultiplier 同一写法）
+        if (priceMultiplier != 1.0f && priceMultiplier > 0f)
+        {
+            calculatedPrice = calculatedPrice * (BigInteger)(priceMultiplier * 100f) / 100;
+        }
+
+        // 虚无主义保底（最后保底，乘数之后仍保持至少1点）
         if (blessingType == BlessingType.Nihilism)
         {
             if (calculatedPrice <= 0)
