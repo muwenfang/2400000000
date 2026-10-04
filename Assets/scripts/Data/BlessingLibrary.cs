@@ -241,7 +241,7 @@ public class BlessingLibrary : ScriptableObject
         allBlessings.Add(CreateBlessing(
             id: 22,
             name: "丰盈宝库",
-            description: "商店刷新永久免费",
+            description: "每回合第一次刷新商店免费",
             type: BlessingData.BlessingType.RichTreasury,
             basePrice: 30000,
             isStackable: false,
@@ -562,7 +562,7 @@ public class BlessingLibrary : ScriptableObject
             id: 51,
             name: "财星",
             description: "购买此祝福后，下一回合依靠计算获得的点数（合计倍率）*1.02（向下取整）",
-            type: BlessingData.BlessingType.FortuneStar,
+            type: BlessingData.BlessingType.WealthStar,
             basePrice: 0,
             isStackable: true,
             refreshBehavior: BlessingData.RefreshBehavior.AlwaysRefresh

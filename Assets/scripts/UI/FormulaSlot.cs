@@ -34,6 +34,14 @@ public class FormulaSlot : MonoBehaviour, IDropHandler, IPointerClickHandler
     /// </summary>
     public void OnDrop(PointerEventData eventData)
     {
+        // 结算判定动画等非玩家回合期间，禁止向槽位放入卡牌
+        if (GameManager.Instance != null &&
+            GameManager.Instance.currentState != GameManager.GameState.PlayerTurn)
+        {
+            Debug.LogWarning("[FormulaSlot] 当前不是玩家回合，拒绝放入卡牌");
+            return;
+        }
+
         // 获取拖动的卡牌控制器
         var draggedCard = eventData.pointerDrag?.GetComponent<PlayerController>();
 

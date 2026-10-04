@@ -659,6 +659,19 @@ public class UIManager : MonoBehaviour
         var go = Instantiate(formulaCardPrefab, formulaArea);
         go.GetComponent<FormulaCardUI>().Bind(formula);
     }
+
+    /// <summary>
+    /// 锁定/解锁手牌区与公式区的卡牌拖拽交互。
+    /// 点击结算后的判定动画期间锁定，避免玩家在此期间拖动手牌干扰结算。
+    /// </summary>
+    public void SetCardDragLocked(bool locked)
+    {
+        bool interactable = !locked;
+        if (handArea != null)
+            PlayerController.SetDragEnabledForHierarchy(handArea.gameObject, interactable);
+        if (formulaArea != null)
+            PlayerController.SetDragEnabledForHierarchy(formulaArea.gameObject, interactable);
+    }
     #endregion
 
     #region 商店UI

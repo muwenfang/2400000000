@@ -140,8 +140,9 @@ public class ShopManager : MonoBehaviour
 
     public void InitializeRefreshCost()
     {
-        // 丰盈宝库：商店刷新永久免费
-        if (BlessingManager.Instance != null && BlessingManager.Instance.HasRichTreasure == 1)
+        // 丰盈宝库：本商店的第一次刷新显示“免费”，之后显示实际费用
+        if (BlessingManager.Instance != null && BlessingManager.Instance.HasRichTreasure == 1
+            && shopRefreshCount == 0)
         {
             refreshCostText.text = "免费";
             return;
@@ -635,21 +636,18 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     public void RefreshShop()
     {
-        // 计算刷新费用
+        // 计算刷新费用（丰盈宝库：本商店第一次刷新时返回 0）
         BigInteger refreshCost = CalculateRefreshCost();
 
         // 检查点数是否足够
-        if (GameManager.Instance.currentPoints < refreshCost && BlessingManager.Instance.HasRichTreasure == 0)
+        if (GameManager.Instance.currentPoints < refreshCost)
         {
             Debug.Log("点数不足，无法刷新商店");
             return;
         }
 
-        // 扣除刷新费用（丰盈宝库永久免费）
-        if (BlessingManager.Instance.HasRichTreasure == 0)
-        {
-            GameManager.Instance.AddPoints(-refreshCost);
-        }
+        // 扣除刷新费用（丰盈宝库第一次刷新时 refreshCost 为 0，天然免费）
+        GameManager.Instance.AddPoints(-refreshCost);
 
         refreshCount++;
         shopRefreshCount++;
@@ -672,9 +670,11 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     BigInteger CalculateRefreshCost()
     {
-        if (BlessingManager.Instance != null && BlessingManager.Instance.HasRichTreasure == 1)
+        // 丰盈宝库：每次进入商店后的第一次刷新免费（shopRefreshCount 在 OpenShop 时清零）
+        if (BlessingManager.Instance != null && BlessingManager.Instance.HasRichTreasure == 1
+            && shopRefreshCount == 0)
         {
-            return 0; // 丰盈宝库：永久免费
+            return 0;
         }
 
         // 公式: i² × 2^(n-1)，i=当前回合数，n=本次商店的刷新次数(第1次刷新时n=1)
@@ -1452,13 +1452,58 @@ public class ShopManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 应用难度设置 - 重新刷新商店
+    /// 应用难度设置 / 价格修正
     /// </summary>
     public void ApplyDifficultySettings()
     {
         // 难度设置只能在主菜单修改，无需重置商店状态
         // 倍率信息已通过 DataSavingManager 持久化，商店下次打开时自动应用
         // higherCost 即时生效（槽位解锁费用方法实时读取）
+        // 友情折扣/眷顾等祝福购买后会立即改变价格乘数：重算当前商店商品价格，
+        // 使商店价格在购买后立刻跟着变化（调用方随后的 RefreshShopUI 会显示新价格）。
+        RefreshShopPrices();
+    }
+
+    /// <summary>
+    /// 按当前难度/祝福价格乘数重算当前商店所有商品的缓存价格（不重新抽卡）。
+    /// 用于购买会影响价格的祝福（友情折扣、眷顾等）后即时刷新价格显示。
+    /// </summary>
+    public void RefreshShopPrices()
+    {
+        // 数字卡
+        float numberMultiplier = GetCurrentNumberCardPriceMultiplier();
+        if (shopNumberCards != null)
+        {
+            foreach (var item in shopNumberCards)
+            {
+                if (item == null || item.cardData == null || item.cardData.cardData == null) continue;
+                item.price = (long)(item.cardData.GetNumberCardPrice(item.cardData.cardData) * numberMultiplier);
+            }
+        }
+
+        // 公式卡
+        float formulaMultiplier = GetCurrentFormulaCardPriceMultiplier();
+        if (shopFormulaCards != null)
+        {
+            foreach (var item in shopFormulaCards)
+            {
+                if (item == null || item.cardData == null) continue;
+                item.price = (long)(item.cardData.CardPrice * formulaMultiplier);
+            }
+        }
+
+        // 祝福
+        float blessingMultiplier = GetCurrentBlessingPriceMultiplier();
+        if (shopBlessings != null)
+        {
+            foreach (var item in shopBlessings)
+            {
+                if (item == null || item.cardData == null) continue;
+                int count = BlessingManager.Instance != null
+                    ? BlessingManager.Instance.GetBlessingCount(item.cardData.blessingId) : 0;
+                item.price = (BigInteger)item.cardData.CalculatePrice(count, blessingMultiplier);
+            }
+        }
     }
     #endregion
 }

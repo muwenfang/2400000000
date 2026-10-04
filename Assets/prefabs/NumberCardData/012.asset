@@ -10,20 +10,20 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 1bbf79c01bbb90343a004560fa548cda, type: 3}
-  m_Name: 10
+  m_Name: 012
   m_EditorClassIdentifier: 
-  cardName: 10
+  cardName: 12
   layoutType: 0
   partA:
     isDice: 0
     isIncremental: 0
+    isGolden: 0
     value: 10
-    price: 10
     diceSides: 0
   partB:
     isDice: 0
     isIncremental: 0
+    isGolden: 0
     value: 0
-    price: 0
     diceSides: 0
   logicalType: 3

@@ -42,6 +42,9 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     [SerializeField] private float dragCooldown = 0.1f;  // 拖动操作的冷却时间
     private float lastDragTime = -1f;  // 上次拖动的时间
     [SerializeField] private bool dragEnabled = true;     // 允许外部在特定 UI 中彻底关闭拖拽
+    // 本次拖拽是否“成功开始”。结算判定动画等场景下 OnBeginDrag 被拦下时置 false，
+    // 用于丢弃 Unity 仍会派发的 OnDrag/OnEndDrag 残留事件，避免手牌被误移动。
+    private bool isDragging = false;
 
     [Header("UI 显示引用")]
     public Text textA;       // 对应 PartA 的数值显示
@@ -61,16 +64,18 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         if (textA != null)
         {
             textA.text = card.currentA.ToString();
-            // 视觉反馈：如果是递增数，可以设为绿色
-            if (card.cardData.partA.isIncremental) textA.color = Color.green;
+            // 颜色优先级：黄金数字（黄）> 递增数（绿）> 骰子（红）> 普通（黑）
+            if (card.cardData.partA.isGolden) textA.color = Color.yellow;
+            else if (card.cardData.partA.isIncremental) textA.color = Color.green;
             else if (card.cardData.partA.isDice) textA.color = Color.red;
             else textA.color = Color.black;
         }
         if (textB != null)
         {
             textB.text = card.currentB.ToString();
-            // 视觉反馈：如果是递增数，可以设为绿色
-            if (card.cardData.partB.isIncremental) textB.color = Color.green;
+            // 颜色优先级：黄金数字（黄）> 递增数（绿）> 骰子（红）> 普通（黑）
+            if (card.cardData.partB.isGolden) textB.color = Color.yellow;
+            else if (card.cardData.partB.isIncremental) textB.color = Color.green;
             else if (card.cardData.partB.isDice) textB.color = Color.red;
             else textB.color = Color.black;
         }
@@ -158,8 +163,13 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         // 冷却检查：防止快速重复拖动
         if (!CanDragInCurrentGameState())
         {
+            // 未通过校验（如结算判定动画期间 currentState != PlayerTurn）
+            isDragging = false;
             return;
         }
+
+        // 通过校验，标记本次拖拽有效
+        isDragging = true;
 
         // 1. 如果是从槽位里拖出来的，先约定“未成功放入新槽位时回手牌区”
         // 这样可以避免 ClearSlot 清掉数据后，OnEndDrag 又因为 originalParent 是槽位而把 UI 放回原槽位。
@@ -196,6 +206,9 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
     public void OnDrag(PointerEventData eventData)
     {
+        // 拖拽未成功开始（结算判定动画期间被拦下）：忽略 Unity 残留派发的 Drag 事件
+        if (!isDragging) return;
+
         // 直接将物体的世界坐标设为鼠标的屏幕坐标
         // 这样无论 UI 缩放是多少，卡牌都会精准在鼠标指针下方
         transform.position = (Vector3)eventData.position + dragOffset;
@@ -203,6 +216,11 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
 
     public void OnEndDrag(PointerEventData eventData)
     {
+        // 拖拽未成功开始（结算判定动画期间被拦下）：忽略残留的 EndDrag 事件，
+        // 否则会把卡牌错误地重设父级/位置
+        if (!isDragging) return;
+        isDragging = false;
+
         // 恢复视觉效果
         GetComponent<CanvasGroup>().alpha = 1f;
         GetComponent<CanvasGroup>().blocksRaycasts = true;

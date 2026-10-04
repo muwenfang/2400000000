@@ -338,7 +338,7 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
     public Color incrementalColor = Color.green;
     public Color diceColor = Color.red;
     public Color normalColor = Color.black;
-    public Color goldenColor = new Color(0.72f, 0.52f, 0.02f);
+    public Color goldenColor = Color.yellow;
 
     /// <summary>
     /// 通用方法：设置文本内容和颜色

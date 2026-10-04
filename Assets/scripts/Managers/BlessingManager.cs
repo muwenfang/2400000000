@@ -937,7 +937,12 @@ public class BlessingManager : MonoBehaviour
             case BlessingData.BlessingType.LuckyStar:     luckyStarCount = Math.Max(0, luckyStarCount - 1); break;      // 幸运星
             case BlessingData.BlessingType.FortuneStar:   fortuneStarCount = Math.Max(0, fortuneStarCount - 1); break;  // 福星
             case BlessingData.BlessingType.DisasterStar:  disasterStarCount = Math.Max(0, disasterStarCount - 1); break; // 祸星
-            case BlessingData.BlessingType.WealthStar:    wealthStarCount = Math.Max(0, wealthStarCount - 1); break;    // 财星
+            case BlessingData.BlessingType.WealthStar:
+                // 财星：移除一层时同步移除对应的一次待生效次数，
+                // 避免“祝福已被移除，却仍在下一回合结算时生效”
+                wealthStarCount = Math.Max(0, wealthStarCount - 1);
+                wealthStarPendingCharges = Math.Max(0, wealthStarPendingCharges - 1);
+                break;
             case BlessingData.BlessingType.CompassionStar: compassionStarCount = Math.Max(0, compassionStarCount - 1); break; // 慈爱星
             case BlessingData.BlessingType.MorningStar:   morningsStarCount = Math.Max(0, morningsStarCount - 1); break;  // 启明星
         }

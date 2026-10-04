@@ -221,6 +221,13 @@ public class GameManager : MonoBehaviour
         Debug.Log("开始回合");
         ChangeState(GameState.PlayerTurn);
         Debug.Assert(currentState == GameState.PlayerTurn);
+
+        // 新回合开始：解除上一回合结算判定动画期间的手牌锁定
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.SetCardDragLocked(false);
+        }
+
         // 阴阳祝福：每回合开始时点数取反（最优先生效，在其他所有祝福之前）
         if (BlessingManager.Instance != null && BlessingManager.Instance.hasYinYang)
         {
@@ -286,6 +293,13 @@ public class GameManager : MonoBehaviour
         }
 
         currentState = GameState.Calculation;
+
+        // 结算判定动画期间锁住手牌/公式区，禁止拖拽等互动
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.SetCardDragLocked(true);
+        }
+
         StartCoroutine(CalculateProcessSequence(formula));
 
     }
