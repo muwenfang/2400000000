@@ -165,6 +165,14 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     {
         formulaCards.Add(card);
         NotifyInventoryChanged();
+
+        // 实用主义：「任意时刻仅保留价值最高的填空卡」。
+        // 所有获得填空卡的入口（商店购买、多多益善、空想主义等）都汇聚到此方法，
+        // 在此强制清理可保证效果不会被任何一条获取路径绕过（此前商店购买漏掉了这一步）。
+        if (BlessingManager.Instance != null)
+        {
+            BlessingManager.Instance.ForcePragmatismCleanup();
+        }
     }
     // =========================
     // 删除卡牌

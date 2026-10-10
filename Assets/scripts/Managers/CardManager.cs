@@ -330,6 +330,31 @@ public class CardManager : MonoBehaviour
             }
         }
 
+        // 流星：购买后的"下一回合"，参与计算的骰子至少有一个直接判定为最大值。
+        // 严格"下一回合一次性消费"：无论本回合是否有骰子参与计算，都在本次结算后消耗。
+        if (BlessingManager.Instance != null)
+        {
+            int meteorCharges = BlessingManager.Instance.ConsumeMeteorCharges();
+            if (meteorCharges > 0)
+            {
+                int marked = 0;
+                for (int i = 0; i < selectedNumberCards.Count && marked < meteorCharges; i++)
+                {
+                    var card = selectedNumberCards[i];
+                    if (card == null || !card.HasDice) continue;
+
+                    card.forceMaxDiceOnce = true;
+                    marked++;
+                    Debug.Log($"流星：{card.cardData.cardName} 的骰子本回合直接判定为最大值");
+                }
+
+                if (marked == 0)
+                {
+                    Debug.Log($"流星：本回合参与计算的卡牌中没有骰子，效果未能生效（已消耗 {meteorCharges} 次）");
+                }
+            }
+        }
+
         for (int i = 0; i < selectedNumberCards.Count; i++)
         {
             if (selectedNumberCards[i] != null)

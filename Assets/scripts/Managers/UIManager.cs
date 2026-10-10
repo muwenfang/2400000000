@@ -468,6 +468,14 @@ public class UIManager : MonoBehaviour
     /// </summary>
     System.Numerics.BigInteger GetCurrentStageRequirement()
     {
+        // 无尽模式：每回合都要扣除点数，显示的目标就是该回合的实际扣除额
+        // （第61回合 24亿，之后每回合 ×10；此前这里没有判断无尽模式，
+        //   回合>60 时恒定返回 targetPoints=24亿，导致界面上看不到递增）
+        if (GameManager.isEndlessMode && GameManager.Instance != null)
+        {
+            return GameManager.Instance.GetEndlessRoundCost(GameManager.Instance.currentRound);
+        }
+
         int currentRound = GameManager.Instance.currentRound;
         var stageRounds = GameManager.Instance.stageRounds;
         var requirements = GameManager.Instance.stagePointRequirements;

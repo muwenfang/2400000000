@@ -612,6 +612,18 @@ public class GameManager : MonoBehaviour
         Debug.Log($"总分更新: {currentPoints}");
     }
 
+    /// <summary>
+    /// 无尽模式每回合需要扣除的点数：第61回合 2400000000，
+    /// 此后每过一回合再乘以 10^(当前回合-61)（第62回合 24亿×10、第63回合 24亿×100…）。
+    /// UI 显示与实际扣费共用本函数，保证"界面上看到的数"就是"实际要扣的数"。
+    /// </summary>
+    public BigInteger GetEndlessRoundCost(int round)
+    {
+        int exponent = round - 61;
+        if (exponent < 0) exponent = 0;   // 防御：回合数不足61时按第61回合计，避免 BigInteger.Pow 负指数抛异常
+        return (BigInteger)2400000000 * BigInteger.Pow(10, exponent);
+    }
+
     public void EndTurn()
     {
         // 更新UI显示

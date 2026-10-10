@@ -78,6 +78,7 @@ public class BlessingManager : MonoBehaviour
     public int luckyStarCount = 0;                      // 幸运星数量
     public int fortuneStarCount = 0;                    // 福星数量
     public int meteor = 0;                              // 流星
+    public int meteorPendingCharges = 0;                // 流星待生效次数（仅下一回合结算时消费）
     public int wealthStarCount = 0;                     //财星
     public int wealthStarPendingCharges = 0;            //财星待生效次数（仅下一回合结算时消费）
     public int disasterStarCount = 0;                   //祸星
@@ -180,6 +181,7 @@ public class BlessingManager : MonoBehaviour
         luckyStarCount = 0;                 // 幸运星数量
         fortuneStarCount = 0;               // 福星数量
         meteor = 0;                         // 流星
+        meteorPendingCharges = 0;           // 流星待生效次数
         wealthStarCount = 0;                //财星
         wealthStarPendingCharges = 0;       //财星待生效次数
         disasterStarCount = 0;              //祸星
@@ -630,6 +632,13 @@ public class BlessingManager : MonoBehaviour
                 Debug.Log($"福星祝福激活：当前福星数量 {fortuneStarCount}");
                 break;
 
+            case BlessingData.BlessingType.Meteor:
+                // 流星：可叠加。购买后的"下一回合"，参与计算的骰子至少有一个直接判定为最大值
+                meteor++;
+                meteorPendingCharges++;
+                Debug.Log($"流星祝福激活：当前流星数量 {meteor}，待生效次数 {meteorPendingCharges}");
+                break;
+
             case BlessingData.BlessingType.WealthStar:
                 // 财星：仅购买后的下一回合结算时生效一次（×1.02^层数），用后即失效
                 wealthStarCount++;
@@ -936,6 +945,11 @@ public class BlessingManager : MonoBehaviour
         {
             case BlessingData.BlessingType.LuckyStar:     luckyStarCount = Math.Max(0, luckyStarCount - 1); break;      // 幸运星
             case BlessingData.BlessingType.FortuneStar:   fortuneStarCount = Math.Max(0, fortuneStarCount - 1); break;  // 福星
+            case BlessingData.BlessingType.Meteor:
+                // 流星：移除一层时同步移除对应的一次待生效次数，避免"祝福已被移除却仍在下一回合生效"
+                meteor = Math.Max(0, meteor - 1);
+                meteorPendingCharges = Math.Max(0, meteorPendingCharges - 1);
+                break;
             case BlessingData.BlessingType.DisasterStar:  disasterStarCount = Math.Max(0, disasterStarCount - 1); break; // 祸星
             case BlessingData.BlessingType.WealthStar:
                 // 财星：移除一层时同步移除对应的一次待生效次数，
@@ -1195,6 +1209,16 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
+    /// 流星：取出并清空待生效次数（仅下一回合结算时消费一次，实现"仅下一回合生效"）
+    /// </summary>
+    public int ConsumeMeteorCharges()
+    {
+        int charges = meteorPendingCharges;
+        meteorPendingCharges = 0;
+        return charges;
+    }
+
+    /// <summary>
     /// 财星：取出并清空待生效次数（每次结算只消费一次，实现“仅下一回合生效”）
     /// </summary>
     public int ConsumeWealthStarCharges()
@@ -1293,6 +1317,8 @@ public class BlessingManager : MonoBehaviour
         hasYinYang = false;                 // 阴阳
         hasFall = false;                    // 坠落
         reverse = 0;                        // 翻转
+        meteor = 0;                         // 流星
+        meteorPendingCharges = 0;           // 流星待生效次数
         wealthStarCount = 0;                // 财星
         wealthStarPendingCharges = 0;       // 财星待生效次数
         disasterStarCount = 0;              // 祸星
@@ -1601,6 +1627,11 @@ public class BlessingManager : MonoBehaviour
 
         // 同步到卡牌管理器
         CardManager.Instance.SyncDeckFromInventory();
+
+        // 通知 UI 库存已变化：这里直接操作 formulaCards 列表（未走 Add/Remove 接口），
+        // 若不通知，ShowMyFormula 的 InventoryVersion 脏检查会认为"没变化"而跳过重建，
+        // 界面上仍会显示已经被删掉的填空卡（表现为"实用主义没生效"）。
+        PlayerCardInventory.Instance.NotifyCardValueChanged();
 
         Debug.Log($"实用主义清理完成：仅保留1张最强公式卡，已删除冗余卡");
     }

@@ -47,6 +47,8 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     public int currentB = 0;
     // 标记该卡牌本回合是否已经投过骰子/递增过
     public bool isPrepared = false;
+    // 流星：本卡下一次结算时，第一个骰子直接判定为最大值（由 CardManager 结算前标记，一次性）
+    public bool forceMaxDiceOnce = false;
     // 当前骰子面数（赌场专员升级后可能高于库中原始面数；独立于 cardData，避免影响共享库数据）
     public int currentDiceSidesA = 0;
     public int currentDiceSidesB = 0;
@@ -125,6 +127,11 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     /// <summary>该卡是否含有黄金数字</summary>
     public bool HasGolden => IsGoldenPartA || IsGoldenPartB;
 
+    /// <summary>该卡是否含有骰子（流星判定用）</summary>
+    public bool HasDice => cardData != null &&
+        ((cardData.partA != null && cardData.partA.isDice) ||
+         (cardData.partB != null && cardData.partB.isDice));
+
     /// <summary>读取指定黄金组件的当前值（0=PartA，1=PartB）</summary>
     public int GetGoldenValue(int partIndex)
     {
@@ -151,8 +158,18 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         if (cardData.partA.isDice)
         {
             int sides = currentDiceSidesA > 0 ? currentDiceSidesA : cardData.partA.diceSides;
+
+            // 流星：本回合该骰子直接判定为最大值（一次性，用后即清除）
+            if (forceMaxDiceOnce)
+            {
+                forceMaxDiceOnce = false;
+                currentA = sides;
+                // 唯心主义：同级骰子结果保持一致
+                if (BlessingManager.Instance.hasIdealism)
+                    BlessingManager.Instance.idealismDiceResults[sides] = sides;
+            }
             // 唯心主义：同级骰子结果一致
-            if (BlessingManager.Instance.hasIdealism)
+            else if (BlessingManager.Instance.hasIdealism)
             {
                 // 储存每骰过的等级的骰子
                 if (!BlessingManager.Instance.idealismDiceResults.ContainsKey(sides))
@@ -192,8 +209,16 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         {
             int sides = currentDiceSidesB > 0 ? currentDiceSidesB : cardData.partB.diceSides;
 
+            // 流星：本回合该骰子直接判定为最大值（一次性，用后即清除）
+            if (forceMaxDiceOnce)
+            {
+                forceMaxDiceOnce = false;
+                currentB = sides;
+                if (BlessingManager.Instance.hasIdealism)
+                    BlessingManager.Instance.idealismDiceResults[sides] = sides;
+            }
             //唯心主义
-            if (BlessingManager.Instance.hasIdealism)
+            else if (BlessingManager.Instance.hasIdealism)
             {
                 if (!BlessingManager.Instance.idealismDiceResults.ContainsKey(sides))
                 {
@@ -374,7 +399,15 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         try
         {
             // 第一步：计算数学期望（浮点：骰子~x~=(x+1)/2.0，绿色{y}=y+5，均值不做整数截断）
-            double X = Math.Abs(CalculateExpectation(a, b, logic));
+            // 注意：期望按【带符号】求和（负数不提前下沉为绝对值），再对整体结果取绝对值得到 x。
+            // 例：2^{0} → x=(2+4+…+2^9)/9；(-2)^{0} → x=|-2+4-8+…+(-2)^9|/9，两者不同。
+            double expectation = CalculateExpectation(a, b, logic);
+            if (double.IsNaN(expectation) || double.IsInfinity(expectation))
+            {
+                Debug.LogWarning($"价格计算：期望值非法（{expectation}），按 0 处理。卡牌：{card.cardName}");
+                return 0;
+            }
+            double X = Math.Abs(expectation);
             double rate = 1.0;
 
             // 1. 所有卡牌 × (log2(X) - 1) 倍
@@ -518,8 +551,30 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     }
 
     /// <summary>
+    /// 带符号幂运算。本工程的指数恒为整数（数值 / 骰子面数 / 递增量都是整数），
+    /// 对「负底数 + 整数指数」用连乘实现，保证 (-2)^3 = -8 这类带符号结果在任何运行时都稳定，
+    /// 不依赖 Math.Pow 对负底数的实现差异。
+    /// </summary>
+    private static double SignedPow(double baseValue, double exponent)
+    {
+        double rounded = Math.Round(exponent);
+        if (Math.Abs(exponent - rounded) < 1e-9)
+        {
+            int e = (int)rounded;
+            if (e == 0) return 1.0;
+            double result = 1.0;
+            int absE = Math.Abs(e);
+            for (int i = 0; i < absE; i++) result *= baseValue;
+            return e < 0 ? 1.0 / result : result;
+        }
+        return Math.Pow(baseValue, exponent);
+    }
+
+    /// <summary>
     /// 计算指数型卡牌价格期望（8种组合）
-    /// 返回double：指数可能很大（如20^20≈1.05e26），必须用浮点避免整数溢出
+    /// 返回double：指数可能很大（如20^20≈1.05e26），必须用浮点避免整数溢出。
+    /// 【带符号求和】此处保留底数/指数的正负号，返回求和后的**有符号**结果，
+    /// 不逐项取绝对值——绝对值由调用方对「第一步结果」整体取（见 GetNumberCardPrice）。
     /// </summary>
     private double CalculatePowerExpectation(NumberComponent a, NumberComponent b)
     {
@@ -528,9 +583,9 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         bool bIsDice = b.isDice;
         bool bIsInc = b.isIncremental;
 
-        // 骰子取面数，其他取数值
-        double x = Math.Abs(a.isDice ? a.diceSides : a.value);
-        double y = Math.Abs(b.isDice ? b.diceSides : b.value);
+        // 骰子取面数，其他取数值（保留符号：负底数/负指数参与带符号求和）
+        double x = a.isDice ? a.diceSides : a.value;
+        double y = b.isDice ? b.diceSides : b.value;
 
         double sum;
         try
@@ -541,9 +596,9 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 sum = 0;
                 for (int j = 1; j <= (int)y; j++)
                 {
-                    sum += Math.Pow(x, j);
+                    sum += SignedPow(x, j);
                 }
-                return Math.Abs(sum / y);
+                return sum / y;
             }
             // 2. ~x~^y ：Σ_{i=1}^{x} i^y / x
             else if (aIsDice && !aIsInc && !bIsDice && !bIsInc)
@@ -551,9 +606,9 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 sum = 0;
                 for (int i = 1; i <= (int)x; i++)
                 {
-                    sum += Math.Pow(i, y);
+                    sum += SignedPow(i, y);
                 }
-                return Math.Abs(sum / x);
+                return sum / x;
             }
             // 3. x^{y} ：Σ_{i=y+1}^{y+9} x^i / 9
             else if (!aIsDice && !aIsInc && bIsInc && !bIsDice)
@@ -561,9 +616,9 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 sum = 0;
                 for (int j = 1; j <= 9; j++)
                 {
-                    sum += Math.Pow(x, y + j);
+                    sum += SignedPow(x, y + j);
                 }
-                return Math.Abs(sum / 9.0);
+                return sum / 9.0;
             }
             // 4. {x}^y ：Σ_{i=x+1}^{x+9} i^y / 9
             else if (aIsInc && !aIsDice && !bIsDice && !bIsInc)
@@ -571,9 +626,9 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 sum = 0;
                 for (int i = 1; i <= 9; i++)
                 {
-                    sum += Math.Pow(x + i, y);
+                    sum += SignedPow(x + i, y);
                 }
-                return Math.Abs(sum / 9.0);
+                return sum / 9.0;
             }
             // 5. {x}^~y~ ：Σ_{i=x+1}^{x+9}(Σ_{j=1}^{y} i^j) / (9y)
             else if (aIsInc && !aIsDice && bIsDice && !bIsInc)
@@ -584,11 +639,11 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                     double innerSum = 0;
                     for (int j = 1; j <= (int)y; j++)
                     {
-                        innerSum += Math.Pow(x + i, j);
+                        innerSum += SignedPow(x + i, j);
                     }
                     sum += innerSum;
                 }
-                return Math.Abs(sum / (9.0 * y));
+                return sum / (9.0 * y);
             }
             // 6. ~x~^{y} ：Σ_{i=1}^{x}(Σ_{j=y+1}^{y+9} i^j) / (9x)
             else if (aIsDice && !aIsInc && bIsInc && !bIsDice)
@@ -599,11 +654,11 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                     double innerSum = 0;
                     for (int j = 1; j <= 9; j++)
                     {
-                        innerSum += Math.Pow(i, y + j);
+                        innerSum += SignedPow(i, y + j);
                     }
                     sum += innerSum;
                 }
-                return Math.Abs(sum / (9.0 * x));
+                return sum / (9.0 * x);
             }
             // 7. ~x~^~y~ ：Σ_{i=1}^{x}(Σ_{j=1}^{y} i^j) / (xy)
             else if (aIsDice && !aIsInc && bIsDice && !bIsInc)
@@ -613,10 +668,10 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 {
                     for (int j = 1; j <= (int)y; j++)
                     {
-                        sum += Math.Pow(i, j);
+                        sum += SignedPow(i, j);
                     }
                 }
-                return Math.Abs(sum / (x * y));
+                return sum / (x * y);
             }
             // 8. {x}^{y} ：Σ_{i=1}^{9}(x+i)^{y+i} / 9
             else if (aIsInc && !aIsDice && bIsInc && !bIsDice)
@@ -624,9 +679,9 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 sum = 0;
                 for (int i = 1; i <= 9; i++)
                 {
-                    sum += Math.Pow(x + i, y + i);
+                    sum += SignedPow(x + i, y + i);
                 }
-                return Math.Abs(sum / 9.0);
+                return sum / 9.0;
             }
             else
             {
