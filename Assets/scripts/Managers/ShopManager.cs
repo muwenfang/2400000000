@@ -342,19 +342,27 @@ public class ShopManager : MonoBehaviour
         return pool;
     }
 
-    private void RemoveDisplayedBlessingsFromPool(List<BlessingData> pool, int ignoredSlotIndex = -1)
+    /// <summary>
+    /// 从可用池中剔除“上一次商店已展示过”的祝福，使每次刷新尽可能换一批新祝福。
+    /// 安全保护：仅当剔除后池内祝福数量仍不少于 neededSlots 时才真正剔除；
+    /// 否则（可选祝福本就稀少时）保持原池不变，避免因剔除导致空槽位。
+    /// </summary>
+    private void RemoveDisplayedBlessingsFromPool(List<BlessingData> pool, List<BlessingData> displayed, int neededSlots)
     {
-        for (int i = 0; i < shopBlessings.Count; i++)
+        if (pool == null || displayed == null || displayed.Count == 0)
+            return;
+
+        List<BlessingData> filtered = new List<BlessingData>(pool);
+        foreach (var blessing in displayed)
         {
-            if (i == ignoredSlotIndex) continue;
-
-            if (shopBlessings[i] == null) continue;
-
-            BlessingData blessing = shopBlessings[i].cardData;
             if (blessing != null)
-            {
-                RemoveBlessingFromPool(pool, blessing);
-            }
+                RemoveBlessingFromPool(filtered, blessing);
+        }
+
+        if (filtered.Count >= neededSlots)
+        {
+            pool.Clear();
+            pool.AddRange(filtered);
         }
     }
 
@@ -424,6 +432,18 @@ public class ShopManager : MonoBehaviour
     /// </summary>
     void GenerateBlessings()
     {
+        // 先快照“本次生成前正在展示的祝福”，用于刷新时尽量换一批。
+        // 必须在 shopBlessings.Clear() 之前取快照，否则剔除逻辑会因列表已清空而成为空操作。
+        List<BlessingData> previouslyDisplayed = new List<BlessingData>();
+        if (shopBlessings != null)
+        {
+            foreach (var item in shopBlessings)
+            {
+                if (item != null && item.cardData != null)
+                    previouslyDisplayed.Add(item.cardData);
+            }
+        }
+
         shopBlessings.Clear();
 
         // 获取价格乘数（如果有祝福影响价格的话）
@@ -508,7 +528,6 @@ public class ShopManager : MonoBehaviour
 
         // 构建可用祝福池（根据刷新行为过滤）
         List<BlessingData> availableBlessings = BuildAvailableBlessingPool();
-        RemoveDisplayedBlessingsFromPool(availableBlessings);
 
         // 琳琅满目：下次商店刷新的所有祝福均为未拥有的祝福
         if (BlessingManager.Instance != null && BlessingManager.Instance.luxuriant > 0)
@@ -529,7 +548,10 @@ public class ShopManager : MonoBehaviour
         }
 
         int remainingSlots = MaxBlessingCardCount - wishAdded - darkBoxAdded;//减去许愿币和暗箱操作占位
-        
+
+        // 剔除上一次展示过的祝福：刷新时尽量换一批全新祝福（仅在可选池充足时执行，防止空槽位）
+        RemoveDisplayedBlessingsFromPool(availableBlessings, previouslyDisplayed, remainingSlots);
+
         // 生成所有槽位（包括锁定的）。
         // 锁定槽位同样填充真实祝福数据，锁定状态由 UI 层通过 blessingCardCount 判断，
         // 这样解锁槽位后无需重新生成商品即可正常显示（与数字卡/公式卡行为一致）。

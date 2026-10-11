@@ -65,7 +65,7 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         {
             textA.text = card.currentA.ToString();
             // 颜色优先级：黄金数字（黄）> 递增数（绿）> 骰子（红）> 普通（黑）
-            if (card.cardData.partA.isGolden) textA.color = Color.yellow;
+            if (card.cardData.partA.isGolden) textA.color = new Color(0.72f, 0.52f, 0.02f);
             else if (card.cardData.partA.isIncremental) textA.color = Color.green;
             else if (card.cardData.partA.isDice) textA.color = Color.red;
             else textA.color = Color.black;
@@ -74,7 +74,7 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         {
             textB.text = card.currentB.ToString();
             // 颜色优先级：黄金数字（黄）> 递增数（绿）> 骰子（红）> 普通（黑）
-            if (card.cardData.partB.isGolden) textB.color = Color.yellow;
+            if (card.cardData.partB.isGolden) textB.color = new Color(0.72f, 0.52f, 0.02f);
             else if (card.cardData.partB.isIncremental) textB.color = Color.green;
             else if (card.cardData.partB.isDice) textB.color = Color.red;
             else textB.color = Color.black;

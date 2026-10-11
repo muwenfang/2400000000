@@ -14,4 +14,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   allBlessings:
   - {fileID: 11400000, guid: e954823ca781ff740981d7d90d217769, type: 2}
-  - {fileID: 11400000, guid: 0a953670e220b3d47aa7e949f622b734, type: 2}
+  - {fileID: 11400000, guid: 8e4010cacfaea7d43a13edddee822eca, type: 2}
+  - {fileID: 11400000, guid: 8f090e3a645c3a946ad0964c1fef8885, type: 2}
+  - {fileID: 11400000, guid: f44c48163cc407b459ad525f9ba3f7d1, type: 2}

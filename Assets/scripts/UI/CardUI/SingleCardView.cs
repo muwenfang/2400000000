@@ -20,7 +20,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
     public Color incrementalColor = Color.green;   // 递增数字：绿色
     public Color diceColor = Color.red;            // 骰子数字：红色
     public Color normalColor = Color.black;        // 普通数字：黑色
-    public Color goldenColor = Color.yellow;       // 黄金数字：黄色
+    public Color goldenColor = new Color(0.72f, 0.52f, 0.02f);       // 黄金数字：暗金色（全工程统一色）
 
     // 缓存绑定的实例，用于精准刷新UI
     public NumberCardInstance boundInstance;

@@ -768,7 +768,7 @@ MonoBehaviour:
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
-  goldenColor: {r: 1, g: 0.92156863, b: 0.015686275, a: 1}
+  goldenColor: {r: 0.72, g: 0.52, b: 0.02, a: 1}
   pointsText: {fileID: 0}
 --- !u!114 &6480514336977354050
 MonoBehaviour:

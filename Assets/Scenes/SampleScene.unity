@@ -6904,6 +6904,7 @@ MonoBehaviour:
   luckyStarCount: 0
   fortuneStarCount: 0
   meteor: 0
+  meteorPendingCharges: 0
   wealthStarCount: 0
   wealthStarPendingCharges: 0
   disasterStarCount: 0
