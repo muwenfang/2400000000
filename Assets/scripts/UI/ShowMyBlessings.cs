@@ -14,9 +14,6 @@ public class ShowMyBlessings : MonoBehaviour, ISelectablePanel
     // 反向映射：GameObject → BlessingData，供 CardClickHandler 查找
     private Dictionary<GameObject, BlessingData> goToData = new Dictionary<GameObject, BlessingData>();
 
-    // 脏标记：记录上次刷新时的 InventoryVersion，避免不必要的重建
-    private int lastKnownInventoryVersion = -1;
-
     // 统一卡牌点击处理器（挂载在 contentRoot 上）
     private CardClickHandler cardClickHandler;
 
@@ -36,16 +33,10 @@ public class ShowMyBlessings : MonoBehaviour, ISelectablePanel
 
     private void OnEnable()
     {
-        // 脏检查：仅当库存版本变化时才重建 UI
-        int currentVersion = PlayerCardInventory.Instance != null
-            ? PlayerCardInventory.Instance.InventoryVersion
-            : 0;
-
-        if (currentVersion != lastKnownInventoryVersion)
-        {
-            RefreshAllBlessings();
-            lastKnownInventoryVersion = currentVersion;
-        }
+        // 必须无条件重建：祝福的增删不会改变 PlayerCardInventory.InventoryVersion
+        // （那只反映数字卡/填空卡的增删），用它做脏检查会导致"新买的祝福
+        // 在卡组中显示不出来（但效果正常）"。祝福数量最多几十个，重建开销可忽略。
+        RefreshAllBlessings();
 
         // 确保 CardClickHandler 存在并绑定
         EnsureCardClickHandler();
@@ -216,11 +207,11 @@ public class ShowMyBlessings : MonoBehaviour, ISelectablePanel
     }
 
     /// <summary>
-    /// 强制标记下次 OnEnable 时重建 UI（外部调用，如删卡后）。
+    /// 强制下次打开面板时重建 UI（保留兼容：现在 OnEnable 每次都会重建）。
     /// </summary>
     public void MarkDirty()
     {
-        lastKnownInventoryVersion = -1;
+        // 无需额外处理：OnEnable 已无条件调用 RefreshAllBlessings()
     }
 
      /// <summary>

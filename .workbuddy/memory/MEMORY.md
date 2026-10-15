@@ -46,3 +46,9 @@
 - 含 Debug 的方法仍可测：把调用包进 try/catch（副作用都在日志之前完成），事后再断言列表/计数/`InventoryVersion`。
 - 数字卡假资产同理：`(NumberCardData)GetUninitializedObject(typeof(NumberCardData))` + FakeMakeAlive，否则 NumberCardInstance 构造函数的 `cardData == null` 保护分支会走 Debug.LogError 而抛异常。
 - 同一条消息里对**同一文件**发多个 Edit，只有最后一个会落盘（其余照样报 success）——必须串行改，改完 grep 确认声明行存在。
+
+## 祝福获得/替换 统一入口（2026-10-15）
+- 所有"获得祝福"路径（商店购买、神灯、好事成双复制、纯粹容器替换）必须走 `BlessingManager.AcquireBlessing(data, triggerEffect, updateDoubleLuckTracker)`，它负责计数/已购/类型计数/实例/触发效果，并维护好事成双的 `lastObtainedStackableBlessing`（好事成双自身与纯粹容器不计入；记录更新在触发效果**之前**）。
+- 纯粹容器：`pureVesselPendingCharges`（case PureVessel 累加）+ `TryConvertPurchaseToPureVessel`（TryBuyBlessing 扣费后调用）：按想买的祝福扣费但不入库它，改为入库 1 层纯粹容器（效果再待生效→链式替换）。买容器自身不消耗次数；重置点在 InitializeBlessingSystem 与 ClearAllBlessings。
+- CurrentRoundOnly（黄色）祝福的购买记录 `currentRoundPurchasedBlessings` 只能在 `OpenShop`（新回合）重置；`RefreshShop`/`FreeRefreshShop` 绝不能调 `ResetCurrentRoundBlessings()`（有 hc_check 源码守卫用例）。
+- `ShowMyBlessings.OnEnable` 无条件 `RefreshAllBlessings()`：祝福增删不改变 `PlayerCardInventory.InventoryVersion`，禁止再用它做祝福面板脏检查（曾致新买祝福不显示）。

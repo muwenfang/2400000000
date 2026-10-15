@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -51,7 +51,7 @@ public class ShowMyNumberCard : MonoBehaviour
     public Color incrementalColor = Color.green;   // 递增数字：绿色
     public Color diceColor = Color.red; // 骰子数字：红色
     public Color normalColor = Color.black;        // 普通数字：黑色
-    public Color goldenColor = new Color(0.72f, 0.52f, 0.02f);       // 黄金数字：暗金色（全工程统一色）
+    public Color goldenColor = Color.yellow;       // 黄金数字：金色（全工程统一色）
 
     private void OnEnable()
     {

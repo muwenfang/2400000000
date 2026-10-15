@@ -107,6 +107,11 @@ public class ShopManager : MonoBehaviour
         // 清除上次商店访问的排除列表（新回合/新进入商店时重置）
         blessingsExcludedFromRefresh.Clear();
 
+        // 新回合进入商店时重置"本回合已购买祝福"记录。
+        // 注意：RefreshShop/FreeRefreshShop（同回合内的刷新）绝不能重置它，
+        // 否则 CurrentRoundOnly（黄色）祝福买过之后同回合刷新还会再出现。
+        ResetCurrentRoundBlessings();
+
         // 刷新费用的叠加倍率按回合清零：每次进入商店重新从 i² × 2^0 开始
         shopRefreshCount = 0;
 
@@ -129,7 +134,8 @@ public class ShopManager : MonoBehaviour
     public void FreeRefreshShop()
     {
         // 重新生成商品（不扣费、不增加刷新次数）
-        ResetCurrentRoundBlessings();
+        // 注意：这里不能 ResetCurrentRoundBlessings——同回合内购买过的
+        // CurrentRoundOnly（黄色）祝福必须继续保持排除（重置在 OpenShop 中进行）
         GenerateNumberCards();
         GenerateFormulaCards();
         GenerateBlessings();
@@ -678,7 +684,9 @@ public class ShopManager : MonoBehaviour
         InitializeRefreshCost();
 
         // 重新生成商品
-        ResetCurrentRoundBlessings();
+        // 注意：这里不能 ResetCurrentRoundBlessings——同回合内购买过的
+        // CurrentRoundOnly（黄色）祝福必须继续保持排除，否则买完一刷新又出现。
+        // 记录的重置时机在 OpenShop（新回合进入商店）中。
         GenerateNumberCards();
         GenerateFormulaCards();
         GenerateBlessings();

@@ -1,4 +1,4 @@
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using System.Numerics;
 using UnityEngine;
@@ -333,41 +333,6 @@ public class ShowMyFormula : MonoBehaviour, ISelectablePanel
     public string FormatBigNumber(BigInteger number)
     {
         return NumberDisplayFormatter.Format(number);
-    }
-    // 颜色配置（公式卡展示面板用）
-    public Color incrementalColor = Color.green;
-    public Color diceColor = Color.red;
-    public Color normalColor = Color.black;
-    public Color goldenColor = new Color(0.72f, 0.52f, 0.02f); // 黄金数字：暗金色（全工程统一色）
-
-    /// <summary>
-    /// 通用方法：设置文本内容和颜色
-    /// </summary>
-    void SetPartDisplay(Text textComp, NumberComponent component, int currentValue)
-    {
-        if (textComp == null || component == null) return;
-
-        if (component.isDice)
-        {
-            textComp.text = $"~{component.diceSides}~";
-            textComp.color = diceColor;
-        }
-        else if (component.isIncremental)
-        {
-            textComp.text = $"{{{currentValue}}}";
-            textComp.color = incrementalColor;
-        }
-        else
-        {
-            textComp.text = currentValue.ToString();
-            textComp.color = normalColor;
-        }
-
-        // 黄金数字颜色优先级最高，避免被骰子/递增颜色盖掉。
-        if (component.isGolden)
-        {
-            textComp.color = goldenColor;
-        }
     }
 
     void GenerateFormulaCards()
