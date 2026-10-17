@@ -411,9 +411,16 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             double rate = 1.0;
 
             // 1. 所有卡牌 × (log2(X) - 1) 倍
-            if (X >= 2) // 防止 log2(1)=0 变成负数
+            //    规范此处没有下限：X<2 时该因子为负，价格先变负，第四步再统一取绝对值。
+            //    只有 X<=0（如 0^$N$：期望值为 0）时 log2 无定义，按"无价值"处理（rate 记 0，
+            //    只保留第三步的黄金数价格）。
+            if (X > 0)
             {
                 rate *= (Math.Log(X, 2) - 1.0);
+            }
+            else
+            {
+                rate = 0.0;
             }
 
             // 2. 所有含绿色数字(递增) 或 含骰子 的卡牌 再 × 1.5 倍
@@ -444,7 +451,10 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             }
 
             // 计算倍率后价格
-            long priceAfterRate = (long)Math.Round(X * rate, MidpointRounding.AwayFromZero);
+            // （用饱和转换：极端大卡（如 {0}^{0}、~20~^~20~）乘上倍率后可能超出 long，
+            //   直接 (long) 强转在越界时是未定义行为，会得到 long.MinValue 并让后面
+            //   Math.Abs 抛 OverflowException，整张卡变成 0 价。）
+            long priceAfterRate = ToLongSaturated(X * rate);
 
             // 第三步：黄金数修正：y = 所有黄金数之和，价格增加 100*y*(y+1)
             int goldenSum = 0;
@@ -452,15 +462,15 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
             if (b != null && b.isGolden) goldenSum += b.value;
             if (goldenSum > 0)
             {
-                priceAfterRate += 100L * goldenSum * (goldenSum + 1);
+                priceAfterRate = SaturatingAdd(priceAfterRate, 100L * goldenSum * (goldenSum + 1));
             }
 
-            // 第三步：舍入
+            // 第四步：舍入（就近 5 的倍数 + 最多 3 位有效数字），并取绝对值
             long finalPrice = RoundPrice(priceAfterRate);
 
-            if (finalPrice < 0) 
+            if (finalPrice < 0)
             {
-                finalPrice = Math.Abs(finalPrice); // 负数取绝对值
+                finalPrice = finalPrice == long.MinValue ? long.MaxValue : Math.Abs(finalPrice); // 负数取绝对值
             }
             return finalPrice;
         }
@@ -551,6 +561,30 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     }
 
     /// <summary>
+    /// double → long 的饱和转换（四舍五入到整数）。
+    /// 价格上限远大于 long 的 9.2e18 时不可能出现真实卡牌，但直接强转越界是未定义行为
+    /// （x64 上会得到 long.MinValue），会让 Math.Abs 抛 OverflowException 把整张卡算成 0。
+    /// 这里统一夹到 ±1e18。
+    /// </summary>
+    private static long ToLongSaturated(double value)
+    {
+        if (double.IsNaN(value)) return 0;
+        const double Limit = 1e18;
+        if (value >= Limit) return (long)Limit;
+        if (value <= -Limit) return -(long)Limit;
+        return (long)Math.Round(value, MidpointRounding.AwayFromZero);
+    }
+
+    /// <summary>long 加法饱和，避免极端价格 + 黄金数时溢出成负数</summary>
+    private static long SaturatingAdd(long a, long b)
+    {
+        long result = unchecked(a + b);
+        if (b > 0 && result < a) return long.MaxValue;
+        if (b < 0 && result > a) return long.MinValue;
+        return result;
+    }
+
+    /// <summary>
     /// 带符号幂运算。本工程的指数恒为整数（数值 / 骰子面数 / 递增量都是整数），
     /// 对「负底数 + 整数指数」用连乘实现，保证 (-2)^3 = -8 这类带符号结果在任何运行时都稳定，
     /// 不依赖 Math.Pow 对负底数的实现差异。
@@ -571,7 +605,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
     }
 
     /// <summary>
-    /// 计算指数型卡牌价格期望（8种组合）
+    /// 计算指数型卡牌价格期望（规范里的 8 种「骰子/绿色数字」组合 + 1 种无随机成分组合）
     /// 返回double：指数可能很大（如20^20≈1.05e26），必须用浮点避免整数溢出。
     /// 【带符号求和】此处保留底数/指数的正负号，返回求和后的**有符号**结果，
     /// 不逐项取绝对值——绝对值由调用方对「第一步结果」整体取（见 GetNumberCardPrice）。
@@ -683,10 +717,13 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
                 }
                 return sum / 9.0;
             }
+            // 9. 补充：底数与指数都不是骰子/绿色数字（例：2^$10$、$5$^$5$、5^$3$）
+            //    这类卡牌没有任何随机成分（黄金数字只影响"能否递增"，不是随机取值），
+            //    规范第一步的总原则是"直接计算数学期望"——此时期望就是它本身的输出值 x^y。
+            //    【历史缺陷】旧实现在这里直接 return 0，导致 11 张黄金指数卡在商店标价 0。
             else
             {
-                Debug.LogWarning($"未匹配的指数型组合：A(骰子={aIsDice},递增={aIsInc})，B(骰子={bIsDice},递增={bIsInc})");
-                return 0;
+                return SignedPow(x, y);
             }
         }
         catch (System.Exception e)
@@ -701,7 +738,7 @@ public class NumberCardInstance //数字卡实例，包含当前数值和计算�
         if (price == 0)
             return 0;
         if (price < 0)
-            price = Math.Abs(price); // 负数取绝对值后正常舍入
+            price = price == long.MinValue ? long.MaxValue : Math.Abs(price); // 负数取绝对值后正常舍入
 
         // 第一步：四舍五入到最近的5的倍数
         long roundedTo5 = (price + 2) / 5 * 5;

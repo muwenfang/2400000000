@@ -16,6 +16,9 @@
 - 价格公式以用户提供的四步规范为准（期望→倍率修正→黄金数 100y(y+1)→舍入 5 的倍数+3 位有效数字+取绝对值）。
 - 第一步期望必须**带符号**求和，绝对值只对"第一步的计算结果"整体取一次（`X = Math.Abs(expectation)`，在 `GetNumberCardPrice`）：`2^{0}` → x=(2+4+…+2^9)/9；`(-2)^{0}` → x=|-2+4-8+…+(-2)^9|/9。**禁止**对底数/指数/每一项提前 `Math.Abs`（那会让负底数卡与正底数卡算出同一个价格）。资产 089–099 号就是负底数卡（`(-2)^~6~`、`(-3)^~20~`…）。
 - 幂运算用 `NumberCardInstance.SignedPow(底数, 指数)`（整数指数走连乘），不要直接用 `Math.Pow`——负底数 + 整数指数在部分运行时可能返回 NaN。
+- 指数卡期望共有 **9 种**组合：规范只列了带 `~x~`/`{y}` 的 8 种，第 9 种「底数与指数都不是骰子也不是绿色数字」（如 `2^$10$`、`$5$^$5$`、`5^$3$`、`0^$50$`——黄金数字不算随机成分）必须走 `SignedPow(x, y)`（无随机性，期望即自身输出值）。旧代码在这里 `return 0`，导致 11 张黄金指数卡商店标价 0（2026-10-17 修掉）。
+- 价格链的溢出保护：`X*rate` 用 `ToLongSaturated`（夹 ±1e18）而不是直接 `(long)Math.Round`——x64 上 double→long 越界会给 `long.MinValue`，随后 `Math.Abs` 抛 `OverflowException` 把整卡算成 0；加黄金数用 `SaturatingAdd`。`X == 0`（`0^$N$`）时 log2 无定义，rate 记 0 只留黄金数价格。
+- 已知资产数据瑕疵（未改，待确认）：123 与 124 卡名都是 `0^$50$`（124 黄金数实为 100）；118 与 120 卡名都是 `10$5$`（120 底数实为 100）。
 
 ## 商店
 - 刷新费公式：i² × 2^(n-1)，n = **本次商店（本回合）的刷新次数**，用 `shopRefreshCount`（每次 OpenShop 清零）；`refreshCount` 是全局累计，只给"走马观花"用，不得用于刷新费。丰盈宝库=永久免费（费用显示"免费"）。
@@ -40,6 +43,9 @@
 
 ## 工程校验（离线编译 + 回归）
 - 校验工程在 `D:\unity\hc_check`：`dotnet build` 编译 `Assets/scripts/**/*.cs`（引用 Unity 2022.3.62f3c1 的 UnityEngine.*.dll + Library/ScriptAssemblies 的 UnityEngine.UI/Unity.Burst/Unity.VisualScripting.*），`Program.cs` 用反射直接调用工程里的真实方法跑回归。改完脚本务必先跑一遍——编译错误（如 BigInteger×float 的 CS0019）会让整套脚本失效。
+- **本机（2026-10-17 起）NuGet 还原挂了**：`dotnet build` 必报 `NuGet.targets: Value cannot be null (Parameter 'path1')`，最小空工程也复现——bash 给 dotnet 的环境缺 `PROGRAMDATA/APPDATA/ALLUSERSPROFILE`。可行命令（已跑通，131 项全过）：
+  `cd D:\unity\hc_check && PROGRAMDATA="C:/ProgramData" APPDATA="C:/Users/Muwen/AppData/Roaming" ALLUSERSPROFILE="C:/ProgramData" dotnet build --no-restore` 然后 `dotnet bin/Debug/net10.0/hc_check.dll`。
+  此时**不要改 TargetFramework**（obj/project.assets.json 只有 net10.0 目标，改 net9.0 直接 NETSDK1005）。`dotnet msbuild` 与 `csc` 会被安全策略拦截，只能用 `dotnet build`。
 - 造 MonoBehaviour 假实例：`RuntimeHelpers.GetUninitializedObject` + 反射把 `UnityEngine.Object` 的 IntPtr 字段（m_CachedPtr）设非 0，否则 Unity 的 `operator==` 视其为 null。
 - **两个假对象之间的 `==` 取决于 `m_InstanceID`**：离线 `Object.operator==` 对两个非空对象比的是 `m_InstanceID`（不是引用），而假实例默认全 0 → 任意两个 `==` 恒为 true。造「要互相比较/被剔除」的假对象时必须给**各不相同的非 0 `m_InstanceID`**（连同 m_CachedPtr 一起设），否则按实例剔除的分支会一次删光。Program.cs 里已有 `MakeAliveWithPtr/FakeMakeAlive(obj,id)` 可用。
 - 其他坑：`Debug.Log*` 与 `UnityEngine.Random.Range` 离线都会抛 SecurityException（ECall），随机判定路径不可测。
