@@ -303,8 +303,12 @@ public class ShopManager : MonoBehaviour
             return new ShopItem<BlessingData>(null, 0);
         }
 
-        int currentCount = BlessingManager.Instance.GetBlessingCount(blessing.blessingId);
-        BigInteger price = (BigInteger)blessing.CalculatePrice(currentCount, priceMultiplier);
+        // 与 TryBuyBlessing 同一口径：持有纯粹容器时按纯粹容器的价格显示（容器顶替付款）
+        BigInteger price = BlessingManager.Instance != null
+            ? BlessingManager.Instance.GetEffectiveBlessingPrice(blessing, priceMultiplier)
+            : (BigInteger)blessing.CalculatePrice(
+                BlessingManager.Instance != null ? BlessingManager.Instance.GetBlessingCount(blessing.blessingId) : 0,
+                priceMultiplier);
         return new ShopItem<BlessingData>(blessing, price);
     }
 
@@ -473,7 +477,10 @@ public class ShopManager : MonoBehaviour
             shopBlessings.Clear(); // 清空
 
             BlessingData nihilism = blessingLibrary.GetBlessingByType(BlessingData.BlessingType.Nihilism);
-            BigInteger price = nihilism.CalculatePrice(BlessingManager.Instance.GetBlessingCount(nihilism.blessingId), priceMultiplier);
+            // 与实扣同口径（持有纯粹容器时按容器价）
+            BigInteger price = BlessingManager.Instance != null
+                ? BlessingManager.Instance.GetEffectiveBlessingPrice(nihilism, priceMultiplier)
+                : (BigInteger)nihilism.CalculatePrice(BlessingManager.Instance.GetBlessingCount(nihilism.blessingId), priceMultiplier);
 
             // 固定生成 4 个
             for (int i = 0; i < 4; i++)
@@ -492,8 +499,8 @@ public class ShopManager : MonoBehaviour
         {
             // 强制加入本次商品，优先占用第一个槽位
             priceMultiplier = GetCurrentBlessingPriceMultiplier();
-            int currentCount = BlessingManager.Instance.GetBlessingCount(wishBlessing.blessingId);
-            BigInteger price = wishBlessing.CalculatePrice(currentCount, priceMultiplier);
+            // 与实扣同口径（持有纯粹容器时按容器价）
+            BigInteger price = BlessingManager.Instance.GetEffectiveBlessingPrice(wishBlessing, priceMultiplier);
 
             shopBlessings.Add(new ShopItem<BlessingData>(wishBlessing, price));
             Debug.Log($"许愿币生效：强制刷新出【{wishBlessing.blessingName}】");
@@ -517,8 +524,9 @@ public class ShopManager : MonoBehaviour
             GameManager.Instance.AddPoints(-penaltyPoints);
             Debug.Log($"暗箱操作生效：扣除 {penaltyPoints} 点数，强制刷新出【{darkBoxBlessing.blessingName}】");
 
-            // 以正常价格加入商店
-            shopBlessings.Add(new ShopItem<BlessingData>(darkBoxBlessing, originalPrice));
+            // 以正常价格加入商店（持有一层纯粹容器时按容器价显示，与实扣一致；惩罚仍按原价 2 倍）
+            shopBlessings.Add(new ShopItem<BlessingData>(darkBoxBlessing,
+                BlessingManager.Instance.GetEffectiveBlessingPrice(darkBoxBlessing, priceMultiplier)));
 
             // 消耗暗箱操作
             BlessingManager.Instance.ConsumeDarkBox();
@@ -1529,9 +1537,10 @@ public class ShopManager : MonoBehaviour
             foreach (var item in shopBlessings)
             {
                 if (item == null || item.cardData == null) continue;
-                int count = BlessingManager.Instance != null
-                    ? BlessingManager.Instance.GetBlessingCount(item.cardData.blessingId) : 0;
-                item.price = (BigInteger)item.cardData.CalculatePrice(count, blessingMultiplier);
+                // 与实扣同口径：持有纯粹容器时按容器价显示（容器顶替付款）
+                item.price = BlessingManager.Instance != null
+                    ? BlessingManager.Instance.GetEffectiveBlessingPrice(item.cardData, blessingMultiplier)
+                    : (BigInteger)item.cardData.CalculatePrice(0, blessingMultiplier);
             }
         }
     }

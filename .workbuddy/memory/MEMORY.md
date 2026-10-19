@@ -54,7 +54,7 @@
 - 同一条消息里对**同一文件**发多个 Edit，只有最后一个会落盘（其余照样报 success）——必须串行改，改完 grep 确认声明行存在。
 
 ## 祝福获得/替换 统一入口（2026-10-15）
-- 所有"获得祝福"路径（商店购买、神灯、好事成双复制、纯粹容器替换）必须走 `BlessingManager.AcquireBlessing(data, triggerEffect, updateDoubleLuckTracker)`，它负责计数/已购/类型计数/实例/触发效果，并维护好事成双的 `lastObtainedStackableBlessing`（好事成双自身与纯粹容器不计入；记录更新在触发效果**之前**）。
-- 纯粹容器：`pureVesselPendingCharges`（case PureVessel 累加）+ `TryConvertPurchaseToPureVessel`（TryBuyBlessing 扣费后调用）：按想买的祝福扣费但不入库它，改为入库 1 层纯粹容器（效果再待生效→链式替换）。买容器自身不消耗次数；重置点在 InitializeBlessingSystem 与 ClearAllBlessings。
+- 所有"获得祝福"路径（商店购买、神灯、好事成双复制）必须走 `BlessingManager.AcquireBlessing(data, triggerEffect, updateDoubleLuckTracker)`，它负责计数/已购/类型计数/实例/触发效果，并维护好事成双的 `lastObtainedStackableBlessing`（好事成双自身与纯粹容器不计入；记录更新在触发效果**之前**）。
+- 纯粹容器（2026-10-18 更正语义）：**不是"祝福变成容器"，而是"容器变成被买的祝福并顶替付款"**。持有纯粹容器时购买任意非容器祝福，按容器自身价格（basePrice 1 × 各项折扣）结算、消耗 1 层容器、被买祝福照常入库并触发效果。实现：`ResolvePurchasePayment(blessing, multiplier, out price)` 在扣费**前**决定"用不用容器"（TryBuyBlessing 用它算 finalPrice，扣完再 `ConsumePureVesselForPurchase`）；商店标价统一走 `GetEffectiveBlessingPrice(blessing, multiplier)`，否则标价与实扣不一致（ShopManager 5 处：CreateBlessingShopItem / 虚无主义 / 许愿币 / 暗箱操作(仅标价，2 倍惩罚仍按原价) / RefreshShopPrices）。规则细节：买容器自身不顶替（否则白买）、本身免费的祝福不消耗容器；`pureVesselPendingCharges` 只是镜像计数，判定一律以 `ownedBlessings` 实际层数为准；重置点在 InitializeBlessingSystem 与 ClearAllBlessings。
 - CurrentRoundOnly（黄色）祝福的购买记录 `currentRoundPurchasedBlessings` 只能在 `OpenShop`（新回合）重置；`RefreshShop`/`FreeRefreshShop` 绝不能调 `ResetCurrentRoundBlessings()`（有 hc_check 源码守卫用例）。
 - `ShowMyBlessings.OnEnable` 无条件 `RefreshAllBlessings()`：祝福增删不改变 `PlayerCardInventory.InventoryVersion`，禁止再用它做祝福面板脏检查（曾致新买祝福不显示）。

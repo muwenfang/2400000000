@@ -48,7 +48,7 @@ public class BlessingManager : MonoBehaviour
     public int nihilismCount = 0;                       // 虚无主义数量
     private BlessingData darkBoxTargetBlessing = null;  // 暗箱操作选中的目标祝福
     public int darkBoxPurchaseCount = 0;                // 暗箱操作购买次数
-    public int pureVesselPendingCharges = 0;            // 纯粹容器待生效次数（下一次购买祝福时替换所得）
+    public int pureVesselPendingCharges = 0;            // 纯粹容器待生效层数（获得 +1、被下一次购买消耗 -1；实际层数以 ownedBlessings 为准）
     private BlessingData lastObtainedStackableBlessing = null; // 好事成双：上一个获得的可叠加祝福（好事成双自身不计入）
     public bool hasLeadingCharge = false;               // 打头阵
     private bool hasGambleToWin = false;                // 是否拥有赌为赢祝福
@@ -207,7 +207,7 @@ public class BlessingManager : MonoBehaviour
         RisingUpStepbyStep = 0;             //步步高升
         risingUpStepbyStepBonus = 0;        //步步高升：本回合临时倍率
         EightWaysToWealth = 0;              //八方来财
-        pureVesselPendingCharges = 0;       //纯粹容器待生效次数
+        pureVesselPendingCharges = 0;       //纯粹容器可替换次数
         lastObtainedStackableBlessing = null; //好事成双：上一个可叠加祝福
 
         GetCurrentPriceMultiplier(); //重置折扣
@@ -225,12 +225,12 @@ public class BlessingManager : MonoBehaviour
             return false;
         }
 
-        // 计算当前祝福的价格（和商店显示逻辑保持一致）
-        int purchaseCount = GetBlessingCount(blessingData.blessingId);
+        // 计算本次实际应扣的费用（持有纯粹容器时按纯粹容器的价格结算，见 ResolvePurchasePayment）
         float multiplier = ShopManager.Instance != null
             ? ShopManager.Instance.GetCurrentBlessingPriceMultiplier()
             : GetCurrentPriceMultiplier();
-        BigInteger finalPrice = (BigInteger)blessingData.CalculatePrice(purchaseCount, multiplier);
+        BigInteger finalPrice;
+        BlessingData pureVesselPayment = ResolvePurchasePayment(blessingData, multiplier, out finalPrice);
 
         if (finalPrice == 0)
         { 
@@ -247,15 +247,11 @@ public class BlessingManager : MonoBehaviour
         // 扣除点数
         GameManager.Instance.AddPoints(-finalPrice);
 
-        // 纯粹容器：下一次购买祝福时不会获得祝福，该祝福变为被购买的祝福。
-        // 价格按想买的祝福正常结算并扣除，但入库与触发效果的都是"纯粹容器"。
-        if (TryConvertPurchaseToPureVessel(blessingData))
+        // 纯粹容器：本次由容器顶替付款（扣的是容器价），因此消耗 1 层纯粹容器；
+        // 被买的祝福照常由 AcquireBlessing 生成实例并触发效果。
+        if (pureVesselPayment != null)
         {
-            if (ShopManager.Instance != null)
-            {
-                ShopManager.Instance.ApplyDifficultySettings();
-            }
-            return true;
+            ConsumePureVesselForPurchase(pureVesselPayment, blessingData);
         }
 
         // 记录祝福购买并应用效果
@@ -301,10 +297,10 @@ public class BlessingManager : MonoBehaviour
         switch (blessingData.blessingType)
         {
             case BlessingData.BlessingType.PureVessel:
-                // 纯粹容器：登记待生效次数。真正的替换逻辑在 TryBuyBlessing：
-                // 下一次购买祝福时照常扣费，但不获得该祝福，改为获得 1 层纯粹容器
+                // 纯粹容器：登记待生效层数。真正的消耗逻辑在 TryBuyBlessing：
+                // 下一次购买祝福时消耗 1 层纯粹容器，由它变成被购买的祝福
                 pureVesselPendingCharges++;
-                Debug.Log($"纯粹容器已激活！待生效次数：{pureVesselPendingCharges}");
+                Debug.Log($"纯粹容器已激活！可替换次数：{pureVesselPendingCharges}");
                 break;
 
             case BlessingData.BlessingType.DoubleLuck:
@@ -1155,44 +1151,77 @@ public class BlessingManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 纯粹容器：下一次购买祝福时不会获得祝福，该祝福变为被购买的祝福。
-    /// 价格按想买的祝福正常结算（扣费已在 TryBuyBlessing 中完成），
-    /// 但入库与触发效果的都是"纯粹容器"（即获得一个新的纯粹容器）。
+    /// 纯粹容器：下一次购买祝福时，由容器顶替付款并"变成"被购买的祝福。
+    /// 返回本次用于付款的纯粹容器（不适用时为 null）；price 输出实际应扣的费用。
+    /// 规则：
+    ///   · 购买纯粹容器自身不触发（否则刚买就少一层，等于白买）；
+    ///   · 本身免费的祝福不消耗容器（否则等于用一层容器换了个"免费"）；
+    ///   · 费用按纯粹容器自身的价格结算（1 点 × 各项折扣），与所买祝福的贵贱无关。
     /// </summary>
-    /// <param name="purchasedBlessing">本次想买的祝福</param>
-    /// <returns>是否发生了替换（true 时调用方应跳过正常入库流程）</returns>
-    private bool TryConvertPurchaseToPureVessel(BlessingData purchasedBlessing)
+    private BlessingData ResolvePurchasePayment(BlessingData purchasedBlessing, float priceMultiplier, out BigInteger price)
     {
-        if (purchasedBlessing == null) return false;
+        price = (BigInteger)purchasedBlessing.CalculatePrice(
+            GetBlessingCount(purchasedBlessing.blessingId), priceMultiplier);
 
-        // 购买纯粹容器自身不消耗次数，否则会陷入自我替换
-        if (purchasedBlessing.blessingType == BlessingData.BlessingType.PureVessel) return false;
+        if (price <= 0) return null;                      // 免费祝福，没必要浪费一层容器
 
-        if (pureVesselPendingCharges <= 0) return false;
+        BlessingData vessel = GetPendingPureVesselPayment(purchasedBlessing);
+        if (vessel == null) return null;
 
-        pureVesselPendingCharges--;
+        // 改按纯粹容器的价格结算（容器顶替付款）
+        price = (BigInteger)vessel.CalculatePrice(GetBlessingCount(vessel.blessingId), priceMultiplier);
+        return vessel;
+    }
 
-        BlessingData vessel = blessingLibrary != null
-            ? blessingLibrary.GetBlessingByType(BlessingData.BlessingType.PureVessel)
-            : null;
-        if (vessel == null)
-        {
-            Debug.LogError("纯粹容器：祝福库中找不到 PureVessel，本次仅消耗待生效次数，未入库");
-            return true;
-        }
+    /// <summary>
+    /// 取得可用于本次购买的纯粹容器（没有可用层数时返回 null）。
+    /// 购买纯粹容器自身不返回，避免"买了就少一层"。
+    /// </summary>
+    public BlessingData GetPendingPureVesselPayment(BlessingData purchasedBlessing)
+    {
+        if (purchasedBlessing == null) return null;
+        if (purchasedBlessing.blessingType == BlessingData.BlessingType.PureVessel) return null;
+        if (blessingLibrary == null) return null;
 
-        // 先入库、后打日志（副作用不能放在日志之后，否则任何异常都会吞掉效果）。
-        // 替换所得的纯粹容器不计入"好事成双"的上一个可叠加祝福（空容器，复制无意义）。
-        AcquireBlessing(vessel, updateDoubleLuckTracker: false);
-        Debug.Log($"【纯粹容器】生效：本次购买【{purchasedBlessing.blessingName}】不获得该祝福，" +
-                  $"改为获得 1 层纯粹容器，剩余待生效次数 {pureVesselPendingCharges}");
+        BlessingData vessel = blessingLibrary.GetBlessingByType(BlessingData.BlessingType.PureVessel);
+        if (vessel == null) return null;
+        return GetBlessingCount(vessel.blessingId) > 0 ? vessel : null;
+    }
+
+    /// <summary>
+    /// 祝福的实际购买价：与 TryBuyBlessing 扣费同一口径（持有纯粹容器时按容器价结算），
+    /// 供商店显示使用，避免"标价"与"实扣"不一致。
+    /// </summary>
+    public BigInteger GetEffectiveBlessingPrice(BlessingData blessingData, float priceMultiplier)
+    {
+        if (blessingData == null) return BigInteger.Zero;
+
+        BigInteger price;
+        ResolvePurchasePayment(blessingData, priceMultiplier, out price);
+        return price;
+    }
+
+    /// <summary>
+    /// 消耗 1 层纯粹容器（顶替付款成功后调用）。
+    /// DecreaseBlessingByOne 同步 ownedBlessings / blessingTypeCount / ownedBlessingInstance，
+    /// 并递减该祝福对应的类型计数变量（纯粹容器无此类变量）。
+    /// </summary>
+    private bool ConsumePureVesselForPurchase(BlessingData vessel, BlessingData purchasedBlessing)
+    {
+        if (vessel == null || GetBlessingCount(vessel.blessingId) <= 0) return false;
+
+        DecreaseBlessingByOne(vessel);
+        pureVesselPendingCharges = Math.Max(0, pureVesselPendingCharges - 1);
+
+        Debug.Log($"【纯粹容器】生效：消耗 1 层纯粹容器，生成【{purchasedBlessing?.blessingName}】的实例" +
+                  $"（按容器价结算），剩余纯粹容器 {GetBlessingCount(vessel.blessingId)} 层");
         return true;
     }
 
     /// <summary>
     /// 统一的"获得祝福"入口：登记拥有数量、已购记录、类型计数、实例列表并触发效果。
     /// 商店购买（TryBuyBlessing）、神灯（AddStackableBlessingsToOwned）、
-    /// 好事成双复制、纯粹容器替换等所有获得路径都必须经过这里，
+    /// 好事成双复制等所有获得路径都必须经过这里，
     /// 以保证"好事成双"的 上一个可叠加祝福 记录不漏路径。
     /// </summary>
     /// <param name="data">要获得的祝福</param>
@@ -1423,7 +1452,7 @@ public class BlessingManager : MonoBehaviour
         RisingUpStepbyStep = 0;             // 步步高升
         risingUpStepbyStepBonus = 0;        // 步步高升：本回合临时倍率
         EightWaysToWealth = 0;              // 八方来财
-        pureVesselPendingCharges = 0;       // 纯粹容器待生效次数
+        pureVesselPendingCharges = 0;       // 纯粹容器可替换次数
         lastObtainedStackableBlessing = null; // 好事成双：上一个可叠加祝福
 
         // 丰盈宝库被清空后，立即恢复刷新费用显示（不再显示“免费”）
