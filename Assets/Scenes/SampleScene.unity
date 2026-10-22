@@ -4992,7 +4992,7 @@ MonoBehaviour:
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
-  goldenColor: {r: 0.72, g: 0.52, b: 0.02, a: 1}
+  goldenColor: {r: 1, g: 0.9215686, b: 0.01568628, a: 1}
 --- !u!1 &499162756
 GameObject:
   m_ObjectHideFlags: 0
@@ -14807,7 +14807,7 @@ MonoBehaviour:
   incrementalColor: {r: 0, g: 1, b: 0, a: 1}
   diceColor: {r: 1, g: 0, b: 0, a: 1}
   normalColor: {r: 0, g: 0, b: 0, a: 1}
-  goldenColor: {r: 0.72, g: 0.52, b: 0.02, a: 1}
+  goldenColor: {r: 1, g: 0.9215686, b: 0.01568628, a: 1}
 --- !u!1 &1336500455
 GameObject:
   m_ObjectHideFlags: 0

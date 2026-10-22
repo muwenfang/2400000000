@@ -7,8 +7,9 @@
 - 递增判定统一走 `NumberCardInstance.CanIncrement(component)`：绿色数字恒递增；拥有金融专家时黄金数字也能递增（祝福资产描述原文是"黄金数字也能递增"）。节节高/势如破竹/能量扩散/慈爱星的文案都写"绿色数字"，故只对 `isIncremental` 生效，不含黄金。
 
 ## UI 颜色（黄金数）
-- 黄金数的显示颜色全工程统一为**暗金色 `new Color(0.72f, 0.52f, 0.02f)`**（序列化写法 `{r: 0.72, g: 0.52, b: 0.02, a: 1}`）。历史遗留的亮黄 `Color.yellow`（1,0.92,0.016）已全部替换。
-- 黄金数颜色出现在 5 处，改色要一起改：`SingleCardView` / `CompositeCardView`（卡牌 prefab：Normal / Add / Power / Multiple 走这两个）、`ShowMyFormula` / `ShowMyNumberCard`（背包/公式列表，颜色在场景 SampleScene 序列化）、`PlayerController`（手牌，硬编码）。
+- 黄金数的显示颜色全工程统一为 **`Color.yellow`**（序列化写法 `{r: 1, g: 0.9215686, b: 0.01568628, a: 1}`）。2026-10-22 由暗金 `(0.72,0.52,0.02)` 统一改回亮黄（用户要求）。
+- 真正生效的取色点只有 3 类，改色要一起改：`PlayerController`（手牌，代码里硬编码）、`SingleCardView` / `CompositeCardView` 的 `goldenColor` 字段（值由**卡牌 prefab 序列化**决定：Normal/Add/Power 未序列化→取 C# 默认值 yellow；`Multiple.prefab` 曾单独序列化成暗金，已改黄）。
+- 陷阱：`ShowMyFormula` / `ShowMyNumberCard` 上的 `incrementalColor / diceColor / normalColor / goldenColor` 是**死字段**（脚本里只有声明、无任何读取；这两个面板通过 `numberCardLibrary.GetPrefab(layoutType)` 实例化卡牌 prefab，颜色由 prefab 上的 View 决定）。在 Inspector 改这四个颜色不会有任何效果；SampleScene 里它们的序列化值已顺手统一为黄。
 - 判断「是不是黄金数」看组件的 `isGolden`。`BlessingUI.stackCountColor`（祝福叠加数量徽标）不是黄金数，别混。
 
 ## 用户约定
