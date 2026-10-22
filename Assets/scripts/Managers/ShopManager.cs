@@ -175,6 +175,9 @@ public class ShopManager : MonoBehaviour
 
         isDeletionMode = false;
 
+        // 新一局开始：清空 AlwaysRefresh 祝福的出现次数 / 未出现连击统计
+        ResetAlwaysRefreshTracking();
+
         ResetCurrentRoundBlessings();
         OpenShop();
     }
@@ -492,6 +495,8 @@ public class ShopManager : MonoBehaviour
             if (wishBlessing != null)
                 BlessingManager.Instance.ConsumeWishCoin();
 
+            // 虚无主义占满了全部槽位，本次没有任何 AlwaysRefresh 祝福出现——权重统计照常记一次
+            UpdateAlwaysRefreshAppearanceTracking();
             return;
         }
         
@@ -576,7 +581,7 @@ public class ShopManager : MonoBehaviour
             // 从可用池中选择祝福
             if (availableBlessings.Count > 0)
             {
-                BlessingData selectedBlessing = DrawBlessingFromPool(availableBlessings);
+                BlessingData selectedBlessing = DrawWeightedBlessingFromPool(availableBlessings);
                 ShopItem<BlessingData> item = CreateBlessingShopItem(selectedBlessing, priceMultiplier);
 
                 shopBlessings.Add(item);
@@ -589,6 +594,9 @@ public class ShopManager : MonoBehaviour
                 Debug.LogWarning($"[ShopManager] 可用祝福不足！槽位{slotIndex}无法填充");
             }
         }
+
+        // 记录本次商店中 AlwaysRefresh 祝福的出现情况（出现 → 计数+1、未出现连击清零；未出现 → 连击+1）
+        UpdateAlwaysRefreshAppearanceTracking();
     }
 
     /// <summary>
@@ -664,6 +672,256 @@ public class ShopManager : MonoBehaviour
             blessingsExcludedFromRefresh.Add(disasterStar.blessingId);
     }
 
+    #endregion
+
+    #region AlwaysRefresh 祝福出现权重（保底）系统
+    // ────────────────────────────────────────────────────────────────────────
+    // 目的：AlwaysRefresh 类型的祝福在池中数量很多，均匀抽取时某一个祝福可能
+    //       长时间（甚至整局）都抽不到。此系统为每个 AlwaysRefresh 祝福记录
+    //       「出现次数」与「连续未出现次数」，连续未出现达到阈值后，其被抽中的
+    //       权重逐次累加，直到真正出现后恢复为正常值。
+    //
+    // 统计口径：
+    //   · 每次生成商店祝福（OpenShop / RefreshShop / FreeRefreshShop）都算一次抽取机会；
+    //   · 是否购买、已拥有多少层、价格高低，都不影响统计值；
+    //   · 只以「是否出现在商店里」判定（出现 → 连击清零，未出现 → 连击 +1）；
+    //   · 许愿币 / 暗箱操作强制放入商店的祝福同样算「出现」。
+    //
+    // 权重公式（基准权重 1 = 均匀抽取时的相对概率）：
+    //   streak <  threshold → weight = 1
+    //   streak >= threshold → weight = 1 + (streak - threshold + 1) × perMiss
+    //   最终 weight 不超过 maxWeight
+    //   若某祝福通过「祝福效果」改写了权重，则效果优先并覆盖保底权重
+    //   （见 GetBlessingEffectWeightMultiplier）。
+    //
+    // 关闭 enableAlwaysRefreshPity 即完全回到旧的均匀抽取行为。
+    // ────────────────────────────────────────────────────────────────────────
+
+    [Header("祝福出现权重（仅 AlwaysRefresh）")]
+    [Tooltip("是否启用权重/保底系统；关闭后回到完全均匀抽取")]
+    public bool enableAlwaysRefreshPity = true;
+
+    [Tooltip("连续多少次商店刷新都未出现后，开始提升该祝福的出现权重")]
+    public int alwaysRefreshPityThreshold = 8;
+
+    [Tooltip("超过阈值后，每多一次未出现所增加的权重（1 = 正常概率，2 = 双倍概率）")]
+    public float alwaysRefreshPityWeightPerMiss = 1f;
+
+    [Tooltip("单个祝福的权重上限，避免长期未出现的祝福吃掉全部概率")]
+    public float alwaysRefreshMaxWeight = 30f;
+
+    /// <summary> blessingId → 连续未在商店出现的次数（一旦出现即清零） </summary>
+    private readonly Dictionary<int, int> alwaysRefreshMissStreak = new Dictionary<int, int>();
+
+    /// <summary> blessingId → 在商店中累计出现的次数（与是否购买、拥有层数无关） </summary>
+    private readonly Dictionary<int, int> alwaysRefreshAppearanceCount = new Dictionary<int, int>();
+
+    /// <summary>
+    /// 是否是需要参与权重统计的祝福（仅 AlwaysRefresh 类型）
+    /// </summary>
+    private static bool IsAlwaysRefreshWeightTracked(BlessingData blessing)
+    {
+        return blessing != null && blessing.refreshBehavior == BlessingData.RefreshBehavior.AlwaysRefresh;
+    }
+
+    /// <summary>
+    /// 查询某祝福连续多少次商店刷新都未出现
+    /// </summary>
+    public int GetAlwaysRefreshMissStreak(int blessingId)
+    {
+        return alwaysRefreshMissStreak.TryGetValue(blessingId, out int streak) ? streak : 0;
+    }
+
+    /// <summary>
+    /// 查询某祝福在商店中累计出现的次数（购买与否、拥有层数均不影响该值）
+    /// </summary>
+    public int GetAlwaysRefreshAppearanceCount(int blessingId)
+    {
+        return alwaysRefreshAppearanceCount.TryGetValue(blessingId, out int count) ? count : 0;
+    }
+
+    /// <summary>
+    /// 清空 AlwaysRefresh 权重统计（新开一局时调用）
+    /// </summary>
+    public void ResetAlwaysRefreshTracking()
+    {
+        alwaysRefreshMissStreak.Clear();
+        alwaysRefreshAppearanceCount.Clear();
+    }
+
+    /// <summary>
+    /// 计算某祝福当前的抽取权重。非 AlwaysRefresh 祝福恒为 1（保持均匀抽取）。
+    /// </summary>
+    public float GetBlessingDrawWeight(BlessingData blessing)
+    {
+        if (blessing == null) return 1f;
+
+        float weight = 1f;
+
+        if (enableAlwaysRefreshPity && IsAlwaysRefreshWeightTracked(blessing))
+        {
+            int threshold = Mathf.Max(1, alwaysRefreshPityThreshold);
+            int streak = GetAlwaysRefreshMissStreak(blessing.blessingId);
+
+            if (streak >= threshold)
+            {
+                // 超过阈值后逐次累加：第 threshold 次未出现 → 1 + perMiss，之后每多一次再 +perMiss
+                weight = 1f + (streak - threshold + 1) * Mathf.Max(0f, alwaysRefreshPityWeightPerMiss);
+            }
+
+            weight = Mathf.Clamp(weight, 0f, Mathf.Max(1f, alwaysRefreshMaxWeight));
+        }
+
+        // 祝福效果优先：一旦效果给出非 1 的权重，就覆盖保底权重（保底不再叠加）
+        float effectMultiplier = GetBlessingEffectWeightMultiplier(blessing);
+        if (!Mathf.Approximately(effectMultiplier, 1f))
+        {
+            weight = Mathf.Max(0f, effectMultiplier);
+        }
+
+        return weight;
+    }
+
+    /// <summary>
+    /// 祝福效果对出现权重的影响入口。默认返回 1（无影响）。
+    /// 后续若新增「让某类祝福更常出现」的祝福，在此按 blessingType 返回倍率即可：
+    /// 返回值 ≠ 1 时，该祝福的权重完全由效果决定（效果优先于保底权重）。
+    /// 例：
+    ///   if (blessing.blessingType == BlessingData.BlessingType.XXX) return 3f;
+    /// 需要可叠加时可配合 BlessingManager.Instance.GetBlessingTypeCount(...) 计算倍率。
+    /// </summary>
+    private float GetBlessingEffectWeightMultiplier(BlessingData blessing)
+    {
+        return 1f;
+    }
+
+    /// <summary>
+    /// 按权重从祝福池中抽取一个祝福（抽到后从池中移除，保证同一批商品不重复）。
+    /// 权重仅对 AlwaysRefresh 祝福生效，其它类型权重恒为 1，等价于均匀抽取。
+    /// </summary>
+    private BlessingData DrawWeightedBlessingFromPool(List<BlessingData> pool)
+    {
+        if (pool == null || pool.Count == 0)
+        {
+            Debug.LogWarning("[ShopManager] 可用祝福不足，无法继续生成不重复商品");
+            return null;
+        }
+
+        // 未启用权重系统 → 完全走旧的均匀抽取
+        if (!enableAlwaysRefreshPity)
+            return DrawBlessingFromPool(pool);
+
+        float totalWeight = 0f;
+        for (int i = 0; i < pool.Count; i++)
+            totalWeight += Mathf.Max(0f, GetBlessingDrawWeight(pool[i]));
+
+        // 全池权重为 0（被祝福效果压到 0）时退回均匀抽取，避免抽不出商品
+        if (totalWeight <= 0f)
+            return DrawBlessingFromPool(pool);
+
+        float roll = Random.value * totalWeight;
+
+        for (int i = 0; i < pool.Count; i++)
+        {
+            float weight = Mathf.Max(0f, GetBlessingDrawWeight(pool[i]));
+            if (weight <= 0f) continue;
+
+            roll -= weight;
+            if (roll <= 0f)
+            {
+                BlessingData blessing = pool[i];
+                pool.RemoveAt(i);
+                return blessing;
+            }
+        }
+
+        // 浮点误差兜底：取池中最后一个仍有权重的祝福
+        for (int i = pool.Count - 1; i >= 0; i--)
+        {
+            if (GetBlessingDrawWeight(pool[i]) > 0f)
+            {
+                BlessingData blessing = pool[i];
+                pool.RemoveAt(i);
+                return blessing;
+            }
+        }
+
+        return DrawBlessingFromPool(pool);
+    }
+
+    /// <summary>
+    /// 统计本次商店（shopBlessings 已生成完毕）中 AlwaysRefresh 祝福的出现情况：
+    /// 出现 → 出现次数 +1、未出现连击清零；未出现 → 未出现连击 +1。
+    /// </summary>
+    private void UpdateAlwaysRefreshAppearanceTracking()
+    {
+        if (blessingLibrary == null) return;
+
+        List<BlessingData> allBlessings = blessingLibrary.GetAllBlessings();
+        if (allBlessings == null || allBlessings.Count == 0) return;
+
+        // 本次商店展示出的祝福 ID（含许愿币 / 暗箱操作强制放入的祝福）
+        HashSet<int> displayedIds = new HashSet<int>();
+        if (shopBlessings != null)
+        {
+            foreach (var item in shopBlessings)
+            {
+                if (item != null && item.cardData != null)
+                    displayedIds.Add(item.cardData.blessingId);
+            }
+        }
+
+        foreach (var blessing in allBlessings)
+        {
+            if (!IsAlwaysRefreshWeightTracked(blessing)) continue;
+
+            int id = blessing.blessingId;
+
+            if (displayedIds.Contains(id))
+            {
+                alwaysRefreshAppearanceCount.TryGetValue(id, out int count);
+                alwaysRefreshAppearanceCount[id] = count + 1;
+                alwaysRefreshMissStreak[id] = 0;   // 出现过 → 恢复正常权重
+            }
+            else
+            {
+                alwaysRefreshMissStreak.TryGetValue(id, out int streak);
+                alwaysRefreshMissStreak[id] = streak + 1;
+            }
+        }
+    }
+
+    /// <summary>
+    /// 调试用：在组件右键菜单打印当前所有 AlwaysRefresh 祝福的权重统计（按权重降序）
+    /// </summary>
+    [ContextMenu("打印 AlwaysRefresh 祝福权重统计")]
+    public void DebugLogAlwaysRefreshWeights()
+    {
+        if (blessingLibrary == null)
+        {
+            Debug.LogWarning("[祝福权重] blessingLibrary 未设置");
+            return;
+        }
+
+        List<BlessingData> allBlessings = blessingLibrary.GetAllBlessings();
+        if (allBlessings == null) return;
+
+        List<BlessingData> tracked = new List<BlessingData>();
+        foreach (var b in allBlessings)
+        {
+            if (IsAlwaysRefreshWeightTracked(b))
+                tracked.Add(b);
+        }
+
+        tracked.Sort((a, b) => GetBlessingDrawWeight(b).CompareTo(GetBlessingDrawWeight(a)));
+
+        Debug.Log($"[祝福权重] 启用={enableAlwaysRefreshPity} 阈值={alwaysRefreshPityThreshold} 每级+{alwaysRefreshPityWeightPerMiss} 上限={alwaysRefreshMaxWeight}，AlwaysRefresh 祝福共 {tracked.Count} 个");
+
+        foreach (var b in tracked)
+        {
+            Debug.Log($"[祝福权重] {b.blessingName}(id={b.blessingId}) 权重={GetBlessingDrawWeight(b):F2} 出现次数={GetAlwaysRefreshAppearanceCount(b.blessingId)} 连续未出现={GetAlwaysRefreshMissStreak(b.blessingId)}");
+        }
+    }
     #endregion
 
     #region 刷新商店

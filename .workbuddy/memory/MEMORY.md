@@ -30,6 +30,7 @@
 - **blessingId 必须唯一**。重复会让 `HasBlessingEverBeenPurchased` / `GetBlessingCount` / `RemoveBlessingFromPool`（按 id 剔除）互相串味（本次修掉 缤纷多彩 与 反物质核 撞 id 68 → 缤纷多彩 改 69）。
 - `refreshBehavior`：0=AlwaysRefresh、1=NeverRefresh（买过即永不出现）、2=CurrentRoundOnly（买过本回合不再出现；注意 `RefreshShop` 每次都 `ResetCurrentRoundBlessings`，故其"回合"实际=每次刷新）。池里无权重字段，抽取是均匀的。
 - `GenerateBlessings()` 第一行 `shopBlessings.Clear()`，**任何"剔除上一次展示"的逻辑都必须在 Clear 前先快照 `shopBlessings`**，否则是空操作。现有实现：Clear 前存 `previouslyDisplayed`，最后调 `RemoveDisplayedBlessingsFromPool(pool, displayed, neededSlots)`，且「剔除后仍 ≥ neededSlots 才生效」以防可选祝福稀少时空槽位。
+- **AlwaysRefresh 权重/保底（2026-10-22）**：抽取不再是纯均匀，走 `DrawWeightedBlessingFromPool()`（仅 `GenerateBlessings` 用）；权重由 `GetBlessingDrawWeight()` 算：`alwaysRefreshMissStreak` 连续未出现 ≥ `alwaysRefreshPityThreshold`(8) 后 `1+(streak-8+1)*perMiss`，上限 `alwaysRefreshMaxWeight`(30)，非 AlwaysRefresh 恒 1。统计入口 `UpdateAlwaysRefreshAppearanceTracking()` **必须在 GenerateBlessings 的两条出口都调用**（含虚无主义 early return）。"出现"只按 `shopBlessings` 判定，与购买/层数无关；`GetBlessingEffectWeightMultiplier()` 是"祝福效果优先"的覆盖点（返回≠1 覆盖保底权重）。`InitializeShop()` 里 `ResetAlwaysRefreshTracking()` 重置，不参与存档。
 
 ## 祝福：一次性 / "下一回合生效" 类
 - 统一模式：`xxxPendingCharges`（购买时累加）→ 在下一回合的结算入口取走并清零（财星 `ConsumeWealthStarCharges`、流星 `ConsumeMeteorCharges`、慈爱星用 `compassionStarCount - lastAppliedCompassionStarCount`）。无论当回合是否满足触发条件都要消费（严格"仅下一回合"，不残留到以后）。
