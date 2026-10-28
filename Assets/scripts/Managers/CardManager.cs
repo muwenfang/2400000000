@@ -47,6 +47,115 @@ public class CardManager : MonoBehaviour
     // 慈爱星：追踪已应用的次数，用于检测增量
     private int lastAppliedCompassionStarCount = 0;
 
+    /// <summary>存档访问器：慈爱星已应用计数（RunSave 恢复用）</summary>
+    public int LastAppliedCompassionStarCount
+    {
+        get { return lastAppliedCompassionStarCount; }
+        set { lastAppliedCompassionStarCount = value; }
+    }
+
+    #region 局内存档（RunSave）
+
+    /// <summary>捕获手牌/公式区状态（由 RunSaveManager 编排调用）</summary>
+    public void CaptureToSave(RunSaveData d)
+    {
+        d.handInventoryIndices.Clear();
+        var inventory = PlayerCardInventory.Instance != null ? PlayerCardInventory.Instance.numberCards : null;
+        foreach (var card in currentNumberCards)
+        {
+            d.handInventoryIndices.Add(inventory != null ? inventory.IndexOf(card) : -1);
+        }
+
+        d.currentFormulaCard = currentFormulaCard != null ? currentFormulaCard.name : "";
+
+        d.selectedSlotHandIndices.Clear();
+        foreach (var card in selectedNumberCards)
+        {
+            if (card == null)
+            {
+                d.selectedSlotHandIndices.Add(-1);
+            }
+            else
+            {
+                // 槽位里的卡牌一定是本回合手牌之一
+                d.selectedSlotHandIndices.Add(currentNumberCards.IndexOf(card));
+            }
+        }
+
+        d.drewDiceCardThisRound = drewDiceCardThisRound;
+        d.drewGoldenCardThisRound = drewGoldenCardThisRound;
+        d.lastAppliedCompassionStarCount = lastAppliedCompassionStarCount;
+    }
+
+    /// <summary>从存档恢复手牌/公式区数据层。失败返回 false。</summary>
+    public bool RestoreFromSave(RunSaveData d)
+    {
+        var inventory = PlayerCardInventory.Instance != null ? PlayerCardInventory.Instance.numberCards : null;
+        if (inventory == null)
+        {
+            Debug.LogError("[RunSave] 恢复手牌失败：玩家库存为空");
+            return false;
+        }
+
+        currentNumberCards.Clear();
+        foreach (int idx in d.handInventoryIndices)
+        {
+            if (idx < 0 || idx >= inventory.Count)
+            {
+                Debug.LogError($"[RunSave] 手牌索引越界：{idx}");
+                return false;
+            }
+            currentNumberCards.Add(inventory[idx]);
+        }
+
+        currentFormulaCard = null;
+        if (!string.IsNullOrEmpty(d.currentFormulaCard))
+        {
+            currentFormulaCard = RunSaveManager.FindFormulaCardData(d.currentFormulaCard);
+            if (currentFormulaCard == null)
+            {
+                Debug.LogError($"[RunSave] 公式卡资产不存在：{d.currentFormulaCard}");
+                return false;
+            }
+        }
+
+        // 槽位：先按公式需求建立 null 占位，再按保存的槽位→手牌索引填入
+        selectedNumberCards.Clear();
+        int required = currentFormulaCard != null ? currentFormulaCard.RequiredCount : d.selectedSlotHandIndices.Count;
+        for (int i = 0; i < required; i++)
+        {
+            selectedNumberCards.Add(null);
+        }
+
+        for (int i = 0; i < d.selectedSlotHandIndices.Count && i < selectedNumberCards.Count; i++)
+        {
+            int handIdx = d.selectedSlotHandIndices[i];
+            if (handIdx < 0) continue;
+            if (handIdx >= currentNumberCards.Count)
+            {
+                Debug.LogError($"[RunSave] 槽位 {i} 引用的手牌索引越界：{handIdx}");
+                return false;
+            }
+            selectedNumberCards[i] = currentNumberCards[handIdx];
+        }
+
+        filledNumber = 0;
+        foreach (var c in selectedNumberCards)
+        {
+            if (c != null) filledNumber++;
+        }
+
+        drewDiceCardThisRound = d.drewDiceCardThisRound;
+        drewGoldenCardThisRound = d.drewGoldenCardThisRound;
+        lastAppliedCompassionStarCount = d.lastAppliedCompassionStarCount;
+
+        // 牌堆与库存同步（数字卡/公式卡牌堆是库存的投影，无需单独保存）
+        SyncDeckFromInventory();
+        return true;
+    }
+
+    #endregion
+
     public void InitializeStarterDeck()
     {   
         // 初始化玩家的起始卡组

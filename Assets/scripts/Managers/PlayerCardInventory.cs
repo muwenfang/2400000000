@@ -252,5 +252,73 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     {
         return formulaCards;
     }
+
+    // =========================
+    // 局内存档（RunSave）
+    // =========================
+
+    /// <summary>捕获玩家卡牌库存（由 RunSaveManager 编排调用）</summary>
+    public void CaptureToSave(RunSaveData d)
+    {
+        d.numberCards.Clear();
+        foreach (var instance in numberCards)
+        {
+            SavedNumberCard s = new SavedNumberCard();
+            s.card = instance != null && instance.cardData != null ? instance.cardData.name : "";
+            s.valueA = instance != null ? instance.currentA : 0;
+            s.valueB = instance != null ? instance.currentB : 0;
+            s.diceSidesA = instance != null ? instance.currentDiceSidesA : 0;
+            s.diceSidesB = instance != null ? instance.currentDiceSidesB : 0;
+            d.numberCards.Add(s);
+        }
+
+        d.formulaCards.Clear();
+        foreach (var card in formulaCards)
+        {
+            d.formulaCards.Add(card != null ? card.name : "");
+        }
+    }
+
+    /// <summary>
+    /// 从存档恢复玩家卡牌库存。
+    /// 关键：实例级动态数值（currentA/currentB/骰子面数）原样恢复，
+    /// 不从库资产重新初始化——福星/金融专家等带来的增长不能丢。
+    /// 失败返回 false。
+    /// </summary>
+    public bool RestoreFromSave(RunSaveData d)
+    {
+        ClearAll();
+
+        foreach (SavedNumberCard s in d.numberCards)
+        {
+            NumberCardData data = RunSaveManager.FindNumberCardData(s.card);
+            if (data == null)
+            {
+                Debug.LogError($"[RunSave] 数字卡资产不存在：{s.card}");
+                return false;
+            }
+
+            NumberCardInstance instance = new NumberCardInstance(data);
+            instance.currentA = s.valueA;
+            instance.currentB = s.valueB;
+            instance.currentDiceSidesA = s.diceSidesA;
+            instance.currentDiceSidesB = s.diceSidesB;
+            numberCards.Add(instance);
+        }
+
+        foreach (string cardName in d.formulaCards)
+        {
+            FormulaCardData data = RunSaveManager.FindFormulaCardData(cardName);
+            if (data == null)
+            {
+                Debug.LogError($"[RunSave] 填空卡资产不存在：{cardName}");
+                return false;
+            }
+            formulaCards.Add(data);
+        }
+
+        NotifyInventoryChanged();
+        return true;
+    }
 }
 

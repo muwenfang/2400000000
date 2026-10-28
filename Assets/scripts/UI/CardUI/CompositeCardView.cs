@@ -16,11 +16,8 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
     [Tooltip("是否为骰子时显示图标")]
     public bool showDiceIcon = true;
 
-    [Header("颜色配置")]
-    public Color incrementalColor = Color.green;   // 递增数字：绿色
-    public Color diceColor = Color.red;            // 骰子数字：红色
-    public Color normalColor = Color.black;        // 普通数字：黑色
-    public Color goldenColor = Color.yellow;       // 黄金数字：金色（全工程统一色）
+    // 说明：数字颜色统一由 NumberCardColors（Assets/Resources/NumberCardColorPalette.asset）决定，
+    // 本视图不再保留任何颜色字段，避免出现多个控制点。
 
     public Text pointsText;
 
@@ -108,8 +105,8 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         aText.text = FormatValue(data.partA.value);
         bText.text = FormatValue(data.partB.value);
 
-        aText.color = data.partA.isGolden ? goldenColor : normalColor;
-        bText.color = data.partB != null && data.partB.isGolden ? goldenColor : normalColor;
+        aText.color = NumberCardColors.GetStaticNumberTextColor(data.partA);
+        bText.color = NumberCardColors.GetStaticNumberTextColor(data.partB);
 
         // 隐藏静态数据绑定时的图标
         if (diceIconA != null)
@@ -236,7 +233,7 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
                 // 结算时：显示投出的具体数值（骰子结果恒为正，格式化无副作用）
                 textComp.text = FormatValue(currentValue);
             }
-            textComp.color = component.isGolden ? goldenColor : diceColor;
+            textComp.color = NumberCardColors.GetNumberTextColor(component);
 
             // 显示骰子图标
             if (showDiceIcon && DiceIconManager.Instance != null && iconComp != null)
@@ -248,7 +245,7 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         {
             // 递增显示：{当前值} (绿色)
             textComp.text = FormatValue(currentValue);
-            textComp.color = component.isGolden ? goldenColor : incrementalColor;
+            textComp.color = NumberCardColors.GetNumberTextColor(component);
 
             // 隐藏非骰子的图标
             if (iconComp != null)
@@ -260,7 +257,7 @@ public class CompositeNumberView : MonoBehaviour, NumberCardLayoutView
         {
             // 普通显示：数值 (黑色)
             textComp.text = FormatValue(currentValue);
-            textComp.color = component.isGolden ? goldenColor : normalColor;
+            textComp.color = NumberCardColors.GetNumberTextColor(component);
 
             // 隐藏非骰子的图标
             if (iconComp != null)

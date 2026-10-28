@@ -822,6 +822,9 @@ public class UIManager : MonoBehaviour
             yield break;
         }
 
+        // 测试用：跳过动画时只刷新数值，不播放弹跳动画、不等待
+        bool skipAnimation = GameManager.ShouldSkipSettlementAnimation;
+
         var allSingleViews = FindObjectsOfType<SingleNumberView>(true);
         var allCompositeViews = FindObjectsOfType<CompositeNumberView>(true);
         bool hasAnimatedValue = false;
@@ -833,7 +836,10 @@ public class UIManager : MonoBehaviour
             if (view.boundInstance != null && selectedCards.Contains(view.boundInstance))
             {
                 view.BindInstance(view.boundInstance);
-                hasAnimatedValue |= view.PlaySettlementValuePopAnimation(settlementValuePopDuration, settlementValuePopScaleMultiplier);
+                if (!skipAnimation)
+                {
+                    hasAnimatedValue |= view.PlaySettlementValuePopAnimation(settlementValuePopDuration, settlementValuePopScaleMultiplier);
+                }
                 singleRefreshCount++;
             }
         }
@@ -844,12 +850,15 @@ public class UIManager : MonoBehaviour
             if (view.boundInstance != null && selectedCards.Contains(view.boundInstance))
             {
                 view.BindInstance(view.boundInstance);
-                hasAnimatedValue |= view.PlaySettlementValuePopAnimation(settlementValuePopDuration, settlementValuePopScaleMultiplier);
+                if (!skipAnimation)
+                {
+                    hasAnimatedValue |= view.PlaySettlementValuePopAnimation(settlementValuePopDuration, settlementValuePopScaleMultiplier);
+                }
                 compositeRefreshCount++;
             }
         }
 
-        if (hasAnimatedValue)
+        if (hasAnimatedValue && !skipAnimation)
         {
             yield return new WaitForSeconds(settlementValuePopDuration);
         }
@@ -862,6 +871,13 @@ public class UIManager : MonoBehaviour
     {
         if (selectedCards == null || selectedCards.Count == 0)
         {
+            yield break;
+        }
+
+        // 测试用：跳过动画时直接清掉单卡点数气泡，不做逐卡展示
+        if (GameManager.ShouldSkipSettlementAnimation)
+        {
+            HideAllCardScoreOverlays();
             yield break;
         }
 

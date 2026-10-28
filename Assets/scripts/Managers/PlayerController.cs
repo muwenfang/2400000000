@@ -60,24 +60,16 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
     public void Bind(NumberCardInstance card)
     {
         BoundCard = card;
-        // 1. 更新 PartA 的显示
+        // 1. 更新 PartA 的显示（颜色统一由 NumberCardColors 决定，优先级见该类的注释）
         if (textA != null)
         {
             textA.text = card.currentA.ToString();
-            // 颜色优先级：黄金数字（黄）> 递增数（绿）> 骰子（红）> 普通（黑）
-            if (card.cardData.partA.isGolden) textA.color = Color.yellow;
-            else if (card.cardData.partA.isIncremental) textA.color = Color.green;
-            else if (card.cardData.partA.isDice) textA.color = Color.red;
-            else textA.color = Color.black;
+            textA.color = NumberCardColors.GetNumberTextColor(card.cardData.partA);
         }
         if (textB != null)
         {
             textB.text = card.currentB.ToString();
-            // 颜色优先级：黄金数字（黄）> 递增数（绿）> 骰子（红）> 普通（黑）
-            if (card.cardData.partB.isGolden) textB.color = Color.yellow;
-            else if (card.cardData.partB.isIncremental) textB.color = Color.green;
-            else if (card.cardData.partB.isDice) textB.color = Color.red;
-            else textB.color = Color.black;
+            textB.color = NumberCardColors.GetNumberTextColor(card.cardData.partB);
         }
 
         // 2. 根据逻辑类型处理 PartB 和 运算符
@@ -88,12 +80,11 @@ public class PlayerController : MonoBehaviour, IBeginDragHandler, IDragHandler, 
         }
         else
         {
-            // 运算模式：显示并更新内容
+            // 运算模式：显示并更新内容（颜色已在上面统一按 NumberCardColors 设置，此处不再重复赋值）
             if (textB != null)
             {
                 textB.gameObject.SetActive(true);
                 textB.text = card.currentB.ToString();
-                //if (card.cardData.partB.isIncremental) textB.color = Color.green;
             }
 
         }

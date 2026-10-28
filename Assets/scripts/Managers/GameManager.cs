@@ -54,6 +54,20 @@ public class GameManager : MonoBehaviour
     [Tooltip("按槽位依次显示单卡结算值的间隔（秒）")]
     public float cardScoreDisplayTime = 0.25f;
 
+    [Header("测试选项")]
+    [Tooltip("跳过结算动画：不播放数字卡数值弹跳、不逐卡展示点数、不等待得分分步停留。" +
+             "只跳过表现与等待，结算数值逻辑完全不变。")]
+    public bool skipSettlementAnimation = false;
+
+    /// <summary>
+    /// 结算处是否应跳过动画。统一由 GameManager.skipSettlementAnimation 决定，
+    /// 其它模块（UIManager 等）一律通过这里判定，避免各处各自读字段造成口径不一致。
+    /// </summary>
+    public static bool ShouldSkipSettlementAnimation
+    {
+        get { return Instance != null && Instance.skipSettlementAnimation; }
+    }
+
     //阶段点数数据
     public List<BigInteger> stagePointRequirements = new List<BigInteger>()
     {
@@ -85,8 +99,10 @@ public class GameManager : MonoBehaviour
 
     //普通模式
     public void InitializeGame(int gameMode = 0)
-    {   
+    {
         Debug.Log("初始化游戏");
+        // 开新游戏：旧局内存档作废（存档只有一个，新游戏自动覆盖）
+        RunSaveManager.ClearSave();
         // 重置本局统计数据
         ResetRoundStatistics();
 
@@ -169,8 +185,10 @@ public class GameManager : MonoBehaviour
     }
     //内卷模式
     public void InitializeGame_invol()
-    {   
+    {
         Debug.Log("初始化游戏");
+        // 开新游戏：旧局内存档作废
+        RunSaveManager.ClearSave();
         ResetRoundStatistics();
         shopManager.totalRemovedNumberCards = 0;
         shopManager.totalRemovedFormulaCards = 0;
@@ -208,9 +226,17 @@ public class GameManager : MonoBehaviour
     public void EnterEndlessMode()
     {
         Debug.Log("进入无尽模式 - 从第61回合开始");
+        // 开新游戏：旧局内存档作废
+        RunSaveManager.ClearSave();
         GameManager.isEndlessMode = true;
         GameManager.isInvolutionMode = false;
         currentRound = 61;
+
+        // 无尽模式入口 = 开新一局：AlwaysRefresh 祝福的出现权重统计随新局一起恢复。
+        // （其它入口 InitializeGame / InitializeGame_invol 走 InitializeShop 时已重置）
+        if (ShopManager.Instance != null)
+            ShopManager.Instance.ResetAlwaysRefreshTracking();
+
         ChangeState(GameState.PlayerTurn);
         StartPlayerTurn();
         UIManager.Instance.RefreshGameUI();
@@ -221,6 +247,9 @@ public class GameManager : MonoBehaviour
         Debug.Log("开始回合");
         ChangeState(GameState.PlayerTurn);
         Debug.Assert(currentState == GameState.PlayerTurn);
+
+        // 新回合开始：上一回合的结算检查点已失效（此时要么已补完结算，要么按未结算处理）
+        RunSaveManager.ClearSettlementCheckpoint();
 
         // 新回合开始：解除上一回合结算判定动画期间的手牌锁定
         if (UIManager.Instance != null)
@@ -320,19 +349,37 @@ public class GameManager : MonoBehaviour
             }
         }
 
+        // 存档检查点：骰子/递增/流星等结算判定已全部定格（点击结算时结果即已决定）。
+        // 此后任何时刻退出游戏或返回主菜单，都按"结算完成"处理，
+        // 继续游戏时无动画补完结算并进入商店——防止退出重投骰子或逃避负分结算。
+        RunSaveManager.CaptureSettlementCheckpoint();
+
         // 2. 刷新UI显示投掷和递增后的结果
         yield return StartCoroutine(UIManager.Instance.RefreshSelectedCardsDisplay(formula.selectedNumberCards));
 
-        // 3. 先按槽位顺序显示每张卡本次实际结算出的点数
+        // 3. 显示逐卡得分并计算最终得分（确定性计算 + 表现动画）
+        yield return StartCoroutine(SettlementScoreSequence(formula, true));
+    }
+
+    /// <summary>
+    /// 结算的确定性部分：逐卡得分展示、最终得分计算与所有祝福结算、加分、进入商店。
+    /// playSettleAnimation=false 时跳过所有展示与等待（供"继续游戏"补完结算使用），
+    /// 数值逻辑与正常结算完全一致。
+    /// </summary>
+    IEnumerator SettlementScoreSequence(CardManager formula, bool playSettleAnimation)
+    {
+        // 先按槽位顺序显示每张卡本次实际结算出的点数
         List<BigInteger> rawCardScores = FormulaCalculator.GetCardValuesForDisplay(formula.selectedNumberCards, false);
         List<BigInteger> adjustedCardScores = FormulaCalculator.GetCardValuesForDisplay(formula.selectedNumberCards, true);
 
-
-        yield return StartCoroutine(UIManager.Instance.ShowSelectedCardScoreSequence(
-            formula.selectedNumberCards,
-            rawCardScores,
-            adjustedCardScores,
-            cardScoreDisplayTime));
+        if (playSettleAnimation)
+        {
+            yield return StartCoroutine(UIManager.Instance.ShowSelectedCardScoreSequence(
+                formula.selectedNumberCards,
+                rawCardScores,
+                adjustedCardScores,
+                cardScoreDisplayTime));
+        }
 
         // 4. 计算结果
         BigInteger baseScore = formula.CalculateResult();
@@ -468,20 +515,25 @@ public class GameManager : MonoBehaviour
         }
 
         // 启动原有分步显示协程
-        StartCoroutine(ShowScoreStepByStep(baseScore, totalMultiplier, finalScore));
+        StartCoroutine(ShowScoreStepByStep(baseScore, totalMultiplier, finalScore, playSettleAnimation));
     }
-    
+
     /// <summary>
     /// 分步显示得分的协程
     /// </summary>
-    IEnumerator ShowScoreStepByStep(BigInteger baseScore, long multiplier, BigInteger finalScore)
+    IEnumerator ShowScoreStepByStep(BigInteger baseScore, long multiplier, BigInteger finalScore, bool playSettleAnimation)
     {
+        // 测试用：跳过动画时仍然照常弹出得分提示与加分，只是不做任何停留等待
+        // "继续游戏"补完结算（playSettleAnimation=false）时同样只执行数值逻辑
+        bool skipAnimation = ShouldSkipSettlementAnimation || !playSettleAnimation;
+
         // 第1步：显示本回合得分（基础分 × 倍率）
         UIManager.Instance.ShowPointsGain(finalScore); // 弹出 "+XXX" 提示
 
         floatingMessage.SetScoreMessage(finalScore.ToString());//弹窗显示得分
 
-        yield return new WaitForSeconds(roundScoreDisplayTime);
+        if (!skipAnimation)
+            yield return new WaitForSeconds(roundScoreDisplayTime);
 
         // 坠落祝福：计算结果为负数时翻5倍
         if (BlessingManager.Instance != null && BlessingManager.Instance.hasFall && finalScore < 0)
@@ -497,7 +549,8 @@ public class GameManager : MonoBehaviour
         // 第2步：加入总分并显示
         AddPoints(finalScore);
 
-        yield return new WaitForSeconds(totalScoreDisplayTime);
+        if (!skipAnimation)
+            yield return new WaitForSeconds(totalScoreDisplayTime);
 
         UIManager.Instance.HideAllCardScoreOverlays();
 
@@ -812,14 +865,29 @@ public class GameManager : MonoBehaviour
 
     public void ReturnStartMenu()
     {
+        // 返回主菜单：自动保存最新局内存档（商店/游戏界面/结算动画期间各有对应口径）
+        RunSaveManager.SaveRun();
+
         //加载主菜单界面
         ChangeState(GameState.MainMenu);
         shopManager.deleteCostPanel.SetActive(false);
 
     }
 
+    /// <summary>
+    /// 退出游戏前自动保存局内进度（在商店退出保留商品、在游戏界面退出保留手牌、
+    /// 结算动画期间退出按已结算处理）。
+    /// </summary>
+    void OnApplicationQuit()
+    {
+        RunSaveManager.SaveRun();
+    }
+
     void WinGame(bool isWin)
     {
+        // 对局结束（无论胜负）：局内进度存档作废，历史纪录由 DataSavingManager 落盘
+        RunSaveManager.ClearSave();
+
         if (isWin)
         {
             if (DataSavingManager.Instance != null)
@@ -902,6 +970,107 @@ public class GameManager : MonoBehaviour
                 break;
         }
     }
+
+    #region 局内存档（RunSave）
+
+    // 本局统计数据的存档访问器（原字段保持 private）
+    public string RoundMaxNumberCardValue { get { return roundMaxNumberCardValue.ToString(); } set { roundMaxNumberCardValue = SavingData.StringToBigInteger(value); } }
+    public long RoundMaxMultiplier { get { return roundMaxMultiplier; } set { roundMaxMultiplier = value; } }
+    public string RoundMaxCalculationValue { get { return roundMaxCalculationValue.ToString(); } set { roundMaxCalculationValue = SavingData.StringToBigInteger(value); } }
+
+    /// <summary>主菜单查询：是否有可继续的局内存档（供"继续游戏"按钮控制可用性）</summary>
+    public bool HasContinueSave()
+    {
+        return RunSaveManager.HasValidSave();
+    }
+
+    /// <summary>主菜单"继续游戏"按钮入口（Inspector 绑定用）</summary>
+    public void ContinueRun()
+    {
+        RunSaveManager.ContinueRun();
+    }
+
+    /// <summary>捕获全局进度到存档（由 RunSaveManager 编排调用）</summary>
+    public void CaptureToSave(RunSaveData d)
+    {
+        d.gameMode = (int)currentGameMode;
+        d.isInvolutionMode = GameManager.isInvolutionMode;
+        d.isEndlessMode = GameManager.isEndlessMode;
+        d.currentPoints = currentPoints.ToString();
+        d.currentRound = currentRound;
+        d.stageRequirement = stageRequirement.ToString();
+        d.roundMaxNumberCardValue = roundMaxNumberCardValue.ToString();
+        d.roundMaxMultiplier = roundMaxMultiplier;
+        d.roundMaxCalculationValue = roundMaxCalculationValue.ToString();
+
+        // 经验主义引用的"上一回合最大卡"（库存索引）
+        d.lastRoundMaxInventoryIndex = lastRoundMaxCard != null && PlayerCardInventory.Instance != null
+            ? PlayerCardInventory.Instance.numberCards.IndexOf(lastRoundMaxCard)
+            : -1;
+    }
+
+    /// <summary>从存档恢复全局进度（界面恢复由 RestoreTurnUI / RunSaveManager 负责）</summary>
+    public void RestoreFromSave(RunSaveData d)
+    {
+        currentGameMode = (GameMode)d.gameMode;
+        GameManager.isInvolutionMode = d.isInvolutionMode;
+        GameManager.isEndlessMode = d.isEndlessMode;
+        currentPoints = SavingData.StringToBigInteger(d.currentPoints);
+        currentRound = d.currentRound;
+        stageRequirement = SavingData.StringToBigInteger(d.stageRequirement);
+        roundMaxNumberCardValue = SavingData.StringToBigInteger(d.roundMaxNumberCardValue);
+        roundMaxMultiplier = d.roundMaxMultiplier;
+        roundMaxCalculationValue = SavingData.StringToBigInteger(d.roundMaxCalculationValue);
+
+        if (d.lastRoundMaxInventoryIndex >= 0 &&
+            PlayerCardInventory.Instance != null &&
+            d.lastRoundMaxInventoryIndex < PlayerCardInventory.Instance.numberCards.Count)
+        {
+            lastRoundMaxCard = PlayerCardInventory.Instance.numberCards[d.lastRoundMaxInventoryIndex];
+        }
+        else
+        {
+            lastRoundMaxCard = null;
+        }
+    }
+
+    /// <summary>
+    /// 恢复游戏界面的回合中状态（点数/回合/手牌/公式卡/已放置卡牌）。
+    /// 供"继续游戏"在 sceneState=0（未结算）与 sceneState=2（补完结算）时调用。
+    /// </summary>
+    public void RestoreTurnUI()
+    {
+        UIManager.Instance.UpdatePointsDisplay(currentPoints);
+        UIManager.Instance.UpdateRoundDisplay(currentRound);
+        UIManager.Instance.ShowHandCards(cardManager.currentNumberCards);
+        UIManager.Instance.ShowFormulaCard(cardManager.currentFormulaCard);
+        UIManager.Instance.RefreshAllGameInfo();
+        UIManager.Instance.ResetRoundScore();
+        UIManager.Instance.UpdateTargetRoundDisplay(GetNextStageRound());
+        UIManager.Instance.SetCardDragLocked(false);
+
+        // 已拖入公式槽位的卡牌：恢复视觉位置（数据层已在 CardManager 中恢复）
+        RunSaveManager.RestorePlacedCardsVisual();
+    }
+
+    /// <summary>
+    /// "继续游戏"补完结算：恢复的是骰子/递增已定格的检查点状态，
+    /// 跳过展示动画直接执行确定性结算（得分计算 → 加分 → 进入商店）。
+    /// </summary>
+    public void ResumePendingSettlement()
+    {
+        currentState = GameState.Calculation;
+
+        // 与正常结算一致：结算期间锁定手牌
+        if (UIManager.Instance != null)
+        {
+            UIManager.Instance.SetCardDragLocked(true);
+        }
+
+        StartCoroutine(SettlementScoreSequence(cardManager, false));
+    }
+
+    #endregion
 
     //退出游戏
     public void ExitGame()

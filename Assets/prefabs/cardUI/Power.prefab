@@ -439,9 +439,6 @@ MonoBehaviour:
   diceIconA: {fileID: 5090550686713733456}
   diceIconB: {fileID: 7835068797340477710}
   showDiceIcon: 1
-  incrementalColor: {r: 0, g: 1, b: 0, a: 1}
-  diceColor: {r: 1, g: 0, b: 0, a: 1}
-  normalColor: {r: 0, g: 0, b: 0, a: 1}
   pointsText: {fileID: 0}
 --- !u!114 &1452207098723668908
 MonoBehaviour:

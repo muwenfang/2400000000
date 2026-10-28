@@ -15,6 +15,12 @@ public class FormulaCardUI : MonoBehaviour
     // 保存当前绑定的公式卡数据
     private FormulaCardData currentFormulaData;
 
+    /// <summary>当前公式卡的槽位列表（只读；RunSave 恢复已放置卡牌的视觉位置时使用）</summary>
+    public IReadOnlyList<FormulaSlot> Slots
+    {
+        get { return slots; }
+    }
+
     public void Bind(FormulaCardData formula)
     {
         Clear();

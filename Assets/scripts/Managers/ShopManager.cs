@@ -90,7 +90,32 @@ public class ShopManager : MonoBehaviour
     // 当前是否处于删卡模式
     public bool isDeletionMode = false;
 
-    
+    [Header("祝福出现权重（仅 AlwaysRefresh）")]
+    [Tooltip("是否启用权重/保底系统；关闭后回到完全均匀抽取")]
+    public bool enableAlwaysRefreshPity = true;
+
+    [Tooltip("连续多少次商店刷新都未出现后，开始提升该祝福的出现权重")]
+    public int alwaysRefreshPityThreshold = 6;
+
+    [Tooltip("超过阈值后，每多一次未出现所增加的权重（1 = 正常概率，2 = 双倍概率）")]
+    public float alwaysRefreshPityWeightPerMiss = 1f;
+
+    [Tooltip("单个祝福的权重上限，避免长期未出现的祝福吃掉全部概率")]
+    public float alwaysRefreshMaxWeight = 30f;
+
+    [Tooltip("勾选后，每次生成商店祝福都在 Console 打印一条权重统计摘要（测试用）")]
+    public bool logAlwaysRefreshTracking = false;
+
+    /// <summary> blessingId → 连续未在商店出现的次数（一旦出现即清零） </summary>
+    private readonly Dictionary<int, int> alwaysRefreshMissStreak = new Dictionary<int, int>();
+
+    /// <summary> blessingId → 在商店中累计出现的次数（与是否购买、拥有层数无关） </summary>
+    private readonly Dictionary<int, int> alwaysRefreshAppearanceCount = new Dictionary<int, int>();
+
+    /// <summary> 本次游戏内累计生成商店祝福的次数（仅用于日志/排查，不参与结算） </summary>
+    private int alwaysRefreshShopGeneration = 0;
+
+
     /// <summary>
     /// 本回合已在当前商店刷新中显示过的祝福ID（用于CurrentRoundOnly类型）
     /// </summary>
@@ -115,15 +140,16 @@ public class ShopManager : MonoBehaviour
         // 刷新费用的叠加倍率按回合清零：每次进入商店重新从 i² × 2^0 开始
         shopRefreshCount = 0;
 
-        
-        // 祸星：首次生成后即从后续刷新中排除（无论是否出现）
-        MarkDisasterStarExcluded();
-        
         GenerateNumberCards();
         GenerateFormulaCards();
         GenerateBlessings();
+
+        // 祸星：本回合第一次生成（刚进商店）时仍可能出现在商店里
+        MarkDisasterStarExcluded();
+
         InitializeDeletionUI();
         InitializeRefreshCost();
+
 
         // ---通知 UI 刷新 ---
         UIManager.Instance.RefreshShopUI();
@@ -663,10 +689,14 @@ public class ShopManager : MonoBehaviour
     }
 
     /// <summary>
-    /// 标记祸星为已排除（首次生成后调用，后续刷新不再出现）
+    /// 把祸星加入"本次进入商店的刷新排除列表"。
+    /// 调用时机必须是 OpenShop 的 GenerateBlessings() <b>之后</b>：
+    /// 放在之前（或用全局 refreshCount 判断）会让祸星在整局里都不出现。
     /// </summary>
     private void MarkDisasterStarExcluded()
     {
+        if (blessingLibrary == null || blessingsExcludedFromRefresh == null) return;
+
         BlessingData disasterStar = blessingLibrary.GetBlessingByType(BlessingData.BlessingType.DisasterStar);
         if (disasterStar != null)
             blessingsExcludedFromRefresh.Add(disasterStar.blessingId);
@@ -675,17 +705,17 @@ public class ShopManager : MonoBehaviour
     #endregion
 
     #region AlwaysRefresh 祝福出现权重（保底）系统
-    // ────────────────────────────────────────────────────────────────────────
-    // 目的：AlwaysRefresh 类型的祝福在池中数量很多，均匀抽取时某一个祝福可能
-    //       长时间（甚至整局）都抽不到。此系统为每个 AlwaysRefresh 祝福记录
-    //       「出现次数」与「连续未出现次数」，连续未出现达到阈值后，其被抽中的
+    // ─────────────────────────────────────
     //       权重逐次累加，直到真正出现后恢复为正常值。
     //
-    // 统计口径：
     //   · 每次生成商店祝福（OpenShop / RefreshShop / FreeRefreshShop）都算一次抽取机会；
-    //   · 是否购买、已拥有多少层、价格高低，都不影响统计值；
-    //   · 只以「是否出现在商店里」判定（出现 → 连击清零，未出现 → 连击 +1）；
-    //   · 许愿币 / 暗箱操作强制放入商店的祝福同样算「出现」。
+    //     例外：祸星在 OpenShop 首次生成后即被排除出本回合刷新池，
+    //           因此它每回合只有首次生成那一次机会，之后既不出现也不累计连击。
+    //   · 「出现」只认玩家可见槽位（index < blessingCardCount）：
+    //     锁定槽位里也填了真实祝福，但玩家看不到，不能算出现（否则连击会被悄悄清零）；
+    //   · 许愿币 / 暗箱操作强制放入商店的祝福同样算「出现」；
+    //   · 统计只在开新局时清零：InitializeShop（普通/内卷）与 EnterEndlessMode（无尽）。
+    //     OpenShop / RefreshShop / FreeRefreshShop 一律不重置，连击跨回合持续累加。
     //
     // 权重公式（基准权重 1 = 均匀抽取时的相对概率）：
     //   streak <  threshold → weight = 1
@@ -695,26 +725,7 @@ public class ShopManager : MonoBehaviour
     //   （见 GetBlessingEffectWeightMultiplier）。
     //
     // 关闭 enableAlwaysRefreshPity 即完全回到旧的均匀抽取行为。
-    // ────────────────────────────────────────────────────────────────────────
-
-    [Header("祝福出现权重（仅 AlwaysRefresh）")]
-    [Tooltip("是否启用权重/保底系统；关闭后回到完全均匀抽取")]
-    public bool enableAlwaysRefreshPity = true;
-
-    [Tooltip("连续多少次商店刷新都未出现后，开始提升该祝福的出现权重")]
-    public int alwaysRefreshPityThreshold = 8;
-
-    [Tooltip("超过阈值后，每多一次未出现所增加的权重（1 = 正常概率，2 = 双倍概率）")]
-    public float alwaysRefreshPityWeightPerMiss = 1f;
-
-    [Tooltip("单个祝福的权重上限，避免长期未出现的祝福吃掉全部概率")]
-    public float alwaysRefreshMaxWeight = 30f;
-
-    /// <summary> blessingId → 连续未在商店出现的次数（一旦出现即清零） </summary>
-    private readonly Dictionary<int, int> alwaysRefreshMissStreak = new Dictionary<int, int>();
-
-    /// <summary> blessingId → 在商店中累计出现的次数（与是否购买、拥有层数无关） </summary>
-    private readonly Dictionary<int, int> alwaysRefreshAppearanceCount = new Dictionary<int, int>();
+    // ─────────────────────────────────────
 
     /// <summary>
     /// 是否是需要参与权重统计的祝福（仅 AlwaysRefresh 类型）
@@ -747,6 +758,7 @@ public class ShopManager : MonoBehaviour
     {
         alwaysRefreshMissStreak.Clear();
         alwaysRefreshAppearanceCount.Clear();
+        alwaysRefreshShopGeneration = 0;
     }
 
     /// <summary>
@@ -786,9 +798,6 @@ public class ShopManager : MonoBehaviour
     /// 祝福效果对出现权重的影响入口。默认返回 1（无影响）。
     /// 后续若新增「让某类祝福更常出现」的祝福，在此按 blessingType 返回倍率即可：
     /// 返回值 ≠ 1 时，该祝福的权重完全由效果决定（效果优先于保底权重）。
-    /// 例：
-    ///   if (blessing.blessingType == BlessingData.BlessingType.XXX) return 3f;
-    /// 需要可叠加时可配合 BlessingManager.Instance.GetBlessingTypeCount(...) 计算倍率。
     /// </summary>
     private float GetBlessingEffectWeightMultiplier(BlessingData blessing)
     {
@@ -852,6 +861,12 @@ public class ShopManager : MonoBehaviour
     /// <summary>
     /// 统计本次商店（shopBlessings 已生成完毕）中 AlwaysRefresh 祝福的出现情况：
     /// 出现 → 出现次数 +1、未出现连击清零；未出现 → 未出现连击 +1。
+    /// 「出现」只认玩家真正能看到的槽位（index &lt; blessingCardCount）——
+    /// 锁定槽位虽然也填了真实祝福数据（供解锁后直接显示，避免重新生成），
+    /// 但玩家既看不到也买不到，若计入「出现」会把该祝福的连击悄悄清零，
+    /// 导致保底永远攒不起来（这正是「某个祝福怎么都抽不到」的主因之一）。
+    /// 「未出现」不计入已被排除出本回合刷新池的祝福（祸星）：它每回合只有
+    /// 刚进商店那一次抽取机会，之后刷新本就不该出现，不能算作"又错过一次"。
     /// </summary>
     private void UpdateAlwaysRefreshAppearanceTracking()
     {
@@ -860,12 +875,18 @@ public class ShopManager : MonoBehaviour
         List<BlessingData> allBlessings = blessingLibrary.GetAllBlessings();
         if (allBlessings == null || allBlessings.Count == 0) return;
 
-        // 本次商店展示出的祝福 ID（含许愿币 / 暗箱操作强制放入的祝福）
+        // 本次商店玩家可见的祝福 ID（含许愿币 / 暗箱操作强制放入的祝福）
         HashSet<int> displayedIds = new HashSet<int>();
         if (shopBlessings != null)
         {
-            foreach (var item in shopBlessings)
+            // blessingCardCount <= 0 属异常状态（InitializeShop 会置 2），此时不裁剪，保持旧行为
+            int visibleSlots = blessingCardCount > 0
+                ? Mathf.Min(shopBlessings.Count, blessingCardCount)
+                : shopBlessings.Count;
+
+            for (int i = 0; i < visibleSlots; i++)
             {
+                var item = shopBlessings[i];
                 if (item != null && item.cardData != null)
                     displayedIds.Add(item.cardData.blessingId);
             }
@@ -885,10 +906,57 @@ public class ShopManager : MonoBehaviour
             }
             else
             {
+                // 已被排除出本回合刷新池（祸星：只在本回合首次生成时可能出现）→ 未出现不累计。
+                // 否则一次进商店 + N 次刷新会给它凭空累出 N 次"未出现"，权重失真。
+                if (blessingsExcludedFromRefresh != null && blessingsExcludedFromRefresh.Contains(id))
+                    continue;
+
                 alwaysRefreshMissStreak.TryGetValue(id, out int streak);
                 alwaysRefreshMissStreak[id] = streak + 1;
             }
         }
+
+        alwaysRefreshShopGeneration++;
+
+        if (logAlwaysRefreshTracking)
+            LogAlwaysRefreshTrackingSummary(displayedIds);
+    }
+
+    /// <summary>
+    /// 生成商店祝福后的权重摘要日志（仅 logAlwaysRefreshTracking 勾选时输出）。
+    /// 用途：直接确认「每回合进入商店是否真的在更新连击」。
+    /// </summary>
+    private void LogAlwaysRefreshTrackingSummary(HashSet<int> displayedIds)
+    {
+        List<BlessingData> tracked = new List<BlessingData>();
+        foreach (var b in blessingLibrary.GetAllBlessings())
+        {
+            if (IsAlwaysRefreshWeightTracked(b))
+                tracked.Add(b);
+        }
+
+        if (tracked.Count == 0) return;
+
+        int boosted = 0;
+        float maxWeight = 1f;
+        BlessingData top = null;
+        for (int i = 0; i < tracked.Count; i++)
+        {
+            float w = GetBlessingDrawWeight(tracked[i]);
+            if (w > 1f + 1e-4f) boosted++;
+            if (w > maxWeight)
+            {
+                maxWeight = w;
+                top = tracked[i];
+            }
+        }
+
+        string topInfo = top != null
+            ? $"最高={top.blessingName} 权重{maxWeight:F2} 连续未出现{GetAlwaysRefreshMissStreak(top.blessingId)}次"
+            : "全部处于基础权重";
+
+        Debug.Log($"[祝福权重] 第{alwaysRefreshShopGeneration}次生成商店 | 可见祝福槽位{(displayedIds != null ? displayedIds.Count : 0)}/{blessingCardCount} | " +
+                  $"AlwaysRefresh {tracked.Count} 个，已加权 {boosted} 个 | {topInfo}");
     }
 
     /// <summary>
@@ -1728,6 +1796,194 @@ public class ShopManager : MonoBehaviour
         }
         return 50000;
     }
+    #endregion
+
+    #region 局内存档（RunSave）
+
+    /// <summary>捕获商店状态：本次刷新出的商品（含价格与售出标记）、计数器与保底权重统计。
+    /// 由 RunSaveManager 编排调用。</summary>
+    public void CaptureToSave(RunSaveData d)
+    {
+        d.refreshCount = refreshCount;
+        d.shopRefreshCount = shopRefreshCount;
+        d.totalRemovedNumberCards = totalRemovedNumberCards;
+        d.totalRemovedFormulaCards = totalRemovedFormulaCards;
+        d.numberCardCount = numberCardCount;
+        d.formulaCardCount = formulaCardCount;
+        d.blessingCardCount = blessingCardCount;
+        d.numberSlotUnlockTimes = numberSlotUnlockTimes;
+        d.formulaSlotUnlockTimes = formulaSlotUnlockTimes;
+        d.blessingSlotUnlockTimes = blessingSlotUnlockTimes;
+
+        d.shopNumberCards.Clear();
+        foreach (var item in shopNumberCards)
+        {
+            SavedShopNumberItem s = new SavedShopNumberItem();
+            if (item != null && item.cardData != null && item.cardData.cardData != null)
+            {
+                s.card = item.cardData.cardData.name;
+                s.valueA = item.cardData.currentA;
+                s.valueB = item.cardData.currentB;
+                s.diceSidesA = item.cardData.currentDiceSidesA;
+                s.diceSidesB = item.cardData.currentDiceSidesB;
+            }
+            else
+            {
+                s.card = "";
+            }
+            s.price = item != null ? item.price.ToString() : "0";
+            s.sold = item != null && item.sold;
+            d.shopNumberCards.Add(s);
+        }
+
+        d.shopFormulaCards.Clear();
+        foreach (var item in shopFormulaCards)
+        {
+            SavedShopFormulaItem s = new SavedShopFormulaItem();
+            s.card = item != null && item.cardData != null ? item.cardData.name : "";
+            s.price = item != null ? item.price.ToString() : "0";
+            s.sold = item != null && item.sold;
+            d.shopFormulaCards.Add(s);
+        }
+
+        d.shopBlessings.Clear();
+        foreach (var item in shopBlessings)
+        {
+            SavedShopBlessingItem s = new SavedShopBlessingItem();
+            s.blessingId = item != null && item.cardData != null ? item.cardData.blessingId : 0;
+            s.price = item != null ? item.price.ToString() : "0";
+            s.sold = item != null && item.sold;
+            d.shopBlessings.Add(s);
+        }
+
+        // AlwaysRefresh 保底权重统计
+        d.alwaysRefreshMissStreak.Clear();
+        foreach (var kvp in alwaysRefreshMissStreak)
+            d.alwaysRefreshMissStreak.Add(new SavedIntPair(kvp.Key, kvp.Value));
+
+        d.alwaysRefreshAppearanceCount.Clear();
+        foreach (var kvp in alwaysRefreshAppearanceCount)
+            d.alwaysRefreshAppearanceCount.Add(new SavedIntPair(kvp.Key, kvp.Value));
+
+        d.currentRoundPurchasedBlessings.Clear();
+        d.currentRoundPurchasedBlessings.AddRange(currentRoundPurchasedBlessings);
+
+        d.blessingsExcludedFromRefresh.Clear();
+        d.blessingsExcludedFromRefresh.AddRange(blessingsExcludedFromRefresh);
+    }
+
+    /// <summary>
+    /// 从存档恢复商店状态：直接填充商品列表（不重新抽卡！），
+    /// 保证"商店界面退出 → 保留该次刷新出来的商品"。
+    /// 失败返回 false。
+    /// </summary>
+    public bool RestoreFromSave(RunSaveData d)
+    {
+        refreshCount = d.refreshCount;
+        shopRefreshCount = d.shopRefreshCount;
+        totalRemovedNumberCards = d.totalRemovedNumberCards;
+        totalRemovedFormulaCards = d.totalRemovedFormulaCards;
+        numberCardCount = d.numberCardCount;
+        formulaCardCount = d.formulaCardCount;
+        blessingCardCount = d.blessingCardCount;
+        numberSlotUnlockTimes = d.numberSlotUnlockTimes;
+        formulaSlotUnlockTimes = d.formulaSlotUnlockTimes;
+        blessingSlotUnlockTimes = d.blessingSlotUnlockTimes;
+
+        isDeletionMode = false;
+
+        // —— 数字卡商品（含实例动态数值与售出标记）——
+        shopNumberCards.Clear();
+        foreach (SavedShopNumberItem s in d.shopNumberCards)
+        {
+            if (string.IsNullOrEmpty(s.card))
+            {
+                shopNumberCards.Add(new ShopItem<NumberCardInstance>(null, 0));
+                continue;
+            }
+
+            NumberCardData data = RunSaveManager.FindNumberCardData(s.card);
+            if (data == null)
+            {
+                Debug.LogError($"[RunSave] 商店数字卡资产不存在：{s.card}");
+                return false;
+            }
+
+            data.layoutType = InferLayoutType(data);
+            NumberCardInstance instance = new NumberCardInstance(data);
+            instance.currentA = s.valueA;
+            instance.currentB = s.valueB;
+            instance.currentDiceSidesA = s.diceSidesA;
+            instance.currentDiceSidesB = s.diceSidesB;
+
+            ShopItem<NumberCardInstance> item = new ShopItem<NumberCardInstance>(instance, 0);
+            item.price = SavingData.StringToBigInteger(s.price);
+            item.sold = s.sold;
+            shopNumberCards.Add(item);
+        }
+
+        // —— 填空卡商品 ——
+        shopFormulaCards.Clear();
+        foreach (SavedShopFormulaItem s in d.shopFormulaCards)
+        {
+            if (string.IsNullOrEmpty(s.card))
+            {
+                shopFormulaCards.Add(new ShopItem<FormulaCardData>(null, 0));
+                continue;
+            }
+
+            FormulaCardData data = RunSaveManager.FindFormulaCardData(s.card);
+            if (data == null)
+            {
+                Debug.LogError($"[RunSave] 商店填空卡资产不存在：{s.card}");
+                return false;
+            }
+
+            ShopItem<FormulaCardData> item = new ShopItem<FormulaCardData>(data, SavingData.StringToBigInteger(s.price));
+            item.sold = s.sold;
+            shopFormulaCards.Add(item);
+        }
+
+        // —— 祝福商品 ——
+        shopBlessings.Clear();
+        foreach (SavedShopBlessingItem s in d.shopBlessings)
+        {
+            if (s.blessingId == 0)
+            {
+                shopBlessings.Add(new ShopItem<BlessingData>(null, 0));
+                continue;
+            }
+
+            BlessingData data = RunSaveManager.FindBlessingData(s.blessingId);
+            if (data == null)
+            {
+                Debug.LogError($"[RunSave] 商店祝福 id 不存在：{s.blessingId}");
+                return false;
+            }
+
+            ShopItem<BlessingData> item = new ShopItem<BlessingData>(data, SavingData.StringToBigInteger(s.price));
+            item.sold = s.sold;
+            shopBlessings.Add(item);
+        }
+
+        // —— AlwaysRefresh 保底权重统计（跨回合累积，不能清零）——
+        alwaysRefreshMissStreak.Clear();
+        foreach (var pair in d.alwaysRefreshMissStreak)
+            alwaysRefreshMissStreak[pair.k] = pair.v;
+
+        alwaysRefreshAppearanceCount.Clear();
+        foreach (var pair in d.alwaysRefreshAppearanceCount)
+            alwaysRefreshAppearanceCount[pair.k] = pair.v;
+
+        currentRoundPurchasedBlessings = new HashSet<int>(d.currentRoundPurchasedBlessings);
+        blessingsExcludedFromRefresh = new HashSet<int>(d.blessingsExcludedFromRefresh);
+
+        // 删卡/刷新费用显示
+        InitializeDeletionUI();
+        InitializeRefreshCost();
+        return true;
+    }
+
     #endregion
 
     #region 商店开关和难度设置

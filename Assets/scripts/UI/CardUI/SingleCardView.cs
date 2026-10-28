@@ -16,11 +16,8 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
     [Tooltip("是否为骰子时显示图标")]
     public bool showDiceIcon = true;
 
-    [Header("颜色配置")]
-    public Color incrementalColor = Color.green;   // 递增数字：绿色
-    public Color diceColor = Color.red;            // 骰子数字：红色
-    public Color normalColor = Color.black;        // 普通数字：黑色
-    public Color goldenColor = Color.yellow;       // 黄金数字：金色（全工程统一色）
+    // 说明：数字颜色统一由 NumberCardColors（Assets/Resources/NumberCardColorPalette.asset）决定，
+    // 本视图不再保留任何颜色字段，避免出现多个控制点。
 
     // 缓存绑定的实例，用于精准刷新UI
     public NumberCardInstance boundInstance;
@@ -45,7 +42,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
 
         CacheValueTextScale();
         valueText.text = FormatValue(data.partA.value);
-        valueText.color = data.partA.isGolden ? goldenColor : normalColor;
+        valueText.color = NumberCardColors.GetStaticNumberTextColor(data.partA);
 
         // 隐藏静态数据绑定时的图标
         if (diceIcon != null)
@@ -80,7 +77,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
                 // 结算时：显示投出的具体数值（骰子结果恒为正，格式化无副作用）
                 valueText.text = FormatValue(currentValue);
             }
-            valueText.color = component.isGolden ? goldenColor : diceColor;
+            valueText.color = NumberCardColors.GetNumberTextColor(component);
 
             // 显示骰子图标
             if (showDiceIcon && DiceIconManager.Instance != null)
@@ -92,7 +89,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
         {
             // 递增显示：{当前值} (绿色)
             valueText.text = FormatValue(currentValue);
-            valueText.color = component.isGolden ? goldenColor : incrementalColor;
+            valueText.color = NumberCardColors.GetNumberTextColor(component);
 
             // 隐藏非骰子的图标
             if (diceIcon != null)
@@ -104,7 +101,7 @@ public class SingleNumberView : MonoBehaviour, NumberCardLayoutView
         {
             // 普通显示：数值 (黑色)
             valueText.text = FormatValue(currentValue);
-            valueText.color = component.isGolden ? goldenColor : normalColor;
+            valueText.color = NumberCardColors.GetNumberTextColor(component);
 
             // 隐藏非骰子的图标
             if (diceIcon != null)

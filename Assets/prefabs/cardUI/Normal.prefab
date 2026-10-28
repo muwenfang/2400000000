@@ -138,9 +138,6 @@ MonoBehaviour:
   IsInShop: 0
   diceIcon: {fileID: 7189727824016252076}
   showDiceIcon: 1
-  incrementalColor: {r: 0, g: 1, b: 0, a: 1}
-  diceColor: {r: 1, g: 0, b: 0, a: 1}
-  normalColor: {r: 0, g: 0, b: 0, a: 1}
   pointsText: {fileID: 0}
 --- !u!114 &4284649909186897082
 MonoBehaviour:

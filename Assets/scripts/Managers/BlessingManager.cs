@@ -214,6 +214,229 @@ public class BlessingManager : MonoBehaviour
 
     }
 
+    #region 局内存档（RunSave）
+
+    /// <summary>捕获祝福系统全部状态（由 RunSaveManager 编排调用）。
+    /// 关键：totalMultiplierBonus、各累积计数、待生效次数等无法由祝福列表重新推导，
+    /// 必须逐字段保存；ownedBlessings 按获得顺序保存。</summary>
+    public void CaptureToSave(RunSaveData d)
+    {
+        d.ownedBlessings.Clear();
+        foreach (var instance in ownedBlessingInstance)
+        {
+            if (instance != null && instance.data != null)
+                d.ownedBlessings.Add(new SavedIntPair(instance.data.blessingId, instance.purchaseCount));
+        }
+
+        d.blessingsEverPurchased.Clear();
+        d.blessingsEverPurchased.AddRange(blessingsEverPurchased);
+
+        d.totalMultiplierBonus = totalMultiplierBonus;
+
+        d.idealismDiceResults.Clear();
+        foreach (var kvp in idealismDiceResults)
+            d.idealismDiceResults.Add(new SavedIntPair(kvp.Key, kvp.Value));
+
+        d.delayRecords.Clear();
+        foreach (var r in delaySatisfactionList)
+            d.delayRecords.Add(new SavedDelayRecord { remainTurn = r.remainTurn, rewardMul = r.rewardMul });
+
+        d.ruminationRecords.Clear();
+        foreach (var r in ruminationList)
+            d.ruminationRecords.Add(new SavedRuminationRecord { remainTurn = r.remainTurn, recordedPoints = r.recordedPoints.ToString() });
+
+        // 启明星锁定卡（库存索引）
+        d.morningStarTargets.Clear();
+        var inventory = PlayerCardInventory.Instance != null ? PlayerCardInventory.Instance.numberCards : null;
+        foreach (var card in morningStarTargetCards)
+            d.morningStarTargets.Add(inventory != null && card != null ? inventory.IndexOf(card) : -1);
+
+        d.wishCoinTargetBlessingId = wishCoinTargetBlessing != null ? wishCoinTargetBlessing.blessingId : 0;
+        d.darkBoxTargetBlessingId = darkBoxTargetBlessing != null ? darkBoxTargetBlessing.blessingId : 0;
+        d.lastObtainedStackableBlessingId = lastObtainedStackableBlessing != null ? lastObtainedStackableBlessing.blessingId : 0;
+
+        // —— 逐字段保存累积效果数值 ——
+        d.totalDialecticalCount = totalDialecticalCount;
+        d.allGodsCount = AllGodsCount;
+        d.luckTurnsCount = LuckTurnsCount;
+        d.cardMasterCount = CardMasterCount;
+        d.hasRichTreasure = HasRichTreasure;
+        d.wishCoinPurchaseCount = wishCoinPurchaseCount;
+        d.nihilismCount = nihilismCount;
+        d.darkBoxPurchaseCount = darkBoxPurchaseCount;
+        d.pureVesselPendingCharges = pureVesselPendingCharges;
+        d.hasLeadingCharge = hasLeadingCharge;
+        d.hasGambleToWin = hasGambleToWin;
+        d.hasEnergySpread = hasEnergySpread;
+        d.hasRisingUp = hasRisingUp;
+        d.hasTemperlance = hasTemperlance;
+        d.hasIdealism = hasIdealism;
+        d.dialecticalPricePercent = dialecticalPricePercent;
+        d.applyPragmatism = ApplyPragmatism;
+        d.hasGodOfGambler = hasGodOfGambler;
+        d.globalPriceDiscountPercent = globalPriceDiscountPercent;
+        d.blessDiscountPerBlessing = blessDiscountPerBlessing;
+        d.shortSightCount = shortSightCount;
+        d.reverse = reverse;
+        d.hasYinYang = hasYinYang;
+        d.hasFall = hasFall;
+        d.hasUnstoppable = hasUnstoppable;
+        d.hasLoanWallet = hasLoanWallet;
+        d.loanPoints = loan.ToString();
+        d.minimalismMultiplier = minimalismMultiplier;
+        d.minimalismCount = minimalismCount;
+        d.pragmatismDeleteCount = pragmatismDeleteCount;
+        d.dayAfterDayCount = dayAfterDayCount;
+        d.hasHastyAppreciation = hasHastyAppreciation;
+        d.hastyAppreciationBonus = hastyAppreciationBonus;
+        d.bigSuccessCount = bigSuccessCount;
+        d.hasJustice = hasJustice;
+        d.luckyStarCount = luckyStarCount;
+        d.fortuneStarCount = fortuneStarCount;
+        d.meteorCount = meteor;
+        d.meteorPendingCharges = meteorPendingCharges;
+        d.wealthStarCount = wealthStarCount;
+        d.wealthStarPendingCharges = wealthStarPendingCharges;
+        d.disasterStarCount = disasterStarCount;
+        d.morningsStarCount = morningsStarCount;
+        d.compassionStarCount = compassionStarCount;
+        d.bigSevenStarCount = bigSevenStarCount;
+        d.hasFinancialExpert = hasFinancialExpert;
+        d.hasCasinoCommissioner = hasCasinoCommissioner;
+        d.luxuriant = luxuriant;
+        d.sellOff = sellOff;
+        d.hasAddictedtoGambling = hasAddictedtoGambling;
+        d.hasLovingWealth = hasLovingWealth;
+        d.spiritGodRealm = SpiritGodRealm;
+        d.hasKingOfTheBoard = hasKingOfTheBoard;
+        d.kingBoardGain = kingBoardGain.ToString();
+        d.antimatterNucleus = AntimatterNucleus;
+        d.colorful = Colorful;
+        d.antimatterCloud = AntimatterCloud;
+        d.hasRumination = hasRumination;
+        d.risingUpStepbyStep = RisingUpStepbyStep;
+        d.risingUpStepbyStepBonus = risingUpStepbyStepBonus;
+        d.eightWaysToWealth = EightWaysToWealth;
+    }
+
+    /// <summary>从存档恢复祝福系统。失败返回 false。</summary>
+    public bool RestoreFromSave(RunSaveData d)
+    {
+        // 先整体重置到干净状态（等价 InitializeBlessingSystem，但不走它的清空之后又重建）
+        InitializeBlessingSystem();
+
+        // 拥有的祝福（按保存顺序重建 ownedBlessings / ownedBlessingInstance）
+        foreach (SavedIntPair pair in d.ownedBlessings)
+        {
+            BlessingData data = RunSaveManager.FindBlessingData(pair.k);
+            if (data == null)
+            {
+                Debug.LogError($"[RunSave] 祝福 id 不存在：{pair.k}");
+                return false;
+            }
+            ownedBlessings[data.blessingId] = pair.v;
+            ownedBlessingInstance.Add(new BlessingInstance(data, pair.v));
+
+            blessingTypeCount.TryGetValue(data.blessingType, out int typeCount);
+            blessingTypeCount[data.blessingType] = typeCount + pair.v;
+        }
+
+        blessingsEverPurchased = new HashSet<int>(d.blessingsEverPurchased);
+
+        totalMultiplierBonus = d.totalMultiplierBonus;
+
+        idealismDiceResults.Clear();
+        foreach (var pair in d.idealismDiceResults)
+            idealismDiceResults[pair.k] = pair.v;
+
+        delaySatisfactionList.Clear();
+        foreach (var r in d.delayRecords)
+            delaySatisfactionList.Add(new DelayRecord { remainTurn = r.remainTurn, rewardMul = r.rewardMul });
+
+        ruminationList.Clear();
+        foreach (var r in d.ruminationRecords)
+            ruminationList.Add(new RuminationRecord { remainTurn = r.remainTurn, recordedPoints = SavingData.StringToBigInteger(r.recordedPoints) });
+
+        morningStarTargetCards.Clear();
+        var inventory = PlayerCardInventory.Instance != null ? PlayerCardInventory.Instance.numberCards : null;
+        foreach (int idx in d.morningStarTargets)
+        {
+            if (idx >= 0 && inventory != null && idx < inventory.Count)
+                morningStarTargetCards.Add(inventory[idx]);
+        }
+
+        wishCoinTargetBlessing = d.wishCoinTargetBlessingId > 0 ? RunSaveManager.FindBlessingData(d.wishCoinTargetBlessingId) : null;
+        darkBoxTargetBlessing = d.darkBoxTargetBlessingId > 0 ? RunSaveManager.FindBlessingData(d.darkBoxTargetBlessingId) : null;
+        lastObtainedStackableBlessing = d.lastObtainedStackableBlessingId > 0 ? RunSaveManager.FindBlessingData(d.lastObtainedStackableBlessingId) : null;
+
+        // —— 逐字段恢复累积效果数值 ——
+        totalDialecticalCount = d.totalDialecticalCount;
+        AllGodsCount = d.allGodsCount;
+        LuckTurnsCount = d.luckTurnsCount;
+        CardMasterCount = d.cardMasterCount;
+        HasRichTreasure = d.hasRichTreasure;
+        wishCoinPurchaseCount = d.wishCoinPurchaseCount;
+        nihilismCount = d.nihilismCount;
+        darkBoxPurchaseCount = d.darkBoxPurchaseCount;
+        pureVesselPendingCharges = d.pureVesselPendingCharges;
+        hasLeadingCharge = d.hasLeadingCharge;
+        hasGambleToWin = d.hasGambleToWin;
+        hasEnergySpread = d.hasEnergySpread;
+        hasRisingUp = d.hasRisingUp;
+        hasTemperlance = d.hasTemperlance;
+        hasIdealism = d.hasIdealism;
+        dialecticalPricePercent = d.dialecticalPricePercent;
+        ApplyPragmatism = d.applyPragmatism;
+        hasGodOfGambler = d.hasGodOfGambler;
+        globalPriceDiscountPercent = d.globalPriceDiscountPercent;
+        blessDiscountPerBlessing = d.blessDiscountPerBlessing;
+        shortSightCount = d.shortSightCount;
+        reverse = d.reverse;
+        hasYinYang = d.hasYinYang;
+        hasFall = d.hasFall;
+        hasUnstoppable = d.hasUnstoppable;
+        hasLoanWallet = d.hasLoanWallet;
+        loan = SavingData.StringToBigInteger(d.loanPoints);
+        minimalismMultiplier = d.minimalismMultiplier;
+        minimalismCount = d.minimalismCount;
+        pragmatismDeleteCount = d.pragmatismDeleteCount;
+        dayAfterDayCount = d.dayAfterDayCount;
+        hasHastyAppreciation = d.hasHastyAppreciation;
+        hastyAppreciationBonus = d.hastyAppreciationBonus;
+        bigSuccessCount = d.bigSuccessCount;
+        hasJustice = d.hasJustice;
+        luckyStarCount = d.luckyStarCount;
+        fortuneStarCount = d.fortuneStarCount;
+        meteor = d.meteorCount;
+        meteorPendingCharges = d.meteorPendingCharges;
+        wealthStarCount = d.wealthStarCount;
+        wealthStarPendingCharges = d.wealthStarPendingCharges;
+        disasterStarCount = d.disasterStarCount;
+        morningsStarCount = d.morningsStarCount;
+        compassionStarCount = d.compassionStarCount;
+        bigSevenStarCount = d.bigSevenStarCount;
+        hasFinancialExpert = d.hasFinancialExpert;
+        hasCasinoCommissioner = d.hasCasinoCommissioner;
+        luxuriant = d.luxuriant;
+        sellOff = d.sellOff;
+        hasAddictedtoGambling = d.hasAddictedtoGambling;
+        hasLovingWealth = d.hasLovingWealth;
+        SpiritGodRealm = d.spiritGodRealm;
+        hasKingOfTheBoard = d.hasKingOfTheBoard;
+        kingBoardGain = SavingData.StringToBigInteger(d.kingBoardGain);
+        AntimatterNucleus = d.antimatterNucleus;
+        Colorful = d.colorful;
+        AntimatterCloud = d.antimatterCloud;
+        hasRumination = d.hasRumination;
+        RisingUpStepbyStep = d.risingUpStepbyStep;
+        risingUpStepbyStepBonus = d.risingUpStepbyStepBonus;
+        EightWaysToWealth = d.eightWaysToWealth;
+
+        return true;
+    }
+
+    #endregion
+
     /// <summary>
     /// 购买祝福
     /// </summary>

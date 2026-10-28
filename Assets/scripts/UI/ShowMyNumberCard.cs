@@ -47,11 +47,8 @@ public class ShowMyNumberCard : MonoBehaviour
     public GameObject deletionCostPanel;
     public BigInteger deletionCost = 10;
 
-    [Header("颜色配置")]
-    public Color incrementalColor = Color.green;   // 递增数字：绿色
-    public Color diceColor = Color.red; // 骰子数字：红色
-    public Color normalColor = Color.black;        // 普通数字：黑色
-    public Color goldenColor = Color.yellow;       // 黄金数字：金色（全工程统一色）
+    // 说明：数字卡颜色统一由 NumberCardColors（Assets/Resources/NumberCardColorPalette.asset）决定。
+    // 本面板不直接给数字上色（卡牌由 prefab 上的视图按统一取色渲染），故不保留颜色字段。
 
     private void OnEnable()
     {
