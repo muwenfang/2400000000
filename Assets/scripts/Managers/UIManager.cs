@@ -44,7 +44,6 @@ public class UIManager : MonoBehaviour
     public GameObject myFormulaCardPanel;// 公式卡
     public GameObject myBlessPanel;// 祝福
     public GameObject PlayerDataPanel;// 玩家数据面板
-    public Image LockPanel; // 锁定界面
     public GameObject targetPointPanel; // 目标点数界面
     public GameObject settingPanel; // 设置界面
     public GameObject confirmationPanel;// 确认界面
@@ -148,15 +147,7 @@ public class UIManager : MonoBehaviour
                 myCardButton.transform.SetAsLastSibling();
             }
         }
-        if(panelToShow == startMenuPanel )
-        {
-            int accomplishTimes = dataSavingManager.GetAccomplishTimes();
-            if (accomplishTimes > 0)
-            {
-                LockPanel.gameObject.SetActive(false);
-            }
-        }
-
+        
     }
     public void HideAllPanel()
     {

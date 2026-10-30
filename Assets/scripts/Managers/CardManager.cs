@@ -119,7 +119,7 @@ public class CardManager : MonoBehaviour
             }
         }
 
-        // 槽位：先按公式需求建立 null 占位，再按保存的槽位→手牌索引填入
+        // 槽位：先按公式需求建立 null 占位。
         selectedNumberCards.Clear();
         int required = currentFormulaCard != null ? currentFormulaCard.RequiredCount : d.selectedSlotHandIndices.Count;
         for (int i = 0; i < required; i++)
@@ -127,16 +127,23 @@ public class CardManager : MonoBehaviour
             selectedNumberCards.Add(null);
         }
 
-        for (int i = 0; i < d.selectedSlotHandIndices.Count && i < selectedNumberCards.Count; i++)
+        // 未结算的存档（sceneState=0/1）不还原槽位：
+        // 本回合抽到的全部数字卡一律退回手牌区，公式槽位保持为空，由玩家重进后自行摆放。
+        // 只有 sceneState=2（点击结算后、动画期间退出，按"已结算"处理）才还原槽位——
+        // 补完结算必须使用当时填入公式的那几张卡，否则得分会变。
+        if (d.sceneState == 2)
         {
-            int handIdx = d.selectedSlotHandIndices[i];
-            if (handIdx < 0) continue;
-            if (handIdx >= currentNumberCards.Count)
+            for (int i = 0; i < d.selectedSlotHandIndices.Count && i < selectedNumberCards.Count; i++)
             {
-                Debug.LogError($"[RunSave] 槽位 {i} 引用的手牌索引越界：{handIdx}");
-                return false;
+                int handIdx = d.selectedSlotHandIndices[i];
+                if (handIdx < 0) continue;
+                if (handIdx >= currentNumberCards.Count)
+                {
+                    Debug.LogError($"[RunSave] 槽位 {i} 引用的手牌索引越界：{handIdx}");
+                    return false;
+                }
+                selectedNumberCards[i] = currentNumberCards[handIdx];
             }
-            selectedNumberCards[i] = currentNumberCards[handIdx];
         }
 
         filledNumber = 0;

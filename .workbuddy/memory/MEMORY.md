@@ -42,6 +42,18 @@
 - 恢复：各管理器 CaptureToSave/RestoreFromSave；商店恢复直接填列表（hc_check 守卫禁止重新抽卡）；库存恢复实例 currentA/currentB/骰子面数；祝福逐字段恢复累积值（totalMultiplierBonus 等不可重推导）+ blessingTypeCount/ownedBlessingInstance 重建。
 - 防作弊：XOR+Base64 混淆 + SHA256(json+密钥) 校验 + 点数异或掩码冗余 + 不变量验证（版本/回合范围/资产存在/祝福 id/槽位引用/点数副本）。离线无法绝对防作弊，目标是拦"直接改档"。
 - 主菜单"继续游戏"按钮（用户 Inspector 绑定）：`GameManager.ContinueRun()` / `HasContinueSave()`。FormulaCardUI.Slots 暴露槽位供视觉恢复（RunSaveManager.RestorePlacedCardsVisual）。
+- **资产解析必须三源合并**（2026-10-29 修复）：卡库只是商店抽卡池，起始牌组 6 张（`Assets/prefabs/Library/2,3,4,5,{0},~6~.asset`）与初始公式卡 `StarterCards/InitialFormula.asset` 均不在 NumberCardLibrary/FormulaCardLibrary 里。`RunSaveManager.GetNumberCardIndex/GetFormulaCardIndex` = 卡库 ∪ `CardManager.starterNumberCards/starterFormulaCards` ∪ `Resources.FindObjectsOfTypeAll<T>()`，按 SO.name 建缓存（保存时 InvalidateAssetIndex 重建）。**任何时候按名字查卡都不许只扫卡库**。
+- 校验三个历史误杀点：① 槽位列表要求恰好等于 RequiredCount（实际未放牌时为空列表）→ 改为"≤RequiredCount"，仅 sceneState=2 才强制填满；② 商店价格用 `long.TryParse`（祝福价是 BigInteger）→ 改 BigInteger 解析 `IsNonNegativeIntegerString`；③ ApplyRun 失败直接 ClearSave → 改为保留文件（校验已拦篡改，删档会连带销毁玩家进度）。
+- 恢复顺序：先切面板（ChangeState / ShowPanel）再 RestoreTurnUI 重建手牌，避免布局组在未激活面板下算错尺寸；sceneState=2 不走 ChangeState，需显式 ShowPanel(gameUIPanel)。
+- **未结算恢复一律退回手牌**（2026-10-29 定案）：`CardManager.RestoreFromSave` 只有 `d.sceneState == 2` 才按 `selectedSlotHandIndices` 还原槽位；sceneState=0/1 槽位全空，本回合抽到的所有数字卡重新在手牌区生成。`GameManager.RestoreTurnUI(bool restoreSlotPlacements=false)` 只在 true 时调 `RestorePlacedCardsVisual()`。历史缺陷：早期无条件还原槽位，把已摆放的卡从手牌区移走，重进只剩没摆的那几张。
+
+## 结算时序（2026-10-29 重构，务必保持）
+- 结算拆两层：`ComputeSettlementScore`（确定性数值，含财星/反刍/反物质云等一次性效果）+ `AddSettlementPoints`（坠落/正义修正 + AddPoints）+ `FinishSettlementAfterPoints`（隐藏气泡/鬼神境/`EndTurn` → OpenShop → 写档）。三者分别由 `settlementComputed / settlementPointsApplied / settlementFinished` 保护，**必须幂等**：退出补算与动画协程共用同一套逻辑。
+- 骰子定格统一入口 `SettleDiceAndLastRoundMax`（`settlementDiceSettled` 保护），内部抓结算检查点；重复调用会二次投骰/二次递增，禁止绕过。
+- 结算协程句柄存 `activeSettlementCoroutine`；协程每个等待点后必须有 `if (settlementAborted) yield break;`（StopCoroutine 只停外层，嵌套协程靠这个标记停手）。
+- 退出（`ReturnStartMenu` / `OnApplicationQuit`）若处于 Calculation → `FinishSettlementOnExit()`：置 abort + 停协程 + 当场补完结算 → 进商店 → `RunSaveManager.SaveSettledRun()`（sceneState=1）。继续游戏走商店恢复分支，商品/价格原样，**不重抽**。
+- `FinishSettlementAfterPoints` 里结算完成即落盘（每个结算点=自动存档点），且仅在 `currentState == GameState.Shop` 时写；胜负路径 `WinGame` 已 ClearSave，不能复活存档。
+- 历史缺陷：`ReturnStartMenu` 只切面板不停协程 → 动画跑完后 `OpenShop` + `ChangeState(Shop)` 把"新抽的商店"盖在主菜单上。
 
 ## 已知数据瑕疵（未改，待确认）
 - 123/124 卡名都是 0^$50$（124 黄金实为 100）；118/120 都是 10$5$（120 底数实为 100）。

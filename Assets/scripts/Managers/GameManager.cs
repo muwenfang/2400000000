@@ -68,6 +68,20 @@ public class GameManager : MonoBehaviour
         get { return Instance != null && Instance.skipSettlementAnimation; }
     }
 
+    // ===================== 结算状态机 =====================
+    // 目的：把"算分/加分/进商店"从动画协程里解耦出来，使"点击结算后退出"能够
+    // 当场跳出动画、同步完成结算并落盘。各标记保证每一步只执行一次（幂等），
+    // 因此正常协程与退出补算可以安全地共用同一套确定性逻辑。
+    private Coroutine activeSettlementCoroutine;  // 最外层结算协程（退出时停掉）
+    private bool settlementDiceSettled;           // 骰子/递增已定格（PrepareCardsForCalculation 已执行）
+    private bool settlementComputed;              // 得分已计算（含财星/反刍/反物质云等一次性效果）
+    private bool settlementPointsApplied;         // 得分已入账（坠落/正义修正 + AddPoints）
+    private bool settlementFinished;              // 结算收尾已完成（阶段判定/扣点/生成商店）
+    private bool settlementAborted;               // 结算被"退出"打断：所有结算协程必须立刻停手
+    private BigInteger settlementBaseScore;       // 本次结算基础分（缓存，供退出补算复用）
+    private long settlementTotalMultiplier;       // 本次结算总倍率（缓存）
+    private BigInteger settlementFinalScore;      // 本次结算最终得分（缓存）
+
     //阶段点数数据
     public List<BigInteger> stagePointRequirements = new List<BigInteger>()
     {
@@ -250,6 +264,8 @@ public class GameManager : MonoBehaviour
 
         // 新回合开始：上一回合的结算检查点已失效（此时要么已补完结算，要么按未结算处理）
         RunSaveManager.ClearSettlementCheckpoint();
+        // 新回合开始：清空上一回合的结算状态机（幂等标记必须归零）
+        ResetSettlementState();
 
         // 新回合开始：解除上一回合结算判定动画期间的手牌锁定
         if (UIManager.Instance != null)
@@ -329,13 +345,47 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.SetCardDragLocked(true);
         }
 
-        StartCoroutine(CalculateProcessSequence(formula));
+        ResetSettlementState();
+        activeSettlementCoroutine = StartCoroutine(CalculateProcessSequence(formula));
 
+    }
+
+    /// <summary>重置结算状态机（每次点击结算 / 新回合开始时调用）</summary>
+    private void ResetSettlementState()
+    {
+        activeSettlementCoroutine = null;
+        settlementDiceSettled = false;
+        settlementComputed = false;
+        settlementPointsApplied = false;
+        settlementFinished = false;
+        settlementAborted = false;
+        settlementBaseScore = BigInteger.Zero;
+        settlementTotalMultiplier = 0;
+        settlementFinalScore = BigInteger.Zero;
     }
     IEnumerator CalculateProcessSequence(CardManager formula)
     {
-        // 1. 投骰子和递增数据
-        //    并且获取本回合的最大数字卡,为经验主义祝福提供数据支持
+        // 1. 投骰子和递增数据（定格后立即抓结算检查点）
+        SettleDiceAndLastRoundMax(formula);
+        if (settlementAborted) yield break;
+
+        // 2. 刷新UI显示投掷和递增后的结果
+        yield return StartCoroutine(UIManager.Instance.RefreshSelectedCardsDisplay(formula.selectedNumberCards));
+        if (settlementAborted) yield break;
+
+        // 3. 显示逐卡得分并计算最终得分（确定性计算 + 表现动画）
+        yield return StartCoroutine(SettlementScoreSequence(formula, true));
+    }
+
+    /// <summary>
+    /// 骰子/递增定格 + 记录本回合最大卡（经验主义用）+ 抓结算检查点。
+    /// 幂等：退出补算时若协程已经执行过，不会二次投骰/二次递增。
+    /// </summary>
+    private void SettleDiceAndLastRoundMax(CardManager formula)
+    {
+        if (settlementDiceSettled) return;
+        settlementDiceSettled = true;
+
         lastRoundMaxCard = formula.PrepareCardsForCalculation();
 
         // 记录本局数字卡的最大值
@@ -350,39 +400,61 @@ public class GameManager : MonoBehaviour
         }
 
         // 存档检查点：骰子/递增/流星等结算判定已全部定格（点击结算时结果即已决定）。
-        // 此后任何时刻退出游戏或返回主菜单，都按"结算完成"处理，
-        // 继续游戏时无动画补完结算并进入商店——防止退出重投骰子或逃避负分结算。
+        // 此后任何时刻退出游戏或返回主菜单，都按"结算完成"处理。
         RunSaveManager.CaptureSettlementCheckpoint();
-
-        // 2. 刷新UI显示投掷和递增后的结果
-        yield return StartCoroutine(UIManager.Instance.RefreshSelectedCardsDisplay(formula.selectedNumberCards));
-
-        // 3. 显示逐卡得分并计算最终得分（确定性计算 + 表现动画）
-        yield return StartCoroutine(SettlementScoreSequence(formula, true));
     }
 
     /// <summary>
-    /// 结算的确定性部分：逐卡得分展示、最终得分计算与所有祝福结算、加分、进入商店。
+    /// 结算的表现层：逐卡得分展示 + 调用确定性计算 + 分步加分动画。
     /// playSettleAnimation=false 时跳过所有展示与等待（供"继续游戏"补完结算使用），
     /// 数值逻辑与正常结算完全一致。
     /// </summary>
     IEnumerator SettlementScoreSequence(CardManager formula, bool playSettleAnimation)
     {
-        // 先按槽位顺序显示每张卡本次实际结算出的点数
-        List<BigInteger> rawCardScores = FormulaCalculator.GetCardValuesForDisplay(formula.selectedNumberCards, false);
-        List<BigInteger> adjustedCardScores = FormulaCalculator.GetCardValuesForDisplay(formula.selectedNumberCards, true);
-
         if (playSettleAnimation)
         {
+            // 先按槽位顺序显示每张卡本次实际结算出的点数（纯表现，无副作用）
+            List<BigInteger> rawCardScores = FormulaCalculator.GetCardValuesForDisplay(formula.selectedNumberCards, false);
+            List<BigInteger> adjustedCardScores = FormulaCalculator.GetCardValuesForDisplay(formula.selectedNumberCards, true);
+
             yield return StartCoroutine(UIManager.Instance.ShowSelectedCardScoreSequence(
                 formula.selectedNumberCards,
                 rawCardScores,
                 adjustedCardScores,
                 cardScoreDisplayTime));
         }
+        if (settlementAborted) yield break;
+
+        // 确定性结算（幂等：退出补算可安全复用，不会二次消耗一次性祝福）
+        BigInteger baseScore;
+        long totalMultiplier;
+        BigInteger finalScore;
+        ComputeSettlementScore(formula, out baseScore, out totalMultiplier, out finalScore);
+        if (settlementAborted) yield break;
+
+        yield return StartCoroutine(ShowScoreStepByStep(baseScore, totalMultiplier, finalScore, playSettleAnimation));
+    }
+
+    /// <summary>
+    /// 结算的确定性数值部分（骰子已定格后的全部得分逻辑，含所有祝福结算）。
+    /// 幂等：由 settlementComputed 保护，重复调用（正常协程 + 退出补算）不会二次消耗
+    /// 财星 / 反刍 / 反物质云等一次性效果，得分恒定。
+    /// </summary>
+    private void ComputeSettlementScore(CardManager formula, out BigInteger baseScore, out long totalMultiplier, out BigInteger finalScore)
+    {
+        if (settlementComputed)
+        {
+            baseScore = settlementBaseScore;
+            totalMultiplier = settlementTotalMultiplier;
+            finalScore = settlementFinalScore;
+            return;
+        }
+
+        // 逐卡原始得分（反物质云判定用，纯读取）
+        List<BigInteger> rawCardScores = FormulaCalculator.GetCardValuesForDisplay(formula.selectedNumberCards, false);
 
         // 4. 计算结果
-        BigInteger baseScore = formula.CalculateResult();
+        baseScore = formula.CalculateResult();
         //打头阵：原始结算结果第一位强制变9 
         if (blessingManager != null && blessingManager.hasLeadingCharge)
         {
@@ -401,7 +473,7 @@ public class GameManager : MonoBehaviour
         // 计算基础倍率（根据公式卡数量）
         int baseMultiplier = PlayerCardInventory.Instance.GetFormulaCardCount();
         long blessingBonusMultiplier = GetCurrentMultiplier();
-        long totalMultiplier = baseMultiplier + blessingBonusMultiplier;
+        totalMultiplier = baseMultiplier + blessingBonusMultiplier;
         
         // 反物质云：每有一张判定结果为负数的数字卡，按永久倍率正负获得 -10 / +5 永久倍率
         if (blessingManager != null && blessingManager.GetBlessingTypeCount(BlessingData.BlessingType.AntimatterCloud) > 0)
@@ -446,7 +518,7 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.multiplierText.text = "×" + totalMultiplier.ToString();
 
         // 计算最终得分
-        BigInteger finalScore = baseScore * new BigInteger((decimal)totalMultiplier);
+        finalScore = baseScore * new BigInteger((decimal)totalMultiplier);
 
         // 逢七过效果
         if (blessingManager != null && blessingManager.CheckJackpot7Effect(baseScore))
@@ -514,12 +586,15 @@ public class GameManager : MonoBehaviour
             BlessingManager.Instance.RecordRumination(finalScore);
         }
 
-        // 启动原有分步显示协程
-        StartCoroutine(ShowScoreStepByStep(baseScore, totalMultiplier, finalScore, playSettleAnimation));
+        // 缓存结果并封口：后续任何调用（含退出补算）直接复用，不再重复结算
+        settlementBaseScore = baseScore;
+        settlementTotalMultiplier = totalMultiplier;
+        settlementFinalScore = finalScore;
+        settlementComputed = true;
     }
 
     /// <summary>
-    /// 分步显示得分的协程
+    /// 分步显示得分的协程（纯表现 + 两步幂等的数值落账）
     /// </summary>
     IEnumerator ShowScoreStepByStep(BigInteger baseScore, long multiplier, BigInteger finalScore, bool playSettleAnimation)
     {
@@ -534,6 +609,27 @@ public class GameManager : MonoBehaviour
 
         if (!skipAnimation)
             yield return new WaitForSeconds(roundScoreDisplayTime);
+        if (settlementAborted) yield break;
+
+        // 第2步：加入总分并显示（幂等）
+        AddSettlementPoints(finalScore);
+
+        if (!skipAnimation)
+            yield return new WaitForSeconds(totalScoreDisplayTime);
+        if (settlementAborted) yield break;
+
+        // 第3步：收尾（隐藏卡面分数 / 鬼神境 / 阶段判定 / 生成商店），幂等
+        FinishSettlementAfterPoints();
+    }
+
+    /// <summary>
+    /// 得分入账：坠落/绝对正义修正 + AddPoints。
+    /// 幂等——正常协程与退出补算只会真正入账一次。
+    /// </summary>
+    private void AddSettlementPoints(BigInteger finalScore)
+    {
+        if (settlementPointsApplied) return;
+        settlementPointsApplied = true;
 
         // 坠落祝福：计算结果为负数时翻5倍
         if (BlessingManager.Instance != null && BlessingManager.Instance.hasFall && finalScore < 0)
@@ -546,11 +642,17 @@ public class GameManager : MonoBehaviour
             finalScore = BigInteger.Abs(finalScore);
         }
 
-        // 第2步：加入总分并显示
         AddPoints(finalScore);
+    }
 
-        if (!skipAnimation)
-            yield return new WaitForSeconds(totalScoreDisplayTime);
+    /// <summary>
+    /// 得分之后的收尾：隐藏卡面分数、鬼神境、阶段判定/扣点/生成商店。
+    /// 幂等——退出补算与动画协程只会执行一次。
+    /// </summary>
+    private void FinishSettlementAfterPoints()
+    {
+        if (settlementFinished) return;
+        settlementFinished = true;
 
         UIManager.Instance.HideAllCardScoreOverlays();
 
@@ -560,8 +662,60 @@ public class GameManager : MonoBehaviour
             BlessingManager.Instance.ApplySpiritGodRealm();
         }
 
-        // 第3步：进入商店
+        // 进入商店（阶段判定、扣点、OpenShop 生成商品、切换到商店界面都在这里）
         EndTurn();
+
+        // 结算完成即落盘（每个结算点都是自动存档点）：
+        // 继续游戏时直接进入这同一次商店，商品/价格/已售标记原样保留。
+        if (currentState == GameState.Shop)
+        {
+            RunSaveManager.SaveSettledRun();
+        }
+    }
+
+    /// <summary>
+    /// 结算进行中退出（返回主菜单 / 关闭游戏）时调用：跳过全部动画，当场把结算做完并生成商店。
+    /// 返回 true 表示结算已完成且已写入"商店已就绪"存档——继续游戏时直接进入那一次商店。
+    /// 返回 false 表示无法补算（公式未填满）或补算触发了对局结束（局内存档已按胜负清空）。
+    /// </summary>
+    public bool FinishSettlementOnExit()
+    {
+        if (currentState != GameState.Calculation) return false;
+
+        // 1. 让仍在跑的结算协程就地停手（它可能正卡在某个 WaitForSeconds 里）
+        settlementAborted = true;
+        if (activeSettlementCoroutine != null)
+        {
+            StopCoroutine(activeSettlementCoroutine);
+            activeSettlementCoroutine = null;
+        }
+
+        if (cardManager == null || !IsFormulaComplete())
+        {
+            Debug.LogWarning("[结算] 退出时公式未填满，无法补算，按未结算状态存档");
+            return false;
+        }
+
+        // 2. 补上尚未执行的确定性步骤（每一步都幂等）
+        SettleDiceAndLastRoundMax(cardManager);
+
+        BigInteger baseScore;
+        long totalMultiplier;
+        BigInteger finalScore;
+        ComputeSettlementScore(cardManager, out baseScore, out totalMultiplier, out finalScore);
+
+        AddSettlementPoints(finalScore);
+        FinishSettlementAfterPoints();
+
+        // FinishSettlementAfterPoints 内部已在进入商店时落盘；此处只用状态判断结果
+        if (currentState == GameState.Shop)
+        {
+            Debug.Log("[结算] 退出时已跳过动画完成结算，并写入商店存档（继续游戏直接进商店）");
+            return true;
+        }
+
+        Debug.Log("[结算] 退出补算触发了对局结束，局内存档已按胜负清空");
+        return false;
     }
     #endregion
     /// <summary>
@@ -865,8 +1019,18 @@ public class GameManager : MonoBehaviour
 
     public void ReturnStartMenu()
     {
-        // 返回主菜单：自动保存最新局内存档（商店/游戏界面/结算动画期间各有对应口径）
-        RunSaveManager.SaveRun();
+        if (currentState == GameState.Calculation)
+        {
+            // 结算动画期间退出：当场跳过动画把结算做完、生成商店并写档。
+            // 绝不能任由结算协程继续跑——否则它会走完动画后 OpenShop 并切到商店界面，
+            // 把"新刷出来的商店"盖在主菜单上（历史缺陷）。
+            FinishSettlementOnExit();
+        }
+        else
+        {
+            // 返回主菜单：自动保存最新局内存档（商店/游戏界面各有对应口径）
+            RunSaveManager.SaveRun();
+        }
 
         //加载主菜单界面
         ChangeState(GameState.MainMenu);
@@ -880,6 +1044,13 @@ public class GameManager : MonoBehaviour
     /// </summary>
     void OnApplicationQuit()
     {
+        // 结算动画期间关闭游戏：当场跳过动画完成结算（含生成商店并写"商店已就绪"存档），
+        // 下次启动点"继续游戏"直接进入那一次商店，不再重播动画、不重抽商品。
+        if (currentState == GameState.Calculation && FinishSettlementOnExit())
+        {
+            return; // 存档已写好
+        }
+
         RunSaveManager.SaveRun();
     }
 
@@ -1037,8 +1208,10 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// 恢复游戏界面的回合中状态（点数/回合/手牌/公式卡/已放置卡牌）。
     /// 供"继续游戏"在 sceneState=0（未结算）与 sceneState=2（补完结算）时调用。
+    /// restoreSlotPlacements=false（未结算存档）：本回合抽到的全部数字卡重新在手牌区生成，
+    /// 公式槽位留空（卡牌不还原到槽位里）；true（结算检查点）：还原已填入公式的卡牌位置。
     /// </summary>
-    public void RestoreTurnUI()
+    public void RestoreTurnUI(bool restoreSlotPlacements = false)
     {
         UIManager.Instance.UpdatePointsDisplay(currentPoints);
         UIManager.Instance.UpdateRoundDisplay(currentRound);
@@ -1049,8 +1222,11 @@ public class GameManager : MonoBehaviour
         UIManager.Instance.UpdateTargetRoundDisplay(GetNextStageRound());
         UIManager.Instance.SetCardDragLocked(false);
 
-        // 已拖入公式槽位的卡牌：恢复视觉位置（数据层已在 CardManager 中恢复）
-        RunSaveManager.RestorePlacedCardsVisual();
+        // 结算检查点：已拖入公式槽位的卡牌恢复视觉位置（数据层已在 CardManager 中恢复）
+        if (restoreSlotPlacements)
+        {
+            RunSaveManager.RestorePlacedCardsVisual();
+        }
     }
 
     /// <summary>
@@ -1067,7 +1243,10 @@ public class GameManager : MonoBehaviour
             UIManager.Instance.SetCardDragLocked(true);
         }
 
-        StartCoroutine(SettlementScoreSequence(cardManager, false));
+        // 恢复的是"骰子已定格"的检查点：不再投骰，直接从确定性计算开始补完结算
+        ResetSettlementState();
+        settlementDiceSettled = true;
+        activeSettlementCoroutine = StartCoroutine(SettlementScoreSequence(cardManager, false));
     }
 
     #endregion

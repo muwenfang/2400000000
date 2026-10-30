@@ -90,6 +90,18 @@ public static class RunSaveManager
     }
 
     /// <summary>
+    /// 结算进行中退出、且已当场静默补完结算（商店已生成）时调用：
+    /// 直接写"商店界面"快照（sceneState=1）。继续游戏时也就是走商店恢复分支，
+    /// 商品、价格、售出标记全部原样保留，不会重新抽一次。
+    /// </summary>
+    public static void SaveSettledRun()
+    {
+        if (GameManager.Instance == null) return;
+        WriteFile(BuildSnapshot(1));
+        settlementCheckpoint = null;
+    }
+
+    /// <summary>
     /// 结算检查点抓取入口：由 GameManager 在 PrepareCardsForCalculation 之后调用。
     /// 此刻骰子、递增、流星/慈爱星等"结算判定"已全部完成且不可更改，
     /// 此后任何时刻退出都按"结算完成"处理（防止退出重投骰子/逃避负分结算）。
@@ -145,7 +157,15 @@ public static class RunSaveManager
         RunSaveData data = TryLoadValidated();
         if (data == null)
         {
-            Debug.Log("[RunSave] 没有可用的局内存档，无法继续游戏");
+            // 区分"没有存档"与"存档存在但校验不通过"，避免只看到一句含糊提示
+            if (!System.IO.File.Exists(SavePath))
+            {
+                Debug.Log("[RunSave] 没有局内存档文件：" + SavePath);
+            }
+            else
+            {
+                Debug.LogWarning("[RunSave] 存档存在但未通过校验，已取消继续游戏（详见上一条警告）；文件未被删除");
+            }
             return;
         }
 
@@ -164,6 +184,9 @@ public static class RunSaveManager
     /// </summary>
     private static RunSaveData BuildSnapshot(int sceneState)
     {
+        // 资产索引可能因编辑器热重载/新加载资产而失效，保存前重建一次
+        InvalidateAssetIndex();
+
         RunSaveData d = new RunSaveData();
         d.saveVersion = SaveVersion;
         d.sceneState = sceneState;
@@ -193,7 +216,7 @@ public static class RunSaveManager
 
     /// <summary>
     /// 应用存档：恢复各管理器状态并按 sceneState 恢复界面。
-    /// 返回 false 表示恢复失败（存档已作废）。
+    /// 返回 false 表示恢复失败（存档文件保留，便于修复后重试）。
     /// </summary>
     private static bool ApplyRun(RunSaveData d)
     {
@@ -228,12 +251,14 @@ public static class RunSaveManager
         GameManager.Instance.RestoreFromSave(d);
 
         // 6. 按场景状态恢复界面
+        //    必须先切面板、再重建手牌/公式卡内容——UI 面板处于未激活状态时
+        //    重建布局组会算错尺寸，卡牌视觉会挤在一起。
         switch (d.sceneState)
         {
             case 0:
-                // 游戏界面（未结算）：保留本次抽到的手牌
-                GameManager.Instance.RestoreTurnUI();
+                // 游戏界面（未结算）：本回合抽到的全部数字卡重新在手牌区生成，公式槽位留空
                 GameManager.Instance.ChangeState(GameManager.GameState.PlayerTurn);
+                GameManager.Instance.RestoreTurnUI(false);
                 break;
 
             case 1:
@@ -249,7 +274,9 @@ public static class RunSaveManager
 
             case 2:
                 // 已点击结算、动画期间退出：按"结算完成"处理 → 无动画补完结算，直接进商店
-                GameManager.Instance.RestoreTurnUI();
+                // 该状态不走 ChangeState（结算状态不切面板），需显式显示游戏面板
+                UIManager.Instance.ShowPanel(UIManager.Instance.gameUIPanel);
+                GameManager.Instance.RestoreTurnUI(true);
                 GameManager.Instance.ResumePendingSettlement();
                 break;
 
@@ -262,11 +289,15 @@ public static class RunSaveManager
         return true;
     }
 
-    /// <summary>恢复失败：作废存档并留在主菜单</summary>
+    /// <summary>
+    /// 恢复失败：保留存档文件，仅记录原因并留在主菜单。
+    /// 不再删档——校验阶段（ValidateRunSave）已经拦下篡改/损坏的存档，
+    /// 这里的失败通常是"资产缺失/管理器未就绪"这类可修复问题，
+    /// 直接删掉会连带销毁玩家的整局进度。
+    /// </summary>
     private static void Invalidate(string reason)
     {
-        Debug.LogWarning($"[RunSave] 存档无效（{reason}），已作废");
-        ClearSave();
+        Debug.LogWarning($"[RunSave] 存档恢复失败（{reason}），已保留存档文件，请检查资产配置后重试");
     }
 
     /// <summary>
@@ -339,46 +370,140 @@ public static class RunSaveManager
 
     #region 资产查找
 
+    // 存档以 ScriptableObject.name（资产文件名）作为持久化标识。
+    // 关键约束：卡库（NumberCardLibrary / FormulaCardLibrary）只用于商店抽卡，
+    // "起始牌组"里的初始卡牌并不在卡库中（例：Library/2.asset、~6~、InitialFormula），
+    // 因此资产解析必须覆盖「卡库 ∪ 起始牌组 ∪ 当前已加载的全部同类资产」，
+    // 否则初始卡牌会解析失败，导致整份存档被判定无效（历史缺陷）。
+    private static Dictionary<string, NumberCardData> numberCardIndex;
+    private static Dictionary<string, FormulaCardData> formulaCardIndex;
+
+    /// <summary>清除资产索引缓存（保存/加载前调用，确保新建或新加载的资产能被解析）</summary>
+    public static void InvalidateAssetIndex()
+    {
+        numberCardIndex = null;
+        formulaCardIndex = null;
+    }
+
     /// <summary>按资产名（SO.name）查找数字卡数据</summary>
     public static NumberCardData FindNumberCardData(string assetName)
     {
-        if (string.IsNullOrEmpty(assetName) || CardManager.Instance == null ||
-            CardManager.Instance.numberCardLibrary == null ||
-            CardManager.Instance.numberCardLibrary.allCards == null)
-        {
-            return null;
-        }
+        if (string.IsNullOrEmpty(assetName)) return null;
 
-        List<NumberCardData> cards = CardManager.Instance.numberCardLibrary.allCards;
-        for (int i = 0; i < cards.Count; i++)
-        {
-            if (cards[i] != null && cards[i].name == assetName)
-            {
-                return cards[i];
-            }
-        }
-        return null;
+        Dictionary<string, NumberCardData> index = GetNumberCardIndex();
+        if (index == null) return null;
+
+        NumberCardData data;
+        return index.TryGetValue(assetName, out data) ? data : null;
     }
 
     /// <summary>按资产名（SO.name）查找填空卡数据</summary>
     public static FormulaCardData FindFormulaCardData(string assetName)
     {
-        if (string.IsNullOrEmpty(assetName) || CardManager.Instance == null ||
-            CardManager.Instance.formulaCardLibrary == null ||
-            CardManager.Instance.formulaCardLibrary.allCards == null)
+        if (string.IsNullOrEmpty(assetName)) return null;
+
+        Dictionary<string, FormulaCardData> index = GetFormulaCardIndex();
+        if (index == null) return null;
+
+        FormulaCardData data;
+        return index.TryGetValue(assetName, out data) ? data : null;
+    }
+
+    private static Dictionary<string, NumberCardData> GetNumberCardIndex()
+    {
+        if (numberCardIndex != null) return numberCardIndex;
+
+        CardManager cm = CardManager.Instance;
+        if (cm == null) return null; // 管理器尚未就绪：暂不建缓存，下次调用再建
+
+        Dictionary<string, NumberCardData> index =
+            new Dictionary<string, NumberCardData>(StringComparer.Ordinal);
+
+        // 1. 商店卡库
+        if (cm.numberCardLibrary != null)
         {
-            return null;
+            AppendNumberCards(index, cm.numberCardLibrary.allCards);
         }
 
-        List<FormulaCardData> cards = CardManager.Instance.formulaCardLibrary.allCards;
+        // 2. 起始牌组（初始卡牌的唯一可靠来源）
+        AppendNumberCards(index, cm.starterNumberCards);
+
+        // 3. 库存自己引用的卡库（可能与 CardManager 上的是同一份，去重由 TryAdd 处理）
+        PlayerCardInventory inv = PlayerCardInventory.Instance;
+        if (inv != null && inv.numberCardLibrary != null)
+        {
+            AppendNumberCards(index, inv.numberCardLibrary.allCards);
+        }
+
+        // 4. 兜底：当前已加载的全部数字卡资产（覆盖未挂进任何列表的资产）
+        AppendNumberCards(index, Resources.FindObjectsOfTypeAll<NumberCardData>());
+
+        numberCardIndex = index;
+        return index;
+    }
+
+    private static Dictionary<string, FormulaCardData> GetFormulaCardIndex()
+    {
+        if (formulaCardIndex != null) return formulaCardIndex;
+
+        CardManager cm = CardManager.Instance;
+        if (cm == null) return null;
+
+        Dictionary<string, FormulaCardData> index =
+            new Dictionary<string, FormulaCardData>(StringComparer.Ordinal);
+
+        if (cm.formulaCardLibrary != null)
+        {
+            AppendFormulaCards(index, cm.formulaCardLibrary.allCards);
+        }
+
+        // 起始公式卡同样可能不在卡库中（例：StarterCards/InitialFormula.asset）
+        AppendFormulaCards(index, cm.starterFormulaCards);
+
+        AppendFormulaCards(index, Resources.FindObjectsOfTypeAll<FormulaCardData>());
+
+        formulaCardIndex = index;
+        return index;
+    }
+
+    private static void AppendNumberCards(Dictionary<string, NumberCardData> index,
+                                          IList<NumberCardData> cards)
+    {
+        if (index == null || cards == null) return;
+
         for (int i = 0; i < cards.Count; i++)
         {
-            if (cards[i] != null && cards[i].name == assetName)
+            NumberCardData card = cards[i];
+            if (card == null) continue;
+
+            string key = card.name;
+            if (string.IsNullOrEmpty(key)) continue; // 运行时 CreateInstance 的临时资产没有资产名
+
+            if (!index.ContainsKey(key))
             {
-                return cards[i];
+                index.Add(key, card);
             }
         }
-        return null;
+    }
+
+    private static void AppendFormulaCards(Dictionary<string, FormulaCardData> index,
+                                           IList<FormulaCardData> cards)
+    {
+        if (index == null || cards == null) return;
+
+        for (int i = 0; i < cards.Count; i++)
+        {
+            FormulaCardData card = cards[i];
+            if (card == null) continue;
+
+            string key = card.name;
+            if (string.IsNullOrEmpty(key)) continue;
+
+            if (!index.ContainsKey(key))
+            {
+                index.Add(key, card);
+            }
+        }
     }
 
     /// <summary>按 id 查找祝福数据</summary>
@@ -417,6 +542,9 @@ public static class RunSaveManager
         {
             if (!System.IO.File.Exists(SavePath)) return null;
 
+            // 说明：资产索引不在此处重建。HasValidSave 会被主菜单按钮反复查询，
+            // 每次重建要扫描全部已加载资产；索引改动只在保存时（BuildSnapshot）重建一次即可，
+            // 跨会话时静态字段本来就会随进程/域重载清空。
             string content = System.IO.File.ReadAllText(SavePath);
             string[] parts = content.Split('|');
             if (parts.Length != 3 || parts[0] != FileMagic)
@@ -534,9 +662,18 @@ public static class RunSaveManager
         if (d.numberCards.Count > 10000) return false;
         for (int i = 0; i < d.numberCards.Count; i++)
         {
-            if (FindNumberCardData(d.numberCards[i].card) == null)
+            SavedNumberCard saved = d.numberCards[i];
+            if (saved == null || FindNumberCardData(saved.card) == null)
             {
-                Debug.LogWarning($"[RunSave] 数字卡资产不存在：{d.numberCards[i].card}");
+                Debug.LogWarning($"[RunSave] 数字卡资产不存在：{(saved == null ? "<空记录>" : saved.card)}" +
+                                 "（存档按 SO.name 记录；若为新加入的初始卡，请确认它挂在 CardManager.starterNumberCards 上）");
+                return false;
+            }
+            // 骰子面数只能是 0（非骰子）或正常面数，越界值说明被改过
+            if (saved.diceSidesA < 0 || saved.diceSidesA > 1000 ||
+                saved.diceSidesB < 0 || saved.diceSidesB > 1000)
+            {
+                Debug.LogWarning("[RunSave] 骰子面数非法");
                 return false;
             }
         }
@@ -552,7 +689,8 @@ public static class RunSaveManager
         {
             if (FindFormulaCardData(d.formulaCards[i]) == null)
             {
-                Debug.LogWarning($"[RunSave] 填空卡资产不存在：{d.formulaCards[i]}");
+                Debug.LogWarning($"[RunSave] 填空卡资产不存在：{d.formulaCards[i]}" +
+                                 "（若为新加入的初始公式卡，请确认它挂在 CardManager.starterFormulaCards 上）");
                 return false;
             }
         }
@@ -574,7 +712,12 @@ public static class RunSaveManager
         }
 
         if (d.selectedSlotHandIndices == null) return false;
-        if (formula != null && d.selectedSlotHandIndices.Count != formula.RequiredCount) return false;
+        if (formula == null && d.selectedSlotHandIndices.Count > 0) return false;
+
+        // 未结算时允许"一张都还没放"（列表为空）或"放了一部分"，
+        // 只要不超过槽位总数即为合法——旧实现要求数量必须恰好等于 RequiredCount，
+        // 导致"抽完牌还没摆就退出"的存档被误判作废。
+        if (formula != null && d.selectedSlotHandIndices.Count > formula.RequiredCount) return false;
 
         HashSet<int> usedHand = new HashSet<int>();
         foreach (int slotIdx in d.selectedSlotHandIndices)
@@ -586,9 +729,11 @@ public static class RunSaveManager
             }
         }
 
-        // 结算待完成状态下必须已填满所有槽位
-        if (d.sceneState == 2 && formula != null)
+        // 结算待完成状态下必须已填满所有槽位（否则无法复算本次结算）
+        if (d.sceneState == 2)
         {
+            if (formula == null) return false;
+            if (d.selectedSlotHandIndices.Count != formula.RequiredCount) return false;
             foreach (int slotIdx in d.selectedSlotHandIndices)
             {
                 if (slotIdx < 0) return false;
@@ -617,18 +762,22 @@ public static class RunSaveManager
         if (d.shopNumberCards == null || d.shopFormulaCards == null || d.shopBlessings == null) return false;
         foreach (SavedShopNumberItem item in d.shopNumberCards)
         {
-            if (item.card != null && item.card.Length > 0 && FindNumberCardData(item.card) == null) return false;
-            if (!long.TryParse(item.price, NumberStyles.Any, CultureInfo.InvariantCulture, out _)) return false;
+            if (item == null) return false;
+            if (!string.IsNullOrEmpty(item.card) && FindNumberCardData(item.card) == null) return false;
+            if (!IsNonNegativeIntegerString(item.price)) return false;
         }
         foreach (SavedShopFormulaItem item in d.shopFormulaCards)
         {
-            if (item.card != null && item.card.Length > 0 && FindFormulaCardData(item.card) == null) return false;
-            if (!long.TryParse(item.price, NumberStyles.Any, CultureInfo.InvariantCulture, out _)) return false;
+            if (item == null) return false;
+            if (!string.IsNullOrEmpty(item.card) && FindFormulaCardData(item.card) == null) return false;
+            if (!IsNonNegativeIntegerString(item.price)) return false;
         }
         foreach (SavedShopBlessingItem item in d.shopBlessings)
         {
+            if (item == null) return false;
             if (item.blessingId != 0 && FindBlessingData(item.blessingId) == null) return false;
-            if (!long.TryParse(item.price, NumberStyles.Any, CultureInfo.InvariantCulture, out _)) return false;
+            // 祝福价格是 BigInteger（24 亿经济体系下很容易超过 long），必须按大整数解析
+            if (!IsNonNegativeIntegerString(item.price)) return false;
         }
 
         // 槽位数与解锁次数的合理性
@@ -637,6 +786,19 @@ public static class RunSaveManager
         if (d.totalRemovedNumberCards < 0 || d.totalRemovedFormulaCards < 0) return false;
 
         return true;
+    }
+
+    /// <summary>严格校验"十进制非负整数字符串"（用于价格等 BigInteger 字段）</summary>
+    private static bool IsNonNegativeIntegerString(string value)
+    {
+        if (string.IsNullOrEmpty(value)) return false;
+
+        BigInteger parsed;
+        if (!BigInteger.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out parsed))
+        {
+            return false;
+        }
+        return parsed >= BigInteger.Zero;
     }
 
     #endregion
