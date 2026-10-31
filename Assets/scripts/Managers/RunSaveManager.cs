@@ -118,7 +118,7 @@ public static class RunSaveManager
         settlementCheckpoint = null;
     }
 
-    /// <summary>开启新游戏 / 对局结束时调用：删除局内存档（新游戏自动覆盖旧档）</summary>
+    /// <summary>开启新游戏时调用：删除局内存档（普通/内卷开新局作废旧档）。对局结束不清档。</summary>
     public static void ClearSave()
     {
         settlementCheckpoint = null;

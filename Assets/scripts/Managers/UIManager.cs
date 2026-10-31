@@ -48,6 +48,20 @@ public class UIManager : MonoBehaviour
     public GameObject settingPanel; // 设置界面
     public GameObject confirmationPanel;// 确认界面
     public GameObject StaffListPanel;// 制作人员界面
+    [Tooltip("主菜单“继续游戏”按钮（Inspector 拖入）：无局内存档时自动隐藏，有存档时显示")]
+    public GameObject continueGameButton;
+
+    /// <summary>
+    /// 根据局内存档是否存在，显示/隐藏主菜单“继续游戏”按钮。
+    /// 在 ChangeState(MainMenu) 时自动调用。
+    /// </summary>
+    public void UpdateContinueGameButton()
+    {
+        if (continueGameButton == null) return;
+
+        bool hasSave = GameManager.Instance != null && GameManager.Instance.HasContinueSave();
+        continueGameButton.SetActive(hasSave);
+    }
 
     //public GameObject confirmationPanel;// 确认对话框
 

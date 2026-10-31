@@ -240,13 +240,13 @@ public class GameManager : MonoBehaviour
     public void EnterEndlessMode()
     {
         Debug.Log("进入无尽模式 - 从第61回合开始");
-        // 开新游戏：旧局内存档作废
-        RunSaveManager.ClearSave();
+        // 无尽模式延续同一局（点数/卡牌/祝福全部保留，仅回合切到61），不清局内存档：
+        // 存档只在普通/内卷开新游戏时作废。此时崩溃退出还能退回进入无尽前的存档。
         GameManager.isEndlessMode = true;
         GameManager.isInvolutionMode = false;
         currentRound = 61;
 
-        // 无尽模式入口 = 开新一局：AlwaysRefresh 祝福的出现权重统计随新局一起恢复。
+        // 无尽模式入口视为开新一局：AlwaysRefresh 祝福的出现权重统计随新局一起恢复。
         // （其它入口 InitializeGame / InitializeGame_invol 走 InitializeShop 时已重置）
         if (ShopManager.Instance != null)
             ShopManager.Instance.ResetAlwaysRefreshTracking();
@@ -676,7 +676,7 @@ public class GameManager : MonoBehaviour
     /// <summary>
     /// 结算进行中退出（返回主菜单 / 关闭游戏）时调用：跳过全部动画，当场把结算做完并生成商店。
     /// 返回 true 表示结算已完成且已写入"商店已就绪"存档——继续游戏时直接进入那一次商店。
-    /// 返回 false 表示无法补算（公式未填满）或补算触发了对局结束（局内存档已按胜负清空）。
+    /// 返回 false 表示无法补算（公式未填满，调用方按未结算存档）或补算触发了对局结束（存档保持不动，只有开新游戏才作废）。
     /// </summary>
     public bool FinishSettlementOnExit()
     {
@@ -714,7 +714,7 @@ public class GameManager : MonoBehaviour
             return true;
         }
 
-        Debug.Log("[结算] 退出补算触发了对局结束，局内存档已按胜负清空");
+        Debug.Log("[结算] 退出补算触发了对局结束：存档保持不动（只有开新游戏才作废）");
         return false;
     }
     #endregion
@@ -1024,11 +1024,18 @@ public class GameManager : MonoBehaviour
             // 结算动画期间退出：当场跳过动画把结算做完、生成商店并写档。
             // 绝不能任由结算协程继续跑——否则它会走完动画后 OpenShop 并切到商店界面，
             // 把"新刷出来的商店"盖在主菜单上（历史缺陷）。
-            FinishSettlementOnExit();
+            bool settledToShop = FinishSettlementOnExit();
+            // 补算触发对局结束（GameOver/GameLose）时存档保持不动；
+            // 只有公式未填满、无法补算时才按未结算状态正常存档。
+            if (!settledToShop && currentState == GameState.Calculation)
+            {
+                RunSaveManager.SaveRun();
+            }
         }
         else
         {
-            // 返回主菜单：自动保存最新局内存档（商店/游戏界面各有对应口径）
+            // 返回主菜单：自动保存最新局内存档（商店/游戏界面各有对应口径）。
+            // GameOver/GameLose 状态下 SaveRun 自身不写档（default 分支），存档保持不动。
             RunSaveManager.SaveRun();
         }
 
@@ -1051,13 +1058,15 @@ public class GameManager : MonoBehaviour
             return; // 存档已写好
         }
 
+        // 补算触发对局结束 / 已处于 GameOver·GameLose 时，
+        // SaveRun 的 default 分支不写档——存档保持不动，只有开新游戏才作废。
         RunSaveManager.SaveRun();
     }
 
     void WinGame(bool isWin)
     {
-        // 对局结束（无论胜负）：局内进度存档作废，历史纪录由 DataSavingManager 落盘
-        RunSaveManager.ClearSave();
+        // 对局结束不清局内存档：存档只在开新游戏时作废（用户约定）。
+        // 历史纪录由 DataSavingManager 落盘，与局内存档相互独立。
 
         if (isWin)
         {
@@ -1132,6 +1141,8 @@ public class GameManager : MonoBehaviour
 
             case GameState.MainMenu:
                 UIManager.Instance.ShowPanel(UIManager.Instance.startMenuPanel);
+                // 按局内存档是否存在，显示/隐藏“继续游戏”按钮
+                UIManager.Instance.UpdateContinueGameButton();
                 Debug.Log("进入主菜单界面");
                 break;
 

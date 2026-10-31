@@ -36,7 +36,7 @@
 - EnterEndlessMode 只设标记+round=61，不做初始化。
 
 ## 局内存档（2026-10-25 建）
-- `Data/RunSaveData.cs`（DTO）+ `Managers/RunSaveManager.cs`（静态类，无需挂场景）。与 SavingData（历史纪录）独立。存档 persistentDataPath/runsave.dat，单档，新游戏自动覆盖（ClearSave 挂在三个开新局入口 + WinGame）。
+- `Data/RunSaveData.cs`（DTO）+ `Managers/RunSaveManager.cs`（静态类，无需挂场景）。与 SavingData（历史纪录）独立。存档 persistentDataPath/runsave.dat，单档。**清档只在普通/内卷开新游戏入口（用户约定 2026-10-31）：胜负（WinGame）与无尽模式入口都不清档**；SaveRun 对 MainMenu/GameOver/GameLose 是 default 不写档，所以对局结束后存档原样保留。
 - 保存时机：ReturnStartMenu + OnApplicationQuit 自动存；sceneState 0=未结算保留手牌 1=商店保留本次商品 2=结算动画期间退出。
 - 结算检查点：CalculateProcessSequence 在 PrepareCardsForCalculation（骰子定格）后 `CaptureSettlementCheckpoint`；继续游戏走 `GameManager.ResumePendingSettlement` → `SettlementScoreSequence(cardManager,false)` 无动画补完结算（与正常结算同一确定性计算，防重投骰子/逃避负分）。StartPlayerTurn 清检查点。结算协程已重构为 CalculateProcessSequence / SettlementScoreSequence / ShowScoreStepByStep(带 playSettleAnimation 参数)。
 - 恢复：各管理器 CaptureToSave/RestoreFromSave；商店恢复直接填列表（hc_check 守卫禁止重新抽卡）；库存恢复实例 currentA/currentB/骰子面数；祝福逐字段恢复累积值（totalMultiplierBonus 等不可重推导）+ blessingTypeCount/ownedBlessingInstance 重建。
@@ -52,7 +52,7 @@
 - 骰子定格统一入口 `SettleDiceAndLastRoundMax`（`settlementDiceSettled` 保护），内部抓结算检查点；重复调用会二次投骰/二次递增，禁止绕过。
 - 结算协程句柄存 `activeSettlementCoroutine`；协程每个等待点后必须有 `if (settlementAborted) yield break;`（StopCoroutine 只停外层，嵌套协程靠这个标记停手）。
 - 退出（`ReturnStartMenu` / `OnApplicationQuit`）若处于 Calculation → `FinishSettlementOnExit()`：置 abort + 停协程 + 当场补完结算 → 进商店 → `RunSaveManager.SaveSettledRun()`（sceneState=1）。继续游戏走商店恢复分支，商品/价格原样，**不重抽**。
-- `FinishSettlementAfterPoints` 里结算完成即落盘（每个结算点=自动存档点），且仅在 `currentState == GameState.Shop` 时写；胜负路径 `WinGame` 已 ClearSave，不能复活存档。
+- `FinishSettlementAfterPoints` 里结算完成即落盘（每个结算点=自动存档点），且仅在 `currentState == GameState.Shop` 时写；补算触发胜负时状态已切 GameOver/GameLose，不会写档，存档保持不动（WinGame 不再 ClearSave）。
 - 历史缺陷：`ReturnStartMenu` 只切面板不停协程 → 动画跑完后 `OpenShop` + `ChangeState(Shop)` 把"新抽的商店"盖在主菜单上。
 
 ## 已知数据瑕疵（未改，待确认）
