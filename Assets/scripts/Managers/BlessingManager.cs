@@ -1480,7 +1480,11 @@ public class BlessingManager : MonoBehaviour
             lastObtainedStackableBlessing = data;
         }
 
-        // 6. 触发效果
+        // 6. 图鉴：任何获得都点亮（商店购买、神灯、好事成双、空想主义…统一汇聚到此入口）
+        //    放在触发效果之前：效果内部可能递归获得其它祝福，本层记录不能被异常吞掉
+        CardCodexManager.UnlockBlessing(data);
+
+        // 7. 触发效果
         if (triggerEffect) ApplyBlessingEffect(data);
     }
 

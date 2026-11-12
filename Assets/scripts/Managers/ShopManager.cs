@@ -1427,7 +1427,7 @@ public class ShopManager : MonoBehaviour
         // 扣除点数
         GameManager.Instance.AddPoints(-item.price);
 
-        // 将卡牌添加到玩家库存
+        // 将卡牌添加到玩家库存（图鉴解锁在库存入口统一处理，见 PlayerCardInventory.AddNumberCard）
         PlayerCardInventory.Instance.AddNumberCard(item.cardData.cardData);
         Debug.Log($"成功购买数字卡：{item.cardData.cardData.cardName}，价格：{item.price}");
 
@@ -1502,7 +1502,7 @@ public class ShopManager : MonoBehaviour
         // 扣除点数
         GameManager.Instance.AddPoints(-item.price);
 
-        // 将卡牌添加到玩家库存
+        // 将卡牌添加到玩家库存（图鉴解锁在库存入口统一处理）
         PlayerCardInventory.Instance.AddFormulaCard(item.cardData);
         Debug.Log($"成功购买公式卡：{item.cardData.Name}，价格：{item.price}");
 
@@ -1544,6 +1544,8 @@ public class ShopManager : MonoBehaviour
 
         // 记录本回合已购买
         MarkBlessingAsPurchased(item.cardData.blessingId);
+
+        // 图鉴解锁在 BlessingManager.AcquireBlessing 统一处理（购买/神灯/好事成双同一入口）
 
         Debug.Log($"成功购买祝福：{item.cardData.blessingName}，价格：{item.price}");
 

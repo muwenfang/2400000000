@@ -141,7 +141,12 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
     // 添加卡牌
     // =========================
 
-    public void AddNumberCard(NumberCardData card)
+    /// <summary>
+    /// 向库存添加一张数字卡。
+    /// unlockCodex：是否点亮图鉴。默认 true（"获得即解锁"：商店购买、卡牌包、多多益善等都会点亮）；
+    /// 开新局白送的初始牌组由 CardManager.InitializeStarterDeck 传 false，不计入图鉴。
+    /// </summary>
+    public void AddNumberCard(NumberCardData card, bool unlockCodex = true)
     {
         if (card == null)
         {
@@ -159,9 +164,13 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
         NumberCardInstance instance = new NumberCardInstance(card);
         numberCards.Add(instance);
         NotifyInventoryChanged();
+
+        // 图鉴：所有"获得"通路都汇聚到此方法，因此解锁挂在库存入口最省心
+        if (unlockCodex) CardCodexManager.UnlockNumberCard(card);
     }
 
-    public void AddFormulaCard(FormulaCardData card)
+    /// <summary>向库存添加一张公式卡（unlockCodex 含义同 AddNumberCard）</summary>
+    public void AddFormulaCard(FormulaCardData card, bool unlockCodex = true)
     {
         formulaCards.Add(card);
         NotifyInventoryChanged();
@@ -169,10 +178,14 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
         // 实用主义：「任意时刻仅保留价值最高的填空卡」。
         // 所有获得填空卡的入口（商店购买、多多益善、空想主义等）都汇聚到此方法，
         // 在此强制清理可保证效果不会被任何一条获取路径绕过（此前商店购买漏掉了这一步）。
+        // 注意顺序：功能性逻辑放在图鉴记录之前，图鉴只是附加记录，不能挡在主流程前面。
         if (BlessingManager.Instance != null)
         {
             BlessingManager.Instance.ForcePragmatismCleanup();
         }
+
+        // 图鉴：与数字卡同一套口径（空想主义、多多益善、神灯等复制都会点亮）
+        if (unlockCodex) CardCodexManager.UnlockFormulaCard(card);
     }
     // =========================
     // 删除卡牌

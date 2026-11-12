@@ -1,7 +1,7 @@
 # 24亿 项目长期备忘
 
 ## 工程校验（离线编译 + 回归）
-- 校验工程 `D:\unity\hc_check`：`dotnet build` 编译 Assets/scripts/**/*.cs，Program.cs 反射调用真实方法跑回归（2026-10-25：225 项）。改完脚本必跑。
+- 校验工程 `D:\unity\hc_check`：`dotnet build` 编译 Assets/scripts/**/*.cs，Program.cs 反射调用真实方法跑回归（2026-11-07：292 项）。改完脚本必跑。
 - 可行命令（本机 NuGet 还原挂掉，禁止 --restore）：
   `cd D:\unity\hc_check && PROGRAMDATA="C:/ProgramData" APPDATA="C:/Users/Muwen/AppData/Roaming" ALLUSERSPROFILE="C:/ProgramData" dotnet build --no-restore && dotnet bin/Debug/net10.0/hc_check.dll`
 - 不要改 TargetFramework（只认 net10.0）；`dotnet msbuild`/`csc` 被拦，只能 `dotnet build`。
@@ -54,6 +54,17 @@
 - 退出（`ReturnStartMenu` / `OnApplicationQuit`）若处于 Calculation → `FinishSettlementOnExit()`：置 abort + 停协程 + 当场补完结算 → 进商店 → `RunSaveManager.SaveSettledRun()`（sceneState=1）。继续游戏走商店恢复分支，商品/价格原样，**不重抽**。
 - `FinishSettlementAfterPoints` 里结算完成即落盘（每个结算点=自动存档点），且仅在 `currentState == GameState.Shop` 时写；补算触发胜负时状态已切 GameOver/GameLose，不会写档，存档保持不动（WinGame 不再 ClearSave）。
 - 历史缺陷：`ReturnStartMenu` 只切面板不停协程 → 动画跑完后 `OpenShop` + `ChangeState(Shop)` 把"新抽的商店"盖在主菜单上。
+
+## 图鉴（2026-11-07 建，11-08 改为"获得即解锁 + 独立存档"）
+- 解锁口径（用户定案 2026-11-08）：**获得即解锁**。唯一入口 = `PlayerCardInventory.AddNumberCard/AddFormulaCard`（含卡牌包、多多益善、空想主义、神灯复制、商店购买）与 `BlessingManager.AcquireBlessing`（含神灯、好事成双）。商店三个 TryBuy* 不再自己调 Unlock（避免双重写盘）。
+- **初始牌组豁免**：`CardManager.InitializeStarterDeck` 调 Add* 时传 `unlockCodex: false`，白送起手牌不点亮图鉴（起始 6 张数字卡 + InitialFormula 本来也不在卡库里，故列表里也不出现）。
+- 解锁标识：数字卡/公式卡用 **SO.name 资产名**，祝福用 blessingId。
+- 持久化 = **独立文件 `cardcodex.json`**（`Application.persistentDataPath`，`CardCodexManager.SaveFilePath`），每次解锁立即整份重写；**永不重置**：`InitializePlayerData`（设置里重置数据）不再触碰图鉴，开新局/胜负/无尽均无关。
+- `SavingData.unlocked*` 三张表降级为**旧版迁移源**：仅当 cardcodex.json 不存在时读一次 (`CardCodexProgress.FromLegacy`)，迁移后清空旧字段并落盘。文件损坏 → 备份 `.bak` 再按空进度继续。
+- 图鉴只是附加记录：取资产名走 `SafeGetAssetName`（try/catch），失败就跳过解锁，绝不让图鉴异常中断"获得卡牌"主流程（历史缺陷：解锁异常曾中断 `AddFormulaCard` 里实用主义清理，导致 4 项回归失败）。因此解锁调用必须放在功能性副作用之后。
+- 展示顺序：数字卡按资产名数值（"002"→2）→ 公式卡按 FormulaCardId → 祝福三组（总是刷新→本回合限购→永不刷新）组内按 blessingId。**祝福分组顺序必须显式给定**：RefreshBehavior 声明序是 Always(0)/Never(1)/Current(2)。
+- 面板 `CardCodexPanelUI` 只实例化条目预制体；条目预制体根节点挂 `CardCodexEntryUI`（cardSlot / lockImage / lockedText 全 Inspector 拖入），卡面复用 NumberCardUIFactory、formulaCardPrefab、blessingCardPrefab。
+- 进度缓存只认自己（`cachedProgress` + `InvalidateCache`），不再依赖 SavingData 对象引用。
 
 ## 已知数据瑕疵（未改，待确认）
 - 123/124 卡名都是 0^$50$（124 黄金实为 100）；118/120 都是 10$5$（120 底数实为 100）。

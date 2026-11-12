@@ -174,12 +174,13 @@ public class CardManager : MonoBehaviour
         {
             // 如果 NumberCardData 是 ScriptableObject，就不需要 Instantiate
             // 如果它是普通 class，需要 new
-            PlayerCardInventory.Instance.AddNumberCard(card);
+            // 初始牌组是白送的起手牌，不计入图鉴（unlockCodex:false）
+            PlayerCardInventory.Instance.AddNumberCard(card, unlockCodex: false);
         }
 
         foreach (var card in starterFormulaCards)
         {
-            PlayerCardInventory.Instance.AddFormulaCard(card);
+            PlayerCardInventory.Instance.AddFormulaCard(card, unlockCodex: false);
         }
         numberCardDeck = new List<NumberCardData>(starterNumberCards);
         formulaCardDeck = new List<FormulaCardData>(starterFormulaCards);

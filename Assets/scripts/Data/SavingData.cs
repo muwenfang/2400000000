@@ -65,6 +65,18 @@ public class SavingData
         /// 通关最高难度时对应的点数（普通模式结束时）
         public string MaxDifficultyPoints = "0";
 
+    [Header("=============== 图鉴旧版字段（仅用于一次性迁移） ===============")]
+    // 图鉴现在存在独立文件 cardcodex.json（永不重置），这里的三张表只在
+    // "cardcodex.json 尚不存在"时被 CardCodexManager 读取一次做迁移，之后不再写入。
+    /// 已解锁的数字卡（ScriptableObject.name / 资产名）
+    public List<string> unlockedNumberCards = new List<string>();
+
+    /// 已解锁的公式卡（资产名）
+    public List<string> unlockedFormulaCards = new List<string>();
+
+    /// 已解锁的祝福（blessingId）
+    public List<int> unlockedBlessings = new List<int>();
+
     [Header("=============== 设置数据 ===============")]
     /// 商店数字卡价格难度倍率（1.0x - 10.0x，每次 0.5x）
     public float numberCardPriceDifficultyMultiplier = 1f;

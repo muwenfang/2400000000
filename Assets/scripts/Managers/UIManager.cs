@@ -48,6 +48,8 @@ public class UIManager : MonoBehaviour
     public GameObject settingPanel; // 设置界面
     public GameObject confirmationPanel;// 确认界面
     public GameObject StaffListPanel;// 制作人员界面
+    [Tooltip("图鉴面板（面板根节点挂 CardCodexPanelUI，由你在 Inspector 拖入）")]
+    public GameObject collectionPanel;
     [Tooltip("主菜单“继续游戏”按钮（Inspector 拖入）：无局内存档时自动隐藏，有存档时显示")]
     public GameObject continueGameButton;
 
@@ -180,6 +182,7 @@ public class UIManager : MonoBehaviour
         if(settingPanel != null) settingPanel.SetActive(false);
         if (confirmationPanel != null) confirmationPanel.SetActive(false);
         if (StaffListPanel != null) StaffListPanel.SetActive(false);
+        if (collectionPanel != null) collectionPanel.SetActive(false);
     }
     #region 展示卡牌库
     // 打开数字卡库
@@ -522,6 +525,35 @@ public class UIManager : MonoBehaviour
         {
             DifficultySettingsManager.Instance.Initialize();
         }
+    }
+
+    /// <summary>
+    /// 打开图鉴。作为覆盖层置顶显示，关闭后回到原界面（不隐藏主菜单/游戏界面）。
+    /// 按钮在 Inspector 里直接绑这个方法即可。
+    /// </summary>
+    public void OpenCollection()
+    {
+        if (collectionPanel == null)
+        {
+            Debug.LogWarning("[图鉴] UIManager.collectionPanel 未在 Inspector 中拖入。");
+            return;
+        }
+
+        CardCodexPanelUI view = collectionPanel.GetComponent<CardCodexPanelUI>();
+        if (view != null) view.Open();
+        else collectionPanel.SetActive(true);
+
+        collectionPanel.transform.SetAsLastSibling();
+    }
+
+    /// <summary>关闭图鉴</summary>
+    public void CloseCollection()
+    {
+        if (collectionPanel == null) return;
+
+        CardCodexPanelUI view = collectionPanel.GetComponent<CardCodexPanelUI>();
+        if (view != null) view.Close();
+        else collectionPanel.SetActive(false);
     }
     #endregion
 

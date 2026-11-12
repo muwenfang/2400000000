@@ -16,6 +16,11 @@ public class DataSavingManager : MonoBehaviour
     [Header("当前玩家数据")]
     private SavingData currentSavingData;
 
+    /// <summary>存档是否已从磁盘载入（图鉴等"即时写入"的模块会先调用 EnsureLoaded）</summary>
+    private bool isLoaded;
+
+    public bool IsLoaded { get { return isLoaded; } }
+
     // 用于显示本局数据的缓存
     private GameSessionStats currentSessionStats;
 
@@ -59,6 +64,8 @@ public class DataSavingManager : MonoBehaviour
     /// </summary>
     public void LoadData()
     {
+        EnsureSavePath();
+
         if (System.IO.File.Exists(savePath))
         {
             try
@@ -81,6 +88,36 @@ public class DataSavingManager : MonoBehaviour
         }
 
         NormalizeSettingsData();
+
+        isLoaded = true;
+
+        // 注意：图鉴（cardcodex.json）与玩家存档完全独立，玩家存档载入/重置都不影响它
+    }
+
+    /// <summary>
+    /// 确保存档已从磁盘载入。
+    /// 图鉴这类"随时可能写入"的模块在读写前调用：避免在 Start 的 LoadData 之前
+    /// 写入的数据被随后加载的旧存档覆盖。
+    /// </summary>
+    public void EnsureLoaded()
+    {
+        if (!isLoaded)
+        {
+            LoadData();
+        }
+    }
+
+    /// <summary>
+    /// 兜底初始化存档路径。
+    /// EnsureLoaded 可能在 Awake 之前被调用（面板 OnEnable 与各管理器 Awake 的执行顺序不保证），
+    /// 此时 savePath 还是空值，直接读写会拿到错误路径。
+    /// </summary>
+    private void EnsureSavePath()
+    {
+        if (string.IsNullOrEmpty(savePath))
+        {
+            savePath = Application.persistentDataPath + "/playerdata.json";
+        }
     }
 
     /// <summary>
@@ -88,6 +125,8 @@ public class DataSavingManager : MonoBehaviour
     /// </summary>
     private void SaveDataToFile()
     {
+        EnsureSavePath();
+
         try
         {
             string json = JsonUtility.ToJson(currentSavingData, true);
@@ -99,8 +138,22 @@ public class DataSavingManager : MonoBehaviour
         }
     }
 
-    private void NormalizeSettingsData()
+    /// <summary>
+    /// 立即把当前数据写盘。
+    /// 供"图鉴解锁"这类必须即时持久化的数据使用（不等通关/退出才保存）。
+    /// </summary>
+    public void SaveNow()
     {
+        if (currentSavingData == null)
+        {
+            currentSavingData = new SavingData();
+            NormalizeSettingsData();
+        }
+
+        SaveDataToFile();
+    }
+
+    private void NormalizeSettingsData()    {
         if (currentSavingData == null)
         {
             currentSavingData = new SavingData();
@@ -454,6 +507,8 @@ public class DataSavingManager : MonoBehaviour
         currentSavingData = new SavingData();
         NormalizeSettingsData();
         SaveDataToFile();
+
+        // 这里只重置玩家数据；图鉴是永久收集进度（cardcodex.json），按设计永不重置
 
         if (DataDisplayManager.Instance != null)
         {
