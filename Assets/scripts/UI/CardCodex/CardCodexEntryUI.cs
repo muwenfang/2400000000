@@ -25,6 +25,10 @@ public class CardCodexEntryUI : MonoBehaviour
     [Tooltip("未解锁时显示的文本（内容固定为下方 lockedTextContent）")]
     public Text lockedText;
 
+    [Header("公式卡文本显示（可选，Inspector 拖入）")]
+    [Tooltip("公式卡条目专用：拖入一个 Text 后，图鉴仿照商店直接显示公式文本（如 (#+#+#)*#），不再实例化槽位式卡面。数字卡 / 祝福条目留空即可。")]
+    public Text formulaNameText;
+
     [Header("文案")]
     [Tooltip("未解锁条目的文本内容")]
     public string lockedTextContent = CardCodexManager.LockedText;
@@ -63,6 +67,12 @@ public class CardCodexEntryUI : MonoBehaviour
         if (cardSlot != null && !showCardWhenLocked)
         {
             cardSlot.gameObject.SetActive(!locked);
+        }
+
+        // 公式卡文本与挂点同一套显隐规则（文本可能不在 cardSlot 下面，单独处理）
+        if (formulaNameText != null && !showCardWhenLocked)
+        {
+            formulaNameText.gameObject.SetActive(!locked);
         }
     }
 }

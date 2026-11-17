@@ -1,59 +1,74 @@
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
 /// <summary>
 /// 图鉴面板：按固定顺序展示全部数字卡 / 公式卡 / 祝福，未解锁的条目显示上锁图标与"未解锁"。
 ///
-/// 展示顺序（由 CardCodexManager 统一给出）：
+/// 三个区域在 Inspector 里各配各的引用（互不共用）：
+///   · numberCardSection —— 数字卡区域：contentRoot / scrollRect / progressText
+///   · formulaCardSection —— 公式卡区域：contentRoot / scrollRect / progressText
+///   · blessingSection    —— 祝福区域：contentRoot / scrollRect / progressText
+/// 区域里 contentRoot 留空表示该区域不展示（面板会跳过并给出提示）。
+///
+/// 展示顺序（由 CardCodexManager 统一给出，三个区域都一样）：
 ///   数字卡（按资产编号 002→142）→ 公式卡（按 FormulaCardId）→
 ///   祝福（总是刷新 → 本回合限购 → 永不刷新，组内按 blessingId）。
 ///
-/// UI 搭建约定（面板本身不生成任何布局，全部在 Inspector 里拖）：
-///   · contentRoot       —— 卡片列表容器（Grid/Vertical Layout Group 由你配置）
-///   · 三个条目预制体     —— 每个预制体根节点挂 CardCodexEntryUI，内含"卡片挂点 + 上锁 Image + 未解锁 Text"
-///   · groupHeaderPrefab —— 可选，分组标题（根节点挂 CardCodexGroupHeaderUI）
-///   · progressText      —— 可选，"已解锁 x / y"
-///   · scrollRect        —— 可选，留空会自动往上找
+/// 每个区域的显示逻辑与改造前完全一致：
+///   清空容器 → 按顺序实例化条目 → 按解锁状态切上锁显示 → 填充卡面 → 写进度 → 复位滚动。
 ///
-/// 卡面本身复用现有卡牌预制体（数字卡按 layoutType 取、公式卡与祝福用 UIManager 上的预制体），
+/// 条目不生成任何 UI：每个预制体根节点挂 CardCodexEntryUI，内含"卡片挂点 + 上锁 Image + 未解锁 Text"。
+/// 卡面复用现有卡牌预制体（数字卡按 layoutType 取、祝福用 UIManager 上的预制体），
 /// 因此图鉴里的卡面与商店/卡组保持一致。
+/// 公式卡例外：仿照商店展示，在条目预制体里拖一个 Text 到 CardCodexEntryUI.formulaNameText，
+/// 面板直接显示公式文本（Pattern），不生成槽位式卡面。
 /// </summary>
 public class CardCodexPanelUI : MonoBehaviour
 {
-    [Header("列表容器")]
-    [Tooltip("图鉴卡片的父节点（由你在 Inspector 配置布局组）")]
-    public Transform contentRoot;
+    /// <summary>一个图鉴区域的三件引用（各自独立，互不复用）</summary>
+    [System.Serializable]
+    public class SectionRefs
+    {
+        [Tooltip("该区域的卡片父节点（由你在 Inspector 配置 Grid/Vertical Layout Group）")]
+        public Transform contentRoot;
 
-    [Tooltip("滚动区域；留空则自动向上查找 ScrollRect")]
-    public ScrollRect scrollRect;
+        [Tooltip("该区域的滚动区域；留空则自动从 contentRoot 向上查找 ScrollRect")]
+        public ScrollRect scrollRect;
+
+        [Tooltip("可选：该区域自己的进度文本，显示「已解锁 x / y」")]
+        public Text progressText;
+
+        public bool HasContent
+        {
+            get { return contentRoot != null; }
+        }
+    }
+
+    [Header("数字卡区域")]
+    public SectionRefs numberCardSection = new SectionRefs();
+
+    [Header("公式卡区域")]
+    public SectionRefs formulaCardSection = new SectionRefs();
+
+    [Header("祝福区域")]
+    public SectionRefs blessingSection = new SectionRefs();
 
     [Header("条目预制体（根节点挂 CardCodexEntryUI）")]
     public GameObject numberCardEntryPrefab;
     public GameObject formulaCardEntryPrefab;
     public GameObject blessingEntryPrefab;
 
-    [Header("分组标题预制体（可选，根节点挂 CardCodexGroupHeaderUI）")]
-    public GameObject groupHeaderPrefab;
-
-    [Header("进度文本（可选）")]
-    public Text progressText;
-
     [Header("选项")]
     [Tooltip("面板每次被打开时自动重建列表")]
     public bool rebuildOnEnable = true;
 
-    [Tooltip("在分组标题后附带解锁进度，如「数字卡 3/140」")]
-    public bool showProgressInHeader = false;
-
-    private Transform ResolvedContentRoot
-    {
-        get { return contentRoot != null ? contentRoot : transform; }
-    }
+    /// <summary>内容根节点当前不在激活状态（比如另一页签）而推迟重建的区域</summary>
+    private readonly List<SectionRefs> pendingSections = new List<SectionRefs>();
 
     private void OnEnable()
     {
-        ResolveScrollRect();
+        ResolveScrollRects();
 
         if (rebuildOnEnable)
         {
@@ -82,99 +97,210 @@ public class CardCodexPanelUI : MonoBehaviour
     }
 
     /// <summary>
-    /// 重建整个图鉴列表。
-    /// 顺序：数字卡 → 公式卡 → 祝福（三组）。
+    /// 重建全部三个区域。
+    /// 每个区域互不影响：某个区域没配 contentRoot 只会跳过该区域。
     /// </summary>
     public void Rebuild()
     {
-        Transform root = ResolvedContentRoot;
-        ClearContent(root);
+        pendingSections.Clear();
+
+        RebuildNumberCards();
+        RebuildFormulaCards();
+        RebuildBlessings();
+    }
+
+    /// <summary>
+    /// 内容容器尚未激活（页签还没打开）时，布局组算不出尺寸，先记下来，
+    /// 等它被激活的那一帧再补建，避免卡片尺寸/位置错乱。
+    /// </summary>
+    private void LateUpdate()
+    {
+        if (pendingSections.Count == 0) return;
+
+        for (int i = pendingSections.Count - 1; i >= 0; i--)
+        {
+            SectionRefs section = pendingSections[i];
+            if (section == null || !section.HasContent)
+            {
+                pendingSections.RemoveAt(i);
+                continue;
+            }
+
+            if (!section.contentRoot.gameObject.activeInHierarchy) continue;
+
+            pendingSections.RemoveAt(i);
+            RebuildSectionContent(section);
+        }
+    }
+
+    #region 三个区域
+
+    private void RebuildNumberCards()
+    {
+        if (!CheckSection(numberCardSection, numberCardEntryPrefab, "数字卡")) return;
+
+        List<NumberCardData> cards = CardCodexManager.GetOrderedNumberCards();
+        int unlockedCount = CountUnlockedNumberCards(cards);
+
+        BeginSection(numberCardSection);
+
+        if (IsSectionReady(numberCardSection))
+        {
+            for (int i = 0; i < cards.Count; i++)
+            {
+                NumberCardData card = cards[i];
+                if (card == null) continue;
+
+                bool isUnlocked = CardCodexManager.IsNumberCardUnlocked(card);
+                CardCodexEntryUI entry = CreateEntry(numberCardEntryPrefab, isUnlocked, numberCardSection.contentRoot);
+                if (entry == null) continue;
+
+                if (isUnlocked || entry.showCardWhenLocked)
+                {
+                    FillNumberCard(entry, card);
+                }
+            }
+        }
+
+        EndSection(numberCardSection, unlockedCount, cards.Count);
+    }
+
+    private void RebuildFormulaCards()
+    {
+        if (!CheckSection(formulaCardSection, formulaCardEntryPrefab, "公式卡")) return;
+
+        List<FormulaCardData> cards = CardCodexManager.GetOrderedFormulaCards();
+        int unlockedCount = CountUnlockedFormulaCards(cards);
+
+        BeginSection(formulaCardSection);
+
+        if (IsSectionReady(formulaCardSection))
+        {
+            for (int i = 0; i < cards.Count; i++)
+            {
+                FormulaCardData card = cards[i];
+                if (card == null) continue;
+
+                bool isUnlocked = CardCodexManager.IsFormulaCardUnlocked(card);
+                CardCodexEntryUI entry = CreateEntry(formulaCardEntryPrefab, isUnlocked, formulaCardSection.contentRoot);
+                if (entry == null) continue;
+
+                if (isUnlocked || entry.showCardWhenLocked)
+                {
+                    FillFormulaCard(entry, card);
+                }
+            }
+        }
+
+        EndSection(formulaCardSection, unlockedCount, cards.Count);
+    }
+
+    private void RebuildBlessings()
+    {
+        if (!CheckSection(blessingSection, blessingEntryPrefab, "祝福")) return;
+
+        List<CardCodexManager.BlessingGroupData> groups = CardCodexManager.GetOrderedBlessingGroups();
 
         int unlocked = 0;
         int total = 0;
-
-        // ---------- 1. 数字卡 ----------
-        List<NumberCardData> numberCards = CardCodexManager.GetOrderedNumberCards();
-        int numberUnlocked = CountUnlockedNumberCards(numberCards);
-        AddHeader("数字卡", numberUnlocked, numberCards.Count);
-
-        for (int i = 0; i < numberCards.Count; i++)
-        {
-            NumberCardData card = numberCards[i];
-            if (card == null) continue;
-
-            bool isUnlocked = CardCodexManager.IsNumberCardUnlocked(card);
-            CardCodexEntryUI entry = CreateEntry(numberCardEntryPrefab, isUnlocked);
-            if (entry == null) continue;
-
-            if (isUnlocked || entry.showCardWhenLocked)
-            {
-                FillNumberCard(entry, card);
-            }
-        }
-
-        unlocked += numberUnlocked;
-        total += numberCards.Count;
-
-        // ---------- 2. 公式卡 ----------
-        List<FormulaCardData> formulaCards = CardCodexManager.GetOrderedFormulaCards();
-        int formulaUnlocked = CountUnlockedFormulaCards(formulaCards);
-        AddHeader("公式卡", formulaUnlocked, formulaCards.Count);
-
-        for (int i = 0; i < formulaCards.Count; i++)
-        {
-            FormulaCardData card = formulaCards[i];
-            if (card == null) continue;
-
-            bool isUnlocked = CardCodexManager.IsFormulaCardUnlocked(card);
-            CardCodexEntryUI entry = CreateEntry(formulaCardEntryPrefab, isUnlocked);
-            if (entry == null) continue;
-
-            if (isUnlocked || entry.showCardWhenLocked)
-            {
-                FillFormulaCard(entry, card);
-            }
-        }
-
-        unlocked += formulaUnlocked;
-        total += formulaCards.Count;
-
-        // ---------- 3. 祝福（总是刷新 → 本回合限购 → 永不刷新） ----------
-        List<CardCodexManager.BlessingGroupData> groups = CardCodexManager.GetOrderedBlessingGroups();
         for (int g = 0; g < groups.Count; g++)
         {
             CardCodexManager.BlessingGroupData group = groups[g];
             if (group == null || group.blessings.Count == 0) continue;
 
-            int groupUnlocked = CountUnlockedBlessings(group.blessings);
-            AddHeader("祝福 · " + group.title, groupUnlocked, group.blessings.Count);
-
-            for (int i = 0; i < group.blessings.Count; i++)
-            {
-                BlessingData blessing = group.blessings[i];
-                if (blessing == null) continue;
-
-                bool isUnlocked = CardCodexManager.IsBlessingUnlocked(blessing);
-                CardCodexEntryUI entry = CreateEntry(blessingEntryPrefab, isUnlocked);
-                if (entry == null) continue;
-
-                if (isUnlocked || entry.showCardWhenLocked)
-                {
-                    FillBlessing(entry, blessing);
-                }
-            }
-
-            unlocked += groupUnlocked;
+            unlocked += CountUnlockedBlessings(group.blessings);
             total += group.blessings.Count;
         }
 
-        UpdateProgressText(unlocked, total);
-        RebuildLayout();
+        BeginSection(blessingSection);
+
+        if (IsSectionReady(blessingSection))
+        {
+            // 顺序：总是刷新 → 本回合限购 → 永不刷新（组内按 blessingId）
+            for (int g = 0; g < groups.Count; g++)
+            {
+                CardCodexManager.BlessingGroupData group = groups[g];
+                if (group == null || group.blessings.Count == 0) continue;
+
+                for (int i = 0; i < group.blessings.Count; i++)
+                {
+                    BlessingData blessing = group.blessings[i];
+                    if (blessing == null) continue;
+
+                    bool isUnlocked = CardCodexManager.IsBlessingUnlocked(blessing);
+                    CardCodexEntryUI entry = CreateEntry(blessingEntryPrefab, isUnlocked, blessingSection.contentRoot);
+                    if (entry == null) continue;
+
+                    if (isUnlocked || entry.showCardWhenLocked)
+                    {
+                        FillBlessing(entry, blessing);
+                    }
+                }
+            }
+        }
+
+        EndSection(blessingSection, unlocked, total);
     }
+
+    /// <summary>某区域被推迟重建时（容器未激活），激活后补建的实际入口</summary>
+    private void RebuildSectionContent(SectionRefs section)
+    {
+        if (section == numberCardSection) RebuildNumberCards();
+        else if (section == formulaCardSection) RebuildFormulaCards();
+        else if (section == blessingSection) RebuildBlessings();
+    }
+
+    #endregion
+
+    #region 区域通用流程
+
+    private bool CheckSection(SectionRefs section, GameObject entryPrefab, string label)
+    {
+        if (section != null && section.HasContent) return true;
+
+        // 引用和预制体都没配 = 这个区域本来就不使用（比如三个页签各挂一个面板组件），静默跳过
+        if (entryPrefab == null) return false;
+
+        Debug.LogWarning($"[图鉴] {label}区域的 contentRoot 未配置，该区域不展示。请在 Inspector 把容器拖到对应区域的 Content Root。");
+        return false;
+    }
+
+    /// <summary>清空容器（或标记为"等容器激活后重建"）</summary>
+    private void BeginSection(SectionRefs section)
+    {
+        ClearContent(section.contentRoot);
+
+        if (section.contentRoot.gameObject.activeInHierarchy) return;
+
+        if (!pendingSections.Contains(section)) pendingSections.Add(section);
+    }
+
+    private bool IsSectionReady(SectionRefs section)
+    {
+        return section.contentRoot.gameObject.activeInHierarchy;
+    }
+
+    /// <summary>写该区域自己的进度文本，并复位该区域的滚动位置（容器未激活时只写文本，布局等激活后再算）</summary>
+    private void EndSection(SectionRefs section, int unlocked, int total)
+    {
+        if (section == null) return;
+
+        if (section.progressText != null)
+        {
+            section.progressText.text = $"已解锁 {unlocked} / {total}";
+        }
+
+        if (section.HasContent && section.contentRoot.gameObject.activeInHierarchy)
+        {
+            RebuildLayout(section);
+        }
+    }
+
+    #endregion
 
     #region 条目创建与填充
 
-    private CardCodexEntryUI CreateEntry(GameObject entryPrefab, bool isUnlocked)
+    private CardCodexEntryUI CreateEntry(GameObject entryPrefab, bool isUnlocked, Transform parent)
     {
         if (entryPrefab == null)
         {
@@ -182,7 +308,13 @@ public class CardCodexPanelUI : MonoBehaviour
             return null;
         }
 
-        GameObject go = Instantiate(entryPrefab, ResolvedContentRoot);
+        GameObject go = Instantiate(entryPrefab, parent);
+
+        // 关键：NumberCardColletction / BlessCollection 这两个条目预制体的根节点在资产里
+        // 存的是 localScale = 0（当初当模板用过），不显式置 1 的话整条条目（背景 + 上锁图标 + 文本 + 卡面）
+        // 全被缩放成 0，看起来就是"这个区域什么都没显示"。卡牌库那边（ShowMyNumberCard / ShowMyBlessings）
+        // 实例化后也有一模一样的 localScale = Vector3.one，原因相同。
+        PrepareEntryTransform(go);
 
         CardCodexEntryUI entry = go.GetComponent<CardCodexEntryUI>();
         if (entry == null) entry = go.GetComponentInChildren<CardCodexEntryUI>(true);
@@ -195,6 +327,16 @@ public class CardCodexPanelUI : MonoBehaviour
 
         entry.SetLocked(!isUnlocked);
         return entry;
+    }
+
+    /// <summary>条目实例化后的变换归一：必须显式激活并把缩放复位（预制体模板可能存成 0 缩放）</summary>
+    private static void PrepareEntryTransform(GameObject entry)
+    {
+        if (entry == null) return;
+
+        entry.SetActive(true);
+        entry.transform.localScale = Vector3.one;
+        entry.transform.localRotation = Quaternion.identity;
     }
 
     /// <summary>数字卡：按 layoutType 取对应卡牌预制体，用实例绑定（骰子显示面数、绿字/黄金取统一颜色）</summary>
@@ -212,7 +354,7 @@ public class CardCodexPanelUI : MonoBehaviour
         }
 
         GameObject card = Instantiate(prefab, entry.CardParent);
-        PrepareCardTransform(card);
+        PrepareCardTransform(card, entry.CardParent as RectTransform);
         PlayerController.SetDragEnabledForHierarchy(card, false);
 
         NumberCardLayoutView view;
@@ -225,10 +367,23 @@ public class CardCodexPanelUI : MonoBehaviour
         HideNumberCardPrice(card);
     }
 
-    /// <summary>公式卡：复用卡组界面的公式卡预制体</summary>
+    /// <summary>
+    /// 公式卡：仿照商店展示（ShopFormulaCardSlot 只显示公式文本），
+    /// 条目预制体里拖了 formulaNameText 就直接显示 Pattern，不生成槽位式卡面；
+    /// 没拖则回退为旧版的槽位式卡面，并提示补拖。
+    /// </summary>
     private void FillFormulaCard(CardCodexEntryUI entry, FormulaCardData data)
     {
         if (entry == null || data == null) return;
+
+        // 仿商店：直接显示公式文本（与 ShopFormulaCardSlot.DisplayFormulaInfo 同一字段）
+        if (entry.formulaNameText != null)
+        {
+            entry.formulaNameText.text = data.Pattern;
+            return;
+        }
+
+        Debug.LogWarning("[图鉴] 公式卡条目预制体未拖 formulaNameText，回退为槽位式卡面。请在公式卡条目预制体里加一个 Text 并拖到 CardCodexEntryUI.formulaNameText。");
 
         GameObject prefab = UIManager.Instance != null ? UIManager.Instance.formulaCardPrefab : null;
         if (prefab == null)
@@ -238,7 +393,7 @@ public class CardCodexPanelUI : MonoBehaviour
         }
 
         GameObject card = Instantiate(prefab, entry.CardParent);
-        PrepareCardTransform(card);
+        PrepareCardTransform(card, entry.CardParent as RectTransform);
         PlayerController.SetDragEnabledForHierarchy(card, false);
 
         FormulaCardUI view = card.GetComponent<FormulaCardUI>();
@@ -259,7 +414,7 @@ public class CardCodexPanelUI : MonoBehaviour
         }
 
         GameObject card = Instantiate(prefab, entry.CardParent);
-        PrepareCardTransform(card);
+        PrepareCardTransform(card, entry.CardParent as RectTransform);
         PlayerController.SetDragEnabledForHierarchy(card, false);
 
         BlessingUI view = card.GetComponent<BlessingUI>();
@@ -267,17 +422,39 @@ public class CardCodexPanelUI : MonoBehaviour
         if (view != null) view.SetBlessingData(data, 1);
     }
 
-    private static void PrepareCardTransform(GameObject card)
+    /// <summary>
+    /// 卡面实例化后的变换归一。
+    /// 卡牌库是把卡面塞进 GridLayoutGroup，由布局组给锚点/尺寸；图鉴的挂点没有布局组，
+    /// 而卡牌预制体根节点普遍是 sizeDelta 0 + 锚点(0,0) 的"空壳"（真正的图形在子物体上），
+    /// 不补尺寸的话子物体会以挂点左下角为中心偏移，严重时直接被 Mask 裁掉。
+    /// </summary>
+    private static void PrepareCardTransform(GameObject card, RectTransform slot)
     {
         if (card == null) return;
 
+        card.SetActive(true);
         card.transform.localScale = Vector3.one;
+        card.transform.localRotation = Quaternion.identity;
 
         RectTransform rect = card.transform as RectTransform;
-        if (rect != null)
+        if (rect == null) return;
+
+        // 卡面在自己的挂点里居中，避免沿用预制体在商店/手牌里的偏移
+        rect.anchorMin = new Vector2(0.5f, 0.5f);
+        rect.anchorMax = new Vector2(0.5f, 0.5f);
+        rect.pivot = new Vector2(0.5f, 0.5f);
+        rect.anchoredPosition = Vector2.zero;
+
+        // 0 尺寸的根节点用挂点尺寸兜底（相当于布局组替它做的事）
+        if (rect.sizeDelta.x < 1f || rect.sizeDelta.y < 1f)
         {
-            // 卡面在自己的挂点里居中，避免沿用预制体在商店/手牌里的偏移
-            rect.anchoredPosition = Vector2.zero;
+            float width = slot != null ? slot.rect.width : 0f;
+            float height = slot != null ? slot.rect.height : 0f;
+
+            if (width < 1f) width = rect.sizeDelta.x > 0f ? rect.sizeDelta.x : 200f;
+            if (height < 1f) height = rect.sizeDelta.y > 0f ? rect.sizeDelta.y : 280f;
+
+            rect.sizeDelta = new Vector2(width, height);
         }
     }
 
@@ -301,30 +478,7 @@ public class CardCodexPanelUI : MonoBehaviour
 
     #endregion
 
-    #region 标题 / 进度 / 布局
-
-    private void AddHeader(string title, int unlocked, int total)
-    {
-        if (groupHeaderPrefab == null) return;
-
-        GameObject go = Instantiate(groupHeaderPrefab, ResolvedContentRoot);
-        CardCodexGroupHeaderUI header = go.GetComponent<CardCodexGroupHeaderUI>();
-        if (header == null) header = go.GetComponentInChildren<CardCodexGroupHeaderUI>(true);
-
-        if (header == null)
-        {
-            Debug.LogWarning($"[图鉴] 分组标题预制体「{groupHeaderPrefab.name}」没有 CardCodexGroupHeaderUI。");
-        }
-
-        string text = showProgressInHeader ? $"{title}  {unlocked}/{total}" : title;
-        if (header != null) header.SetTitle(text);
-    }
-
-    private void UpdateProgressText(int unlocked, int total)
-    {
-        if (progressText == null) return;
-        progressText.text = $"已解锁 {unlocked} / {total}";
-    }
+    #region 布局 / 清理
 
     private void ClearContent(Transform root)
     {
@@ -340,35 +494,43 @@ public class CardCodexPanelUI : MonoBehaviour
         }
     }
 
-    private void ResolveScrollRect()
+    private void ResolveScrollRects()
     {
-        if (scrollRect != null) return;
-
-        scrollRect = GetComponent<ScrollRect>();
-        if (scrollRect == null) scrollRect = GetComponentInParent<ScrollRect>();
-        if (scrollRect == null && contentRoot != null)
-            scrollRect = contentRoot.GetComponentInParent<ScrollRect>();
+        ResolveScrollRect(numberCardSection);
+        ResolveScrollRect(formulaCardSection);
+        ResolveScrollRect(blessingSection);
     }
 
-    private void RebuildLayout()
+    private static void ResolveScrollRect(SectionRefs section)
     {
-        Transform root = ResolvedContentRoot;
-        RectTransform rect = root as RectTransform;
-        if (rect != null)
+        if (section == null || !section.HasContent) return;
+
+        if (section.scrollRect == null)
         {
-            LayoutRebuilder.ForceRebuildLayoutImmediate(rect);
+            section.scrollRect = section.contentRoot.GetComponentInParent<ScrollRect>();
+        }
+    }
+
+    private void RebuildLayout(SectionRefs section)
+    {
+        if (section == null || !section.HasContent) return;
+
+        RectTransform content = section.contentRoot as RectTransform;
+        if (content != null)
+        {
+            LayoutRebuilder.ForceRebuildLayoutImmediate(content);
         }
 
-        if (scrollRect != null)
+        if (section.scrollRect != null)
         {
-            RectTransform scrollRectTransform = scrollRect.transform as RectTransform;
+            RectTransform scrollRectTransform = section.scrollRect.transform as RectTransform;
             if (scrollRectTransform != null)
             {
                 LayoutRebuilder.ForceRebuildLayoutImmediate(scrollRectTransform);
             }
 
-            // 每次打开都从顶部开始
-            scrollRect.verticalNormalizedPosition = 1f;
+            // 每次打开都从顶部开始（各区域各管各的滚动位置）
+            section.scrollRect.verticalNormalizedPosition = 1f;
         }
     }
 

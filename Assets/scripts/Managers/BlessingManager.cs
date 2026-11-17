@@ -50,6 +50,7 @@ public class BlessingManager : MonoBehaviour
     public int darkBoxPurchaseCount = 0;                // 暗箱操作购买次数
     public int pureVesselPendingCharges = 0;            // 纯粹容器待生效层数（获得 +1、被下一次购买消耗 -1；实际层数以 ownedBlessings 为准）
     private BlessingData lastObtainedStackableBlessing = null; // 好事成双：上一个获得的可叠加祝福（好事成双自身不计入）
+    private BlessingData lastAcquiredBlessingForAchievement = null; // 成就"套娃"：上一个获得的祝福（任意祝福都入记录，用于连续判定）
     public bool hasLeadingCharge = false;               // 打头阵
     private bool hasGambleToWin = false;                // 是否拥有赌为赢祝福
     public int hasEnergySpread = 0;                     // 是否拥有能量扩散
@@ -209,6 +210,7 @@ public class BlessingManager : MonoBehaviour
         EightWaysToWealth = 0;              //八方来财
         pureVesselPendingCharges = 0;       //纯粹容器可替换次数
         lastObtainedStackableBlessing = null; //好事成双：上一个可叠加祝福
+        lastAcquiredBlessingForAchievement = null; //成就"套娃"：连续获得判定记录
 
         GetCurrentPriceMultiplier(); //重置折扣
 
@@ -1228,7 +1230,10 @@ public class BlessingManager : MonoBehaviour
         // 保存目标祝福
         wishCoinTargetBlessing = selectedBlessing;
         Debug.Log($"许愿币已锁定：下次商店必出【{selectedBlessing.blessingName}】");
-        
+
+        // 成就"何意味？"：使用许愿币的效果选择了许愿币自身
+        AchievementManager.OnWishCoinSelected(selectedBlessing);
+
         UIManager.Instance.CloseWishCoinBlessSelection();
     }
 
@@ -1484,6 +1489,13 @@ public class BlessingManager : MonoBehaviour
         //    放在触发效果之前：效果内部可能递归获得其它祝福，本层记录不能被异常吞掉
         CardCodexManager.UnlockBlessing(data);
 
+        // 6.5 成就：套娃（连续两次纯粹容器）/ 真·理财大师（理财大师≥50）。
+        //     与图鉴同一原则：放在触发效果之前、只做附加记录，异常绝不中断"获得祝福"主流程。
+        //     连续判定看"上一次获得的祝福"（任何祝福都入记录，包括 PureVessel 自身）。
+        AchievementManager.OnBlessingAcquired(data, lastAcquiredBlessingForAchievement,
+            GetBlessingTypeCount(BlessingData.BlessingType.FinancialMaster));
+        lastAcquiredBlessingForAchievement = data;
+
         // 7. 触发效果
         if (triggerEffect) ApplyBlessingEffect(data);
     }
@@ -1681,6 +1693,7 @@ public class BlessingManager : MonoBehaviour
         EightWaysToWealth = 0;              // 八方来财
         pureVesselPendingCharges = 0;       // 纯粹容器可替换次数
         lastObtainedStackableBlessing = null; // 好事成双：上一个可叠加祝福
+        lastAcquiredBlessingForAchievement = null; // 成就"套娃"：连续获得判定记录
 
         // 丰盈宝库被清空后，立即恢复刷新费用显示（不再显示“免费”）
         if (ShopManager.Instance != null)

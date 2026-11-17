@@ -115,12 +115,14 @@ public class GameManager : MonoBehaviour
     public void InitializeGame(int gameMode = 0)
     {
         Debug.Log("初始化游戏");
+        // 记录本局模式（此前从未赋值，胜负统计/成就判定都依赖它）
+        currentGameMode = (GameMode)gameMode;
         // 开新游戏：旧局内存档作废（存档只有一个，新游戏自动覆盖）
         RunSaveManager.ClearSave();
         // 重置本局统计数据
         ResetRoundStatistics();
 
-        currentPoints = 0;
+        currentPoints = 999999999990;
 
         currentRound = 1;
 
@@ -201,6 +203,9 @@ public class GameManager : MonoBehaviour
     public void InitializeGame_invol()
     {
         Debug.Log("初始化游戏");
+        // 记录本局模式（成就"大科研家"按本入口计数游玩次数）
+        currentGameMode = GameMode.Involution;
+        AchievementManager.RecordInvolutionPlay();
         // 开新游戏：旧局内存档作废
         RunSaveManager.ClearSave();
         ResetRoundStatistics();
@@ -271,6 +276,13 @@ public class GameManager : MonoBehaviour
         if (UIManager.Instance != null)
         {
             UIManager.Instance.SetCardDragLocked(false);
+        }
+
+        // 成就"长线运营"：普通模式下进入无尽模式并达到至少75回合。
+        // 放在回合开始处：继续游戏恢复到无尽高回合时也能补判一次。
+        if (GameManager.isEndlessMode && currentGameMode == GameMode.Normal && currentRound >= 75)
+        {
+            AchievementManager.OnEndlessRoundReached(currentRound);
         }
 
         // 阴阳祝福：每回合开始时点数取反（最优先生效，在其他所有祝福之前）
@@ -577,11 +589,8 @@ public class GameManager : MonoBehaviour
         }
 
         // 反刍祝福：通过计算获得的点数（合计倍率）为负数时记录，3回合后获得相反数
+        // （RecordRumination 内部自行校验 hasRumination 与负值）
         if (BlessingManager.Instance != null && BlessingManager.Instance.hasRumination && finalScore < 0)
-        {
-            BlessingManager.Instance.RecordRumination(finalScore);
-        }
-        
         {
             BlessingManager.Instance.RecordRumination(finalScore);
         }
@@ -1063,6 +1072,73 @@ public class GameManager : MonoBehaviour
         RunSaveManager.SaveRun();
     }
 
+    /// <summary>
+    /// 采集普通模式通关成就判定所需的瞬间状态。
+    /// 必须在 WinGame(true) 的普通模式分支里调用——此时祝福/库存还没被动过，
+    /// 进入无尽模式后再采集就晚了（数值已经继续变化）。
+    /// </summary>
+    private AchievementManager.NormalModeWinSnapshot BuildNormalModeWinSnapshot()
+    {
+        AchievementManager.NormalModeWinSnapshot snapshot = new AchievementManager.NormalModeWinSnapshot();
+
+        // 难度等级（DataSavingManager 缺失时按 0 处理，与 GetCurrentDifficultyLevel 兜底一致）
+        snapshot.difficultyLevel = DifficultySettingsManager.Instance != null
+            ? DifficultySettingsManager.Instance.GetCurrentDifficultyLevel() : 0;
+
+        // 祝福状态
+        if (blessingManager != null)
+        {
+            snapshot.totalBlessingCount = blessingManager.GetTotalBlessingCount();
+            snapshot.nihilismCount = blessingManager.nihilismCount;
+
+            // 真·暗箱操作：统计价格非正的祝福种类数。
+            // 用商店同口径的 GetEffectiveBlessingPrice（持有纯粹容器时按容器价结算），
+            // 纯粹容器自身价格被折扣压到 0 时，全部祝福的价格都非正——这正是"真·暗箱操作"的达成方式。
+            if (blessingManager.blessingLibrary != null && blessingManager.blessingLibrary.allBlessings != null)
+            {
+                float priceMultiplier = blessingManager.GetCurrentPriceMultiplier();
+                int nonPositiveCount = 0;
+                List<BlessingData> pool = blessingManager.blessingLibrary.allBlessings;
+                for (int i = 0; i < pool.Count; i++)
+                {
+                    if (pool[i] == null) continue;
+                    if (blessingManager.GetEffectiveBlessingPrice(pool[i], priceMultiplier) <= BigInteger.Zero)
+                    {
+                        nonPositiveCount++;
+                    }
+                }
+                snapshot.nonPositivePriceBlessingCount = nonPositiveCount;
+            }
+        }
+
+        // 卡牌状态
+        if (PlayerCardInventory.Instance != null)
+        {
+            snapshot.numberCardCount = PlayerCardInventory.Instance.GetNumberCardCount();
+            snapshot.allNumberCardsContainDice20 = AchievementManager.AllNumberCardsContainDice20(
+                PlayerCardInventory.Instance.numberCards);
+
+            // 真·空想主义：全部种类填空卡恰好各一张
+            // （种类 = 填空卡库 ∪ 起始填空卡，与局内存档资产解析口径一致）
+            List<FormulaCardData> allKinds = new List<FormulaCardData>();
+            if (cardManager != null)
+            {
+                if (cardManager.formulaCardLibrary != null && cardManager.formulaCardLibrary.allCards != null)
+                {
+                    allKinds.AddRange(cardManager.formulaCardLibrary.allCards);
+                }
+                if (cardManager.starterFormulaCards != null)
+                {
+                    allKinds.AddRange(cardManager.starterFormulaCards);
+                }
+            }
+            snapshot.allFormulaKindsExactlyOne = AchievementManager.HasExactlyOneOfEachFormulaKind(
+                PlayerCardInventory.Instance.formulaCards, allKinds);
+        }
+
+        return snapshot;
+    }
+
     void WinGame(bool isWin)
     {
         // 对局结束不清局内存档：存档只在开新游戏时作废（用户约定）。
@@ -1070,6 +1146,13 @@ public class GameManager : MonoBehaviour
 
         if (isWin)
         {
+            // 成就：普通模式通关统一检测（无论之后是否进入无尽模式；内卷/无尽胜利不触发）。
+            // 必须在切状态之前检测——此时祝福/库存仍是通关瞬间的状态。
+            if (!GameManager.isInvolutionMode && !GameManager.isEndlessMode)
+            {
+                AchievementManager.OnNormalModeWon(BuildNormalModeWinSnapshot());
+            }
+
             if (DataSavingManager.Instance != null)
             {
                 // 获取本局统计数据
@@ -1106,7 +1189,13 @@ public class GameManager : MonoBehaviour
             Debug.Log("游戏胜利，达到最终目标");
 
         }
-        else { 
+        else {
+            // 成就"失败乃成功之母"：只统计普通模式的失败（内卷/无尽失败不计入）
+            if (!GameManager.isInvolutionMode && !GameManager.isEndlessMode)
+            {
+                AchievementManager.RecordNormalModeFail();
+            }
+
             currentState = GameState.GameLose;
             // 显示游戏失败界面
             UIManager.Instance.ShowPanel(UIManager.Instance.loseGamePanel);

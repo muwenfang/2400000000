@@ -1014,6 +1014,9 @@ public class ShopManager : MonoBehaviour
         refreshCount++;
         shopRefreshCount++;
 
+        // 成就"真·走马观花"：一回合内（本次商店）刷新 50 次
+        AchievementManager.OnShopRefreshedInCurrentShop(shopRefreshCount);
+
         // 更新刷新费用显示
         InitializeRefreshCost();
 

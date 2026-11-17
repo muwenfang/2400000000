@@ -167,6 +167,9 @@ public class PlayerCardInventory : MonoBehaviour// 玩家卡牌库存
 
         // 图鉴：所有"获得"通路都汇聚到此方法，因此解锁挂在库存入口最省心
         if (unlockCodex) CardCodexManager.UnlockNumberCard(card);
+
+        // 成就"梦幻联动（"：获得数字卡 {114}*{514}（与图鉴同口径：白送的起始牌组不触发）
+        if (unlockCodex) AchievementManager.OnNumberCardObtained(card);
     }
 
     /// <summary>向库存添加一张公式卡（unlockCodex 含义同 AddNumberCard）</summary>
