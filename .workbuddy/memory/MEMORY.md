@@ -55,3 +55,4 @@
 - 关键口径：暗箱价格用 GetEffectiveBlessingPrice（0 价纯粹容器顶替全部祝福才能凑 30 个非正价）；空想主义种类 = FormulaCardLibrary ∪ starterFormulaCards（含 InitialFormula）每种恰 1。
 - InitializeGame 现已设置 currentGameMode（此前从未赋值）；InitializeGame_invol 计 RecordInvolutionPlay。
 - 持久化镜像 CardCodexManager：AchievementProgressData.cs（纯 C#）+ achievements.json + ioUnavailable 兜底；hc_check TestAchievements 85 项（总 393）。
+- 解锁提示（2026-11-23）：AchievementToastManager（toastPrefab+toastContainer 拖引用，队列 spawnInterval 逐条、maxVisible 背压、有 LayoutGroup 交布局组、无则 BuildStackOffsets 手工堆叠）+ AchievementToastUI（单条，仅填 nameText，弹入→停留→淡出走 unscaledTime，播完回调销毁）。
